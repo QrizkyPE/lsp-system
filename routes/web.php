@@ -1,0 +1,119 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AsesorController;
+use App\Http\Controllers\MahasiswaController;
+
+// Public routes
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+// Authentication routes
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // Skema Sertifikasi
+    Route::resource('skema', AdminController::class);
+    
+    // Unit Kompetensi
+    Route::get('/unit-kompetensi', [AdminController::class, 'unitKompetensi'])->name('unit-kompetensi');
+    Route::post('/unit-kompetensi', [AdminController::class, 'storeUnitKompetensi']);
+    Route::put('/unit-kompetensi/{id}', [AdminController::class, 'updateUnitKompetensi']);
+    Route::delete('/unit-kompetensi/{id}', [AdminController::class, 'deleteUnitKompetensi']);
+    
+    // Elemen
+    Route::get('/elemen', [AdminController::class, 'elemen'])->name('elemen');
+    Route::post('/elemen', [AdminController::class, 'storeElemen']);
+    Route::put('/elemen/{id}', [AdminController::class, 'updateElemen']);
+    Route::delete('/elemen/{id}', [AdminController::class, 'deleteElemen']);
+    
+    // Kriteria Unjuk Kerja
+    Route::get('/kriteria-unjuk-kerja', [AdminController::class, 'kriteriaUnjukKerja'])->name('kriteria-unjuk-kerja');
+    Route::post('/kriteria-unjuk-kerja', [AdminController::class, 'storeKriteriaUnjukKerja']);
+    Route::put('/kriteria-unjuk-kerja/{id}', [AdminController::class, 'updateKriteriaUnjukKerja']);
+    Route::delete('/kriteria-unjuk-kerja/{id}', [AdminController::class, 'deleteKriteriaUnjukKerja']);
+    
+    // Asesor
+    Route::get('/asesor', [AdminController::class, 'asesor'])->name('asesor');
+    Route::post('/asesor', [AdminController::class, 'storeAsesor']);
+    Route::put('/asesor/{id}', [AdminController::class, 'updateAsesor']);
+    Route::delete('/asesor/{id}', [AdminController::class, 'deleteAsesor']);
+    
+    // TUK
+    Route::get('/tuk', [AdminController::class, 'tuk'])->name('tuk');
+    Route::post('/tuk', [AdminController::class, 'storeTuk']);
+    Route::put('/tuk/{id}', [AdminController::class, 'updateTuk']);
+    Route::delete('/tuk/{id}', [AdminController::class, 'deleteTuk']);
+    
+    // Jadwal Uji
+    Route::get('/jadwal-uji', [AdminController::class, 'jadwalUji'])->name('jadwal-uji');
+    Route::post('/jadwal-uji', [AdminController::class, 'storeJadwalUji']);
+    Route::put('/jadwal-uji/{id}', [AdminController::class, 'updateJadwalUji']);
+    Route::delete('/jadwal-uji/{id}', [AdminController::class, 'deleteJadwalUji']);
+    
+    // Penugasan
+    Route::get('/penugasan', [AdminController::class, 'penugasan'])->name('penugasan');
+    Route::post('/penugasan', [AdminController::class, 'storePenugasan']);
+    Route::put('/penugasan/{id}', [AdminController::class, 'updatePenugasan']);
+    Route::delete('/penugasan/{id}', [AdminController::class, 'deletePenugasan']);
+    
+    // Pendaftaran
+    Route::get('/pendaftaran', [AdminController::class, 'pendaftaran'])->name('pendaftaran');
+    Route::put('/pendaftaran/{id}/approve', [AdminController::class, 'approvePendaftaran']);
+    Route::put('/pendaftaran/{id}/reject', [AdminController::class, 'rejectPendaftaran']);
+    
+    // Laporan
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
+    Route::get('/laporan/ak05', [AdminController::class, 'generateAK05'])->name('laporan.ak05');
+    
+    // Manage Users
+    Route::get('/users', [AdminController::class, 'manageUsers'])->name('users.index');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+});
+
+// Asesor routes
+Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+    Route::get('/dashboard', [AsesorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/penugasan', [AsesorController::class, 'penugasan'])->name('penugasan');
+    Route::get('/dokumen', [AsesorController::class, 'dokumen'])->name('dokumen');
+    Route::post('/dokumen/{id}/approve', [AsesorController::class, 'approveDokumen']);
+    Route::post('/dokumen/{id}/reject', [AsesorController::class, 'rejectDokumen']);
+    Route::get('/asesmen', [AsesorController::class, 'asesmen'])->name('asesmen');
+    Route::post('/asesmen/{id}/submit', [AsesorController::class, 'submitAsesmen']);
+});
+
+// Mahasiswa routes
+Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
+    Route::get('/dashboard', [MahasiswaController::class, 'dashboard'])->name('dashboard');
+    Route::get('/pendaftaran', [MahasiswaController::class, 'pendaftaran'])->name('pendaftaran');
+    Route::post('/pendaftaran', [MahasiswaController::class, 'storePendaftaran']);
+    
+    // Multi-step pendaftaran
+    Route::get('/pendaftaran/step1', [MahasiswaController::class, 'pendaftaranStep1'])->name('pendaftaran.step1');
+    Route::post('/pendaftaran/step1', [MahasiswaController::class, 'storePendaftaranStep1'])->name('pendaftaran.step1.store');
+    Route::get('/pendaftaran/step2', [MahasiswaController::class, 'pendaftaranStep2'])->name('pendaftaran.step2');
+    Route::post('/pendaftaran/step2', [MahasiswaController::class, 'storePendaftaranStep2'])->name('pendaftaran.step2.store');
+    Route::get('/pendaftaran/step3', [MahasiswaController::class, 'pendaftaranStep3'])->name('pendaftaran.step3');
+    Route::post('/pendaftaran/step3', [MahasiswaController::class, 'storePendaftaranStep3'])->name('pendaftaran.step3.store');
+    
+    Route::get('/jadwal', [MahasiswaController::class, 'jadwal'])->name('jadwal');
+    Route::get('/dokumen', [MahasiswaController::class, 'dokumen'])->name('dokumen');
+    Route::post('/dokumen', [MahasiswaController::class, 'storeDokumen']);
+    Route::get('/hasil', [MahasiswaController::class, 'hasil'])->name('hasil');
+    Route::post('/banding', [MahasiswaController::class, 'submitBanding'])->name('banding');
+});

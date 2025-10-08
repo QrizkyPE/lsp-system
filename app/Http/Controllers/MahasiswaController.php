@@ -1,0 +1,324 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Pendaftaran;
+use App\Models\SkemaSertifikasi;
+use App\Models\JadwalUji;
+use App\Models\Dokumen;
+
+class MahasiswaController extends Controller
+{
+    public function dashboard()
+    {
+        $user = Auth::user();
+        $totalPendaftaran = Pendaftaran::where('user_id', $user->id)->count();
+        $approvedPendaftaran = Pendaftaran::where('user_id', $user->id)->where('status', 'approved')->count();
+        $sertifikat = Pendaftaran::where('user_id', $user->id)->where('hasil_asesmen', 'kompeten')->count();
+        $pendingPendaftaran = Pendaftaran::where('user_id', $user->id)->where('status', 'pending')->count();
+        $recentPendaftaran = Pendaftaran::with('skemaSertifikasi')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('mahasiswa.dashboard', compact(
+            'totalPendaftaran',
+            'approvedPendaftaran',
+            'sertifikat',
+            'pendingPendaftaran',
+            'recentPendaftaran'
+        ));
+    }
+
+    public function pendaftaran()
+    {
+        $user = Auth::user();
+        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->paginate(10);
+        $skemas = SkemaSertifikasi::where('status', true)->get();
+        $jadwals = JadwalUji::with('skemaSertifikasi')->where('status', 'open')->get();
+        
+        return view('mahasiswa.pendaftaran', compact('pendaftaran', 'skemas', 'jadwals'));
+    }
+
+    public function pendaftaranStep1()
+    {
+        $skemas = SkemaSertifikasi::where('status', true)->get();
+        $jadwalUji = JadwalUji::with(['skemaSertifikasi', 'tuk'])
+            ->where('status', 'open')
+            ->where('kuota_terisi', '<', \DB::raw('kuota_maksimal'))
+            ->get();
+        
+        return view('mahasiswa.pendaftaran-step1', compact('skemas', 'jadwalUji'));
+    }
+
+    public function storePendaftaranStep1(Request $request)
+    {
+        $request->validate([
+            'skema_sertifikasi_id' => 'required|exists:skema_sertifikasi,id',
+            'jadwal_uji_id' => 'required|exists:jadwal_uji,id',
+            'sumber_anggaran' => 'required|string|max:255',
+            'pemberi_anggaran' => 'required|string|max:255',
+        ]);
+
+        // Check if user already registered for this jadwal
+        $existingPendaftaran = Pendaftaran::where('user_id', auth()->id())
+            ->where('jadwal_uji_id', $request->jadwal_uji_id)
+            ->first();
+
+        if ($existingPendaftaran) {
+            return redirect()->back()
+                ->with('error', 'Anda sudah terdaftar untuk jadwal ini')
+                ->withInput();
+        }
+
+        // Check quota
+        $jadwal = JadwalUji::find($request->jadwal_uji_id);
+        if ($jadwal->kuota_terisi >= $jadwal->kuota_maksimal) {
+            return redirect()->back()
+                ->with('error', 'Kuota untuk jadwal ini sudah penuh')
+                ->withInput();
+        }
+
+        // Store in session for multi-step process
+        session([
+            'pendaftaran_data' => [
+                'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+                'jadwal_uji_id' => $request->jadwal_uji_id,
+                'sumber_anggaran' => $request->sumber_anggaran,
+                'pemberi_anggaran' => $request->pemberi_anggaran,
+                'step' => 1
+            ]
+        ]);
+
+        return redirect()->route('mahasiswa.pendaftaran.step2');
+    }
+
+    public function pendaftaranStep2()
+    {
+        // Check if step 1 data exists in session
+        if (!session('pendaftaran_data') || session('pendaftaran_data.step') != 1) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+
+        return view('mahasiswa.pendaftaran-step2');
+    }
+
+    public function storePendaftaranStep2(Request $request)
+    {
+        $request->validate([
+            // Data Pribadi
+            'nama_lengkap' => 'required|string|max:255',
+            'no_ktp' => 'required|string|max:20',
+            'tempat_lahir' => 'required|string|max:255',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'kebangsaan' => 'required|string|max:255',
+            'alamat_rumah' => 'required|string',
+            'kode_pos' => 'required|string|max:10',
+            'rumah' => 'nullable|string|max:255',
+            'kantor' => 'nullable|string|max:255',
+            'no_telp' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'kualifikasi_pendidikan' => 'required|string|max:255',
+            
+            // Data Pekerjaan
+            'pekerjaan' => 'required|string|max:255',
+            'nama_institusi' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string|max:255',
+            'jabatan' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string|max:255',
+            'alamat_lembaga' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string',
+            'kode_pos_lembaga' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string|max:10',
+            'no_telp_lembaga' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string|max:20',
+            'no_fax_lembaga' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|string|max:20',
+            'email_lembaga' => 'nullable|required_unless:pekerjaan,Belum/Tidak Bekerja|email|max:255',
+        ]);
+
+        // Check if step 1 data exists in session
+        if (!session('pendaftaran_data') || session('pendaftaran_data.step') != 1) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+
+        // Update session with step 2 data
+        $pendaftaranData = session('pendaftaran_data');
+        $pendaftaranData['step'] = 2;
+        $pendaftaranData['profil_data'] = $request->all();
+        
+        session(['pendaftaran_data' => $pendaftaranData]);
+
+        return redirect()->route('mahasiswa.pendaftaran.step3');
+    }
+
+    public function pendaftaranStep3()
+    {
+        // ensure step 2 done
+        $data = session('pendaftaran_data');
+        if (!$data || ($data['step'] ?? 0) < 2) {
+            return redirect()->route('mahasiswa.pendaftaran.step2')
+                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        // Provide options to the view
+        $skemaOptions = ['KKNI', 'Okupasi', 'Klaster'];
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial',
+        ];
+        $tujuanOptions = [
+            'Sertifikasi',
+            'Pengakuan Kompetensi Terkini (PKT)',
+            'Rekognisi Pembelajaran Lampau (RPL)',
+            'Lainnya',
+        ];
+
+        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'judulOptions', 'tujuanOptions'));
+    }
+
+    public function storePendaftaranStep3(Request $request)
+    {
+        $request->validate([
+            'skema' => 'required|in:KKNI,Okupasi,Klaster',
+            'judul' => 'required|in:PENGEMBANG WEB (WEB DEVELOPER),TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI),System Analyst,Junior Web Programmer,Database Administrator,Analis Senior Hubungan Industrial',
+            'tujuan_asesmen' => 'required|in:Sertifikasi,Pengakuan Kompetensi Terkini (PKT),Rekognisi Pembelajaran Lampau (RPL),Lainnya',
+        ]);
+
+        $data = session('pendaftaran_data');
+        if (!$data || ($data['step'] ?? 0) < 2) {
+            return redirect()->route('mahasiswa.pendaftaran.step2')
+                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        $data['step'] = 3;
+        $data['sertifikasi'] = [
+            'skema' => $request->skema,
+            'judul' => $request->judul,
+            'tujuan_asesmen' => $request->tujuan_asesmen,
+            // units are derived in the view; optionally store selection
+        ];
+        session(['pendaftaran_data' => $data]);
+
+        // Next would be step 4
+        return redirect()->route('mahasiswa.pendaftaran.step4');
+    }
+
+    public function storePendaftaran(Request $request)
+    {
+        $request->validate([
+            'skema_sertifikasi_id' => 'required|exists:skema_sertifikasi,id',
+            'jadwal_uji_id' => 'required|exists:jadwal_uji,id',
+        ]);
+
+        $user = Auth::user();
+        $noPendaftaran = 'REG' . date('Ymd') . str_pad(Pendaftaran::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        Pendaftaran::create([
+            'user_id' => $user->id,
+            'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+            'jadwal_uji_id' => $request->jadwal_uji_id,
+            'no_pendaftaran' => $noPendaftaran,
+            'status' => 'pending',
+            'tanggal_pendaftaran' => now(),
+        ]);
+
+        return redirect()->route('mahasiswa.pendaftaran')
+            ->with('success', 'Pendaftaran berhasil diajukan');
+    }
+
+    public function jadwal()
+    {
+        $jadwals = JadwalUji::with(['skemaSertifikasi', 'tuk'])
+            ->where('status', 'open')
+            ->latest()
+            ->paginate(10);
+        
+        return view('mahasiswa.jadwal', compact('jadwals'));
+    }
+
+    public function dokumen()
+    {
+        $user = Auth::user();
+        $pendaftaran = Pendaftaran::with('dokumen')
+            ->where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+        
+        return view('mahasiswa.dokumen', compact('pendaftaran'));
+    }
+
+    public function storeDokumen(Request $request)
+    {
+        $request->validate([
+            'pendaftaran_id' => 'required|exists:pendaftaran,id',
+            'jenis_dokumen' => 'required|string',
+            'file' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ]);
+
+        $file = $request->file('file');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('dokumen', $fileName, 'public');
+
+        Dokumen::create([
+            'pendaftaran_id' => $request->pendaftaran_id,
+            'jenis_dokumen' => $request->jenis_dokumen,
+            'nama_dokumen' => $file->getClientOriginalName(),
+            'file_path' => $filePath,
+            'file_name' => $fileName,
+            'file_size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'status' => 'submitted',
+            'tanggal_submit' => now(),
+        ]);
+
+        return redirect()->route('mahasiswa.dokumen')
+            ->with('success', 'Dokumen berhasil diupload');
+    }
+
+    public function hasil()
+    {
+        $user = Auth::user();
+        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'dokumen'])
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['completed', 'failed'])
+            ->latest()
+            ->get();
+        
+        return view('mahasiswa.hasil', compact('pendaftaran'));
+    }
+
+    public function submitBanding(Request $request)
+    {
+        $request->validate([
+            'pendaftaran_id' => 'required|exists:pendaftaran,id',
+            'alasan_banding' => 'required|string',
+        ]);
+
+        // Create banding document (AK.04)
+        Dokumen::create([
+            'pendaftaran_id' => $request->pendaftaran_id,
+            'jenis_dokumen' => 'AK.04',
+            'nama_dokumen' => 'Banding Asesmen',
+            'file_path' => '',
+            'file_name' => '',
+            'file_size' => 0,
+            'mime_type' => 'text/plain',
+            'status' => 'submitted',
+            'data_dokumen' => ['alasan_banding' => $request->alasan_banding],
+            'tanggal_submit' => now(),
+        ]);
+
+        return redirect()->route('mahasiswa.hasil')
+            ->with('success', 'Banding berhasil diajukan');
+    }
+}
