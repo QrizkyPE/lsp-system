@@ -22,4 +22,15 @@ class UnitKompetensiJudul extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    // Relationships
+    public function elemenJudul()
+    {
+        return $this->hasMany(ElemenJudul::class, 'kode_unit', 'kode_unit');
+    }
+
+    public function kriteriaUnjukKerjaJudul()
+    {
+        return $this->hasMany(KriteriaUnjukKerjaJudul::class, 'kode_unit', 'kode_unit');
+    }
 }

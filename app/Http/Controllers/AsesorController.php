@@ -122,7 +122,10 @@ class AsesorController extends Controller
             'Analis Senior Hubungan Industrial'
         ];
         
-        return view('asesor.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions'));
+        // Data unit kompetensi per judul untuk dropdown kode unit
+        $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
+        
+        return view('asesor.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions', 'unitKompetensiJudul'));
     }
 
     public function storeElemen(Request $request)
@@ -170,7 +173,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
-            'kode_unit' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
             'nomor_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -186,7 +189,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
-            'kode_unit' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
             'nomor_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -225,7 +228,10 @@ class AsesorController extends Controller
             'Analis Senior Hubungan Industrial'
         ];
         
-        return view('asesor.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions'));
+        // Data unit kompetensi per judul untuk dropdown kode unit
+        $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
+        
+        return view('asesor.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul'));
     }
 
     public function storeKriteriaUnjukKerja(Request $request)
@@ -277,7 +283,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
-            'kode_unit' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
             'nomor_elemen' => 'required|string|max:255',
             'nomor_kriteria' => 'required|string|max:255',
             'deskripsi_kriteria' => 'required|string',
@@ -296,7 +302,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
-            'kode_unit' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
             'nomor_elemen' => 'required|string|max:255',
             'nomor_kriteria' => 'required|string|max:255',
             'deskripsi_kriteria' => 'required|string',
@@ -416,7 +422,7 @@ class AsesorController extends Controller
 
         UnitKompetensiJudul::create($request->all());
 
-        return redirect()->route('asesor.unit-kompetensi-judul')
+        return redirect()->route('asesor.unit-kompetensi')
             ->with('success', 'Unit kompetensi berhasil ditambahkan');
     }
 
@@ -432,16 +438,44 @@ class AsesorController extends Controller
         $unit = UnitKompetensiJudul::findOrFail($id);
         $unit->update($request->all());
 
-        return redirect()->route('asesor.unit-kompetensi-judul')
+        return redirect()->route('asesor.unit-kompetensi')
             ->with('success', 'Unit kompetensi berhasil diupdate');
     }
 
     public function deleteUnitKompetensiJudul($id)
     {
-        $unit = UnitKompetensiJudul::findOrFail($id);
-        $unit->delete();
+        try {
+            $unit = UnitKompetensiJudul::findOrFail($id);
+            $kodeUnit = $unit->kode_unit;
+            
+            // Hapus elemen judul yang terkait
+            ElemenJudul::where('kode_unit', $kodeUnit)->delete();
+            
+            // Hapus kriteria unjuk kerja judul yang terkait
+            KriteriaUnjukKerjaJudul::where('kode_unit', $kodeUnit)->delete();
+            
+            // Hapus unit kompetensi judul
+            $unit->delete();
 
-        return redirect()->route('asesor.unit-kompetensi-judul')
-            ->with('success', 'Unit kompetensi berhasil dihapus');
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Unit kompetensi dan data terkait berhasil dihapus'
+                ]);
+            }
+
+            return redirect()->route('asesor.unit-kompetensi')
+                ->with('success', 'Unit kompetensi dan data terkait berhasil dihapus');
+        } catch (\Exception $e) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus unit kompetensi: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->route('asesor.unit-kompetensi')
+                ->with('error', 'Gagal menghapus unit kompetensi');
+        }
     }
 }

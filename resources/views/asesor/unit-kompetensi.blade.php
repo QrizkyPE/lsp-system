@@ -102,7 +102,7 @@
         <div class="card shadow">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table id="unitJudulTable" class="table table-bordered table-hover">
                         <thead class="table-dark">
                             <tr>
                                 <th>No</th>
@@ -127,15 +127,10 @@
                                                 onclick="editUnitJudul({{ $unit->id }}, '{{ $unit->judul_sertifikasi }}', '{{ $unit->kode_unit }}', '{{ $unit->judul_unit }}', '{{ $unit->standar_kompetensi_kerja }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('asesor.unit-kompetensi-judul') }}/{{ $unit->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
-                                              style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                onclick="deleteUnitJudul({{ $unit->id }}, '{{ $unit->judul_unit }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -232,7 +227,7 @@
                 <h5 class="modal-title">Tambah Unit Kompetensi per Judul</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('asesor.unit-kompetensi-judul') }}" method="POST">
+            <form action="{{ route('asesor.unit-kompetensi-judul.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -401,13 +396,97 @@ function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
 }
 
 function editUnitJudul(id, judul, kode, nama, standar) {
-    document.getElementById('editUnitJudulForm').action = '{{ route("asesor.unit-kompetensi-judul") }}/' + id;
+    document.getElementById('editUnitJudulForm').action = '{{ url("asesor/unit-kompetensi-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
     document.getElementById('edit_kode_unit_judul').value = kode;
     document.getElementById('edit_judul_unit_judul').value = nama;
     document.getElementById('edit_standar_kompetensi_kerja').value = standar;
     
     new bootstrap.Modal(document.getElementById('editUnitJudulModal')).show();
+}
+
+function deleteUnitJudul(id, judulUnit) {
+    if (confirm('Apakah Anda yakin ingin menghapus unit "' + judulUnit + '"?')) {
+        // Show loading state
+        const deleteBtn = event.target.closest('button');
+        const originalHTML = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        deleteBtn.disabled = true;
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('_method', 'DELETE');
+        
+        // Send AJAX request
+        fetch('{{ url("asesor/unit-kompetensi-judul") }}/' + id, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove row from table
+                const row = deleteBtn.closest('tr');
+                row.remove();
+                
+                // Show success message
+                showAlert('success', data.message || 'Unit kompetensi berhasil dihapus');
+                
+                // Update row numbers
+                updateRowNumbers();
+            } else {
+                showAlert('error', data.message || 'Gagal menghapus unit kompetensi');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'Terjadi kesalahan saat menghapus unit kompetensi');
+        })
+        .finally(() => {
+            // Restore button state
+            deleteBtn.innerHTML = originalHTML;
+            deleteBtn.disabled = false;
+        });
+    }
+}
+
+function updateRowNumbers() {
+    const rows = document.querySelectorAll('#unitJudulTable tbody tr');
+    rows.forEach((row, index) => {
+        const numberCell = row.querySelector('td:first-child');
+        if (numberCell) {
+            numberCell.textContent = index + 1;
+        }
+    });
+}
+
+function showAlert(type, message) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    // Create new alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert alert at the top of the content
+    const content = document.querySelector('.container-fluid');
+    content.insertBefore(alertDiv, content.firstChild);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
 }
 </script>
 @endsection

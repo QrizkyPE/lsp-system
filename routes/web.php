@@ -96,9 +96,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     
     // Unit Kompetensi Judul (integrated into unit-kompetensi page)
-    Route::post('/unit-kompetensi-judul', [AdminController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul');
-    Route::put('/unit-kompetensi-judul/{id}', [AdminController::class, 'updateUnitKompetensiJudul']);
-    Route::delete('/unit-kompetensi-judul/{id}', [AdminController::class, 'deleteUnitKompetensiJudul']);
+    Route::post('/unit-kompetensi-judul', [AdminController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul.store');
+    Route::put('/unit-kompetensi-judul/{id}', [AdminController::class, 'updateUnitKompetensiJudul'])->name('unit-kompetensi-judul.update');
+    Route::delete('/unit-kompetensi-judul/{id}', [AdminController::class, 'deleteUnitKompetensiJudul'])->name('unit-kompetensi-judul.delete');
 });
 
 // Asesor routes
@@ -118,9 +118,9 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
         Route::delete('/unit-kompetensi/{id}', [AsesorController::class, 'deleteUnitKompetensi']);
         
         // Unit Kompetensi Judul (integrated into unit-kompetensi page)
-        Route::post('/unit-kompetensi-judul', [AsesorController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul');
-        Route::put('/unit-kompetensi-judul/{id}', [AsesorController::class, 'updateUnitKompetensiJudul']);
-        Route::delete('/unit-kompetensi-judul/{id}', [AsesorController::class, 'deleteUnitKompetensiJudul']);
+        Route::post('/unit-kompetensi-judul', [AsesorController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul.store');
+        Route::put('/unit-kompetensi-judul/{id}', [AsesorController::class, 'updateUnitKompetensiJudul'])->name('unit-kompetensi-judul.update');
+        Route::delete('/unit-kompetensi-judul/{id}', [AsesorController::class, 'deleteUnitKompetensiJudul'])->name('unit-kompetensi-judul.delete');
         
         // Elemen
         Route::get('/elemen', [AsesorController::class, 'elemen'])->name('elemen');

@@ -174,12 +174,19 @@ function renderUnitKompetensi() {
     });
 
     // Render setiap unit kompetensi
-    Object.values(unitsByKode).forEach((unit, unitIndex) => {
+    let unitIndex = 0;
+    
+    unitKompetensiData.forEach((unitRow) => {
+        const unit = unitsByKode[unitRow.kode_unit];
+        if (!unit) {
+            return; 
+        }
+        unitIndex += 1;
         html += `
             <div class="mb-4">
                 <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%; margin-bottom: 20px;">
                     <tr>
-                        <td rowspan="2" style="width: 25%; font-weight: bold;">Unit Kompetensi ${unitIndex + 1}</td>
+                        <td rowspan="2" style="width: 25%; font-weight: bold;">Unit Kompetensi ${unitIndex}</td>
                         <td style="width: 10%;">Kode</td>
                         <td style="width: 3%;">:</td>
                         <td style="width: 62%;">${unit.kode_unit}</td>
@@ -202,9 +209,15 @@ function renderUnitKompetensi() {
                     </thead>
                     <tbody>
         `;
-
-        // Render setiap elemen
-        Object.values(unit.elemen).forEach((elemen, elemenIndex) => {
+ 
+        // Render setiap elemen (sorted by nomor_elemen)
+        const elemenList = Object.values(unit.elemen).sort((a, b) => {
+            // numeric aware compare, fallback to string
+            const ax = a.nomor_elemen?.toString() || '';
+            const bx = b.nomor_elemen?.toString() || '';
+            return ax.localeCompare(bx, 'id', { numeric: true, sensitivity: 'base' });
+        });
+        elemenList.forEach((elemen, elemenIndex) => {
             html += `
                 <tr>
                     <td class="elemen-header" colspan="4">
@@ -212,14 +225,19 @@ function renderUnitKompetensi() {
                     </td>
                 </tr>
             `;
-
-            // Render setiap kriteria unjuk kerja
-            elemen.kriteria.forEach((kriteria, kriteriaIndex) => {
+ 
+            // Render setiap kriteria unjuk kerja (sorted by nomor_kriteria)
+            const kriteriaList = (elemen.kriteria || []).slice().sort((a, b) => {
+                const ax = a.nomor_kriteria?.toString() || '';
+                const bx = b.nomor_kriteria?.toString() || '';
+                return ax.localeCompare(bx, 'id', { numeric: true, sensitivity: 'base' });
+            });
+            kriteriaList.forEach((kriteria, kriteriaIndex) => {
                 const buktiFiles = buktiData.filter(b => b.kode_unit === kriteria.kode_unit);
                 const buktiHtml = buktiFiles.map(bukti => 
                     `<div class="bukti-file">${bukti.nama_file}</div>`
                 ).join('');
-
+ 
                 html += `
                     <tr>
                         <td style="padding-left: 20px;">
@@ -246,14 +264,14 @@ function renderUnitKompetensi() {
                 `;
             });
         });
-
+ 
         html += `
                     </tbody>
                 </table>
             </div>
         `;
     });
-
+ 
     container.innerHTML = html;
 
     // Add event listeners untuk checkbox mutual exclusive

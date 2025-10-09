@@ -269,8 +269,17 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
-                                   id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" required>
+                            <select class="form-control @error('kode_unit') is-invalid @enderror" 
+                                    id="kode_unit" name="kode_unit" required>
+                                <option value="">Pilih Kode Unit</option>
+                                @foreach($unitKompetensiJudul as $unit)
+                                    <option value="{{ $unit->kode_unit }}" 
+                                            data-judul="{{ $unit->judul_sertifikasi }}"
+                                            {{ old('kode_unit') == $unit->kode_unit ? 'selected' : '' }}>
+                                        {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @error('kode_unit')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -425,7 +434,15 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="edit_kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_kode_unit" name="kode_unit" required>
+                            <select class="form-control" id="edit_kode_unit" name="kode_unit" required>
+                                <option value="">Pilih Kode Unit</option>
+                                @foreach($unitKompetensiJudul as $unit)
+                                    <option value="{{ $unit->kode_unit }}" 
+                                            data-judul="{{ $unit->judul_sertifikasi }}">
+                                        {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="col-md-4 mb-3">
@@ -498,5 +515,36 @@ function editKriteriaJudul(id, judul, kodeUnit, kodeElemen, kodeKriteria, deskri
     
     new bootstrap.Modal(document.getElementById('editKriteriaJudulModal')).show();
 }
+
+// Auto-fill judul sertifikasi when kode unit is selected
+document.addEventListener('DOMContentLoaded', function() {
+    // For add form
+    const kodeUnitSelect = document.getElementById('kode_unit');
+    const judulSertifikasiSelect = document.getElementById('judul_sertifikasi');
+    
+    if (kodeUnitSelect && judulSertifikasiSelect) {
+        kodeUnitSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const judul = selectedOption.getAttribute('data-judul');
+                judulSertifikasiSelect.value = judul;
+            }
+        });
+    }
+    
+    // For edit form
+    const editKodeUnitSelect = document.getElementById('edit_kode_unit');
+    const editJudulSertifikasiSelect = document.getElementById('edit_judul_sertifikasi');
+    
+    if (editKodeUnitSelect && editJudulSertifikasiSelect) {
+        editKodeUnitSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const judul = selectedOption.getAttribute('data-judul');
+                editJudulSertifikasiSelect.value = judul;
+            }
+        });
+    }
+});
 </script>
 @endsection
