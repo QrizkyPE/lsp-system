@@ -221,7 +221,7 @@
                                 <i class="fas fa-arrow-left me-2"></i>Kembali
                             </a>
                             <button type="submit" class="btn btn-success" onclick="saveSignatureData()">
-                                Selanjutnya <i class="fas fa-arrow-right ms-2"></i>
+                                Lanjut ke Asesmen Mandiri <i class="fas fa-arrow-right ms-2"></i>
                             </button>
                         </div>
                     </form>

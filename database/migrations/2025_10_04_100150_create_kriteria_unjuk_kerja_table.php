@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('kriteria_unjuk_kerja', function (Blueprint $table) {
             $table->id();
             $table->foreignId('elemen_id')->constrained('elemen')->onDelete('cascade');
-            $table->string('kode_kriteria');
+            $table->string('nomor_kriteria');
             $table->text('deskripsi_kriteria');
             $table->string('jenis_bukti');
             $table->string('metode_asesmen');

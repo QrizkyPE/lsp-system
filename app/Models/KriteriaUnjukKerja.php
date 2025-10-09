@@ -11,7 +11,7 @@ class KriteriaUnjukKerja extends Model
     
     protected $fillable = [
         'elemen_id',
-        'kode_kriteria',
+        'nomor_kriteria',
         'deskripsi_kriteria',
         'jenis_bukti',
         'metode_asesmen',

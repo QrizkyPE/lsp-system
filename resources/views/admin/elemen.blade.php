@@ -1,31 +1,31 @@
 @extends('layouts.app')
 
-@section('title', 'Unit Kompetensi')
-@section('page-title', 'Unit Kompetensi')
+@section('title', 'Elemen')
+@section('page-title', 'Elemen')
 
 @section('content')
 <!-- Tab Navigation -->
-<ul class="nav nav-tabs mb-4" id="unitKompetensiTabs" role="tablist">
+<ul class="nav nav-tabs mb-4" id="elemenTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="unit-tab" data-bs-toggle="tab" data-bs-target="#unit" type="button" role="tab">
-            <i class="fas fa-list me-2"></i>Unit Kompetensi
+        <button class="nav-link active" id="elemen-tab" data-bs-toggle="tab" data-bs-target="#elemen" type="button" role="tab">
+            <i class="fas fa-tasks me-2"></i>Elemen
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link " id="unit-judul-tab" data-bs-toggle="tab" data-bs-target="#unit-judul" type="button" role="tab">
-            <i class="fas fa-list-alt me-2"></i>Unit Kompetensi Per Judul
+        <button class="nav-link" id="elemen-judul-tab" data-bs-toggle="tab" data-bs-target="#elemen-judul" type="button" role="tab">
+            <i class="fas fa-list-alt me-2"></i>Elemen per Judul
         </button>
     </li>
 </ul>
 
 <!-- Tab Content -->
-<div class="tab-content" id="unitKompetensiTabsContent">
-    <!-- Tab 1: Unit Kompetensi -->
-    <div class="tab-pane fade show active" id="unit" role="tabpanel">
+<div class="tab-content" id="elemenTabsContent">
+    <!-- Tab 1: Elemen -->
+    <div class="tab-pane fade show active" id="elemen" role="tabpanel">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Daftar Unit Kompetensi</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
-                <i class="fas fa-plus me-2"></i>Tambah Unit
+            <h4>Daftar Elemen</h4>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElemenModal">
+                <i class="fas fa-plus me-2"></i>Tambah Elemen
             </button>
         </div>
 
@@ -43,27 +43,29 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>No</th>
-                                <th>Kode Unit</th>
-                                <th>Nama Unit</th>
+                                <th>Nomor Elemen</th>
+                                <th>Nama Elemen</th>
+                                <th>Unit Kompetensi</th>
                                 <th>Skema Sertifikasi</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($units as $index => $unit)
+                            @forelse($elemen as $index => $item)
                             <tr>
-                                <td>{{ $units->firstItem() + $index }}</td>
-                                <td>{{ $unit->kode_unit }}</td>
-                                <td>{{ $unit->nama_unit }}</td>
-                                <td>{{ $unit->skemaSertifikasi->nama_skema }}</td>
+                                <td>{{ $elemen->firstItem() + $index }}</td>
+                                <td>{{ $item->nomor_elemen }}</td>
+                                <td>{{ $item->nama_elemen }}</td>
+                                <td>{{ $item->unitKompetensi->nama_unit }}</td>
+                                <td>{{ $item->unitKompetensi->skemaSertifikasi->nama_skema }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editUnit({{ $unit->id }}, '{{ $unit->kode_unit }}', '{{ $unit->nama_unit }}', '{{ $unit->deskripsi }}', '{{ $unit->kriteria_penilaian }}', {{ $unit->skema_sertifikasi_id }})">
+                                                onclick="editElemen({{ $item->id }}, '{{ $item->nomor_elemen }}', '{{ $item->nama_elemen }}', '{{ $item->deskripsi }}', {{ $item->unit_kompetensi_id }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('admin.unit-kompetensi') }}/{{ $unit->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
+                                        <form action="{{ route('admin.elemen') }}/{{ $item->id }}" method="POST" 
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus elemen ini?')" 
                                               style="display: inline;">
                                             @csrf
                                             @method('DELETE')
@@ -76,7 +78,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center">Tidak ada data unit kompetensi</td>
+                                <td colspan="6" class="text-center">Tidak ada data elemen</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -84,18 +86,18 @@
                 </div>
                 
                 <div class="d-flex justify-content-center">
-                    {{ $units->links() }}
+                    {{ $elemen->links() }}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tab 2: Unit Kompetensi per Judul -->
-    <div class="tab-pane fade" id="unit-judul" role="tabpanel">
+    <!-- Tab 2: Elemen per Judul -->
+    <div class="tab-pane fade" id="elemen-judul" role="tabpanel">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Daftar Unit Kompetensi Per Judul</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitJudulModal">
-                <i class="fas fa-plus me-2"></i>Tambah Unit Judul
+            <h4>Daftar Elemen per Judul Sertifikasi</h4>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElemenJudulModal">
+                <i class="fas fa-plus me-2"></i>Tambah Elemen Judul
             </button>
         </div>
 
@@ -108,27 +110,31 @@
                                 <th>No</th>
                                 <th>Judul Sertifikasi</th>
                                 <th>Kode Unit</th>
-                                <th>Judul Unit</th>
-                                <th>Standar Kompetensi Kerja</th>
+                                <th>Nomor Elemen</th>
+                                <th>Nama Elemen</th>
+                                <th>Kriteria</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($unitsJudul as $index => $unit)
+                            @forelse($elemenJudul as $index => $item)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>{{ $unit->judul_sertifikasi }}</td>
-                                <td>{{ $unit->kode_unit }}</td>
-                                <td>{{ $unit->judul_unit }}</td>
-                                <td>{{ $unit->standar_kompetensi_kerja }}</td>
+                                <td>{{ $item->judul_sertifikasi }}</td>
+                                <td>{{ $item->kode_unit }}</td>
+                                <td>{{ $item->nomor_elemen }}</td>
+                                <td>{{ $item->nama_elemen }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ $item->kriteriaUnjukKerja->count() }} kriteria</span>
+                                </td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editUnitJudul({{ $unit->id }}, '{{ $unit->judul_sertifikasi }}', '{{ $unit->kode_unit }}', '{{ $unit->judul_unit }}', '{{ $unit->standar_kompetensi_kerja }}')">
+                                                onclick="editElemenJudul({{ $item->id }}, '{{ $item->judul_sertifikasi }}', '{{ $item->kode_unit }}', '{{ $item->nomor_elemen }}', '{{ $item->nama_elemen }}', '{{ $item->deskripsi }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('admin.unit-kompetensi-judul') }}/{{ $unit->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
+                                        <form action="{{ route('admin.elemen-judul') }}/{{ $item->id }}" method="POST" 
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus elemen ini?')" 
                                               style="display: inline;">
                                             @csrf
                                             @method('DELETE')
@@ -141,7 +147,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data unit kompetensi judul</td>
+                                <td colspan="7" class="text-center">Tidak ada data elemen judul</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -150,49 +156,48 @@
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- Add Unit Modal (Original) -->
-<div class="modal fade" id="addUnitModal" tabindex="-1">
+<!-- Add Elemen Modal (Original) -->
+<div class="modal fade" id="addElemenModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Unit Kompetensi</h5>
+                <h5 class="modal-title">Tambah Elemen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('admin.unit-kompetensi') }}" method="POST">
+            <form action="{{ route('admin.elemen') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="skema_sertifikasi_id" class="form-label">Skema Sertifikasi <span class="text-danger">*</span></label>
-                        <select class="form-select @error('skema_sertifikasi_id') is-invalid @enderror" 
-                                id="skema_sertifikasi_id" name="skema_sertifikasi_id" required>
-                            <option value="">Pilih Skema Sertifikasi</option>
-                            @foreach($skemas as $skema)
-                                <option value="{{ $skema->id }}">{{ $skema->nama_skema }}</option>
+                        <label for="unit_kompetensi_id" class="form-label">Unit Kompetensi <span class="text-danger">*</span></label>
+                        <select class="form-select @error('unit_kompetensi_id') is-invalid @enderror" 
+                                id="unit_kompetensi_id" name="unit_kompetensi_id" required>
+                            <option value="">Pilih Unit Kompetensi</option>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->nama_unit }} - {{ $unit->skemaSertifikasi->nama_skema }}</option>
                             @endforeach
                         </select>
-                        @error('skema_sertifikasi_id')
+                        @error('unit_kompetensi_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
-                                   id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" required>
-                            @error('kode_unit')
+                            <label for="nomor_elemen" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nomor_elemen') is-invalid @enderror" 
+                                   id="nomor_elemen" name="nomor_elemen" value="{{ old('nomor_elemen') }}" required>
+                            @error('nomor_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="nama_unit" class="form-label">Nama Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_unit') is-invalid @enderror" 
-                                   id="nama_unit" name="nama_unit" value="{{ old('nama_unit') }}" required>
-                            @error('nama_unit')
+                            <label for="nama_elemen" class="form-label">Nama Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nama_elemen') is-invalid @enderror" 
+                                   id="nama_elemen" name="nama_elemen" value="{{ old('nama_elemen') }}" required>
+                            @error('nama_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -206,15 +211,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
-                    <div class="mb-3">
-                        <label for="kriteria_penilaian" class="form-label">Kriteria Penilaian <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('kriteria_penilaian') is-invalid @enderror" 
-                                  id="kriteria_penilaian" name="kriteria_penilaian" rows="3" required>{{ old('kriteria_penilaian') }}</textarea>
-                        @error('kriteria_penilaian')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -225,15 +221,15 @@
     </div>
 </div>
 
-<!-- Add Unit Judul Modal -->
-<div class="modal fade" id="addUnitJudulModal" tabindex="-1">
+<!-- Add Elemen Judul Modal -->
+<div class="modal fade" id="addElemenJudulModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Unit Kompetensi per Judul</h5>
+                <h5 class="modal-title">Tambah Elemen per Judul</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('admin.unit-kompetensi-judul') }}" method="POST">
+            <form action="{{ route('admin.elemen-judul') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -250,31 +246,40 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
+                               id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" required>
+                        @error('kode_unit')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="kode_unit_judul" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
-                                   id="kode_unit_judul" name="kode_unit" value="{{ old('kode_unit') }}" required>
-                            @error('kode_unit')
+                            <label for="nomor_elemen_judul" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nomor_elemen') is-invalid @enderror" 
+                                   id="nomor_elemen_judul" name="nomor_elemen" value="{{ old('nomor_elemen') }}" required>
+                            @error('nomor_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="judul_unit_judul" class="form-label">Judul Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('judul_unit') is-invalid @enderror" 
-                                   id="judul_unit_judul" name="judul_unit" value="{{ old('judul_unit') }}" required>
-                            @error('judul_unit')
+                            <label for="nama_elemen_judul" class="form-label">Nama Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nama_elemen') is-invalid @enderror" 
+                                   id="nama_elemen_judul" name="nama_elemen" value="{{ old('nama_elemen') }}" required>
+                            @error('nama_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="standar_kompetensi_kerja" class="form-label">Standar Kompetensi Kerja <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('standar_kompetensi_kerja') is-invalid @enderror" 
-                               id="standar_kompetensi_kerja" name="standar_kompetensi_kerja" value="{{ old('standar_kompetensi_kerja') }}" required>
-                        @error('standar_kompetensi_kerja')
+                        <label for="deskripsi_judul" class="form-label">Deskripsi</label>
+                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" 
+                                  id="deskripsi_judul" name="deskripsi" rows="3">{{ old('deskripsi') }}</textarea>
+                        @error('deskripsi')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -288,47 +293,42 @@
     </div>
 </div>
 
-<!-- Edit Unit Modal (Original) -->
-<div class="modal fade" id="editUnitModal" tabindex="-1">
+<!-- Edit Elemen Modal (Original) -->
+<div class="modal fade" id="editElemenModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Unit Kompetensi</h5>
+                <h5 class="modal-title">Edit Elemen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editUnitForm" method="POST">
+            <form id="editElemenForm" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="edit_skema_sertifikasi_id" class="form-label">Skema Sertifikasi <span class="text-danger">*</span></label>
-                        <select class="form-select" id="edit_skema_sertifikasi_id" name="skema_sertifikasi_id" required>
-                            @foreach($skemas as $skema)
-                                <option value="{{ $skema->id }}">{{ $skema->nama_skema }}</option>
+                        <label for="edit_unit_kompetensi_id" class="form-label">Unit Kompetensi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit_unit_kompetensi_id" name="unit_kompetensi_id" required>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->nama_unit }} - {{ $unit->skemaSertifikasi->nama_skema }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_kode_unit" name="kode_unit" required>
+                            <label for="edit_nomor_elemen" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_nomor_elemen" name="nomor_elemen" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="edit_nama_unit" class="form-label">Nama Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_nama_unit" name="nama_unit" required>
+                            <label for="edit_nama_elemen" class="form-label">Nama Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_nama_elemen" name="nama_elemen" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="edit_deskripsi" class="form-label">Deskripsi <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="edit_deskripsi" name="deskripsi" rows="3" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="edit_kriteria_penilaian" class="form-label">Kriteria Penilaian <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="edit_kriteria_penilaian" name="kriteria_penilaian" rows="3" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -340,15 +340,15 @@
     </div>
 </div>
 
-<!-- Edit Unit Judul Modal -->
-<div class="modal fade" id="editUnitJudulModal" tabindex="-1">
+<!-- Edit Elemen Judul Modal -->
+<div class="modal fade" id="editElemenJudulModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Unit Kompetensi per Judul</h5>
+                <h5 class="modal-title">Edit Elemen per Judul</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editUnitJudulForm" method="POST">
+            <form id="editElemenJudulForm" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -361,21 +361,26 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="edit_kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_kode_unit" name="kode_unit" required>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_kode_unit_judul" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_kode_unit_judul" name="kode_unit" required>
+                            <label for="edit_nomor_elemen_judul" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_nomor_elemen_judul" name="nomor_elemen" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="edit_judul_unit_judul" class="form-label">Judul Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_judul_unit_judul" name="judul_unit" required>
+                            <label for="edit_nama_elemen_judul" class="form-label">Nama Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_nama_elemen_judul" name="nama_elemen" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit_standar_kompetensi_kerja" class="form-label">Standar Kompetensi Kerja <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="edit_standar_kompetensi_kerja" name="standar_kompetensi_kerja" required>
+                        <label for="edit_deskripsi_judul" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="edit_deskripsi_judul" name="deskripsi" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -390,25 +395,25 @@
 
 @section('scripts')
 <script>
-function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
-    document.getElementById('editUnitForm').action = '{{ route("admin.unit-kompetensi") }}/' + id;
-    document.getElementById('edit_kode_unit').value = kode;
-    document.getElementById('edit_nama_unit').value = nama;
+function editElemen(id, kode, nama, deskripsi, unitId) {
+    document.getElementById('editElemenForm').action = '{{ route("admin.elemen") }}/' + id;
+    document.getElementById('edit_nomor_elemen').value = kode;
+    document.getElementById('edit_nama_elemen').value = nama;
     document.getElementById('edit_deskripsi').value = deskripsi;
-    document.getElementById('edit_kriteria_penilaian').value = kriteria;
-    document.getElementById('edit_skema_sertifikasi_id').value = skemaId;
+    document.getElementById('edit_unit_kompetensi_id').value = unitId;
     
-    new bootstrap.Modal(document.getElementById('editUnitModal')).show();
+    new bootstrap.Modal(document.getElementById('editElemenModal')).show();
 }
 
-function editUnitJudul(id, judul, kode, nama, standar) {
-    document.getElementById('editUnitJudulForm').action = '{{ route("admin.unit-kompetensi-judul") }}/' + id;
+function editElemenJudul(id, judul, kodeUnit, kodeElemen, nama, deskripsi) {
+    document.getElementById('editElemenJudulForm').action = '{{ route("admin.elemen-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
-    document.getElementById('edit_kode_unit_judul').value = kode;
-    document.getElementById('edit_judul_unit_judul').value = nama;
-    document.getElementById('edit_standar_kompetensi_kerja').value = standar;
+    document.getElementById('edit_kode_unit').value = kodeUnit;
+    document.getElementById('edit_nomor_elemen_judul').value = kodeElemen;
+    document.getElementById('edit_nama_elemen_judul').value = nama;
+    document.getElementById('edit_deskripsi_judul').value = deskripsi;
     
-    new bootstrap.Modal(document.getElementById('editUnitJudulModal')).show();
+    new bootstrap.Modal(document.getElementById('editElemenJudulModal')).show();
 }
 </script>
 @endsection

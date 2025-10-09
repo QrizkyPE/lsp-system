@@ -123,6 +123,16 @@
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.elemen') ? 'active' : '' }}" href="{{ route('asesor.elemen') }}">
+                                    <i class="fas fa-tasks me-2"></i>Elemen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.kriteria-unjuk-kerja') ? 'active' : '' }}" href="{{ route('asesor.kriteria-unjuk-kerja') }}">
+                                    <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
+                                </a>
+                            </li>
                         @elseif(auth()->user()->role === 'mahasiswa')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.dashboard') ? 'active' : '' }}" href="{{ route('mahasiswa.dashboard') }}">

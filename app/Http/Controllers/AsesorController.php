@@ -10,6 +10,10 @@ use App\Models\Pendaftaran;
 use App\Models\UnitKompetensiJudul;
 use App\Models\UnitKompetensi;
 use App\Models\SkemaSertifikasi;
+use App\Models\Elemen;
+use App\Models\ElemenJudul;
+use App\Models\KriteriaUnjukKerja;
+use App\Models\KriteriaUnjukKerjaJudul;
 
 class AsesorController extends Controller
 {
@@ -101,6 +105,222 @@ class AsesorController extends Controller
             ->with('success', 'Unit kompetensi berhasil dihapus');
     }
 
+    // Elemen
+    public function elemen()
+    {
+        $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
+        $units = UnitKompetensi::with('skemaSertifikasi')->get();
+        
+        // Data untuk tab Elemen per Judul
+        $elemenJudul = ElemenJudul::with('kriteriaUnjukKerja')->orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        
+        return view('asesor.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions'));
+    }
+
+    public function storeElemen(Request $request)
+    {
+        $request->validate([
+            'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'required|string',
+        ]);
+
+        Elemen::create($request->all());
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen berhasil ditambahkan');
+    }
+
+    public function updateElemen(Request $request, $id)
+    {
+        $request->validate([
+            'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'required|string',
+        ]);
+
+        $elemen = Elemen::findOrFail($id);
+        $elemen->update($request->all());
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen berhasil diperbarui');
+    }
+
+    public function deleteElemen($id)
+    {
+        $elemen = Elemen::findOrFail($id);
+        $elemen->delete();
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen berhasil dihapus');
+    }
+
+    // Elemen Judul CRUD
+    public function storeElemenJudul(Request $request)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        ElemenJudul::create($request->all());
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen judul berhasil ditambahkan');
+    }
+
+    public function updateElemenJudul(Request $request, $id)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $elemen = ElemenJudul::findOrFail($id);
+        $elemen->update($request->all());
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen judul berhasil diperbarui');
+    }
+
+    public function deleteElemenJudul($id)
+    {
+        $elemen = ElemenJudul::findOrFail($id);
+        $elemen->delete();
+
+        return redirect()->route('asesor.elemen')
+            ->with('success', 'Elemen judul berhasil dihapus');
+    }
+
+    // Kriteria Unjuk Kerja
+    public function kriteriaUnjukKerja()
+    {
+        $kriteria = KriteriaUnjukKerja::with('elemen.unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
+        $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->get();
+        
+        // Data untuk tab Kriteria per Judul
+        $kriteriaJudul = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->orderBy('nomor_kriteria')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        
+        return view('asesor.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions'));
+    }
+
+    public function storeKriteriaUnjukKerja(Request $request)
+    {
+        $request->validate([
+            'elemen_id' => 'required|exists:elemen,id',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        KriteriaUnjukKerja::create($request->all());
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria unjuk kerja berhasil ditambahkan');
+    }
+
+    public function updateKriteriaUnjukKerja(Request $request, $id)
+    {
+        $request->validate([
+            'elemen_id' => 'required|exists:elemen,id',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        $kriteria = KriteriaUnjukKerja::findOrFail($id);
+        $kriteria->update($request->all());
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria unjuk kerja berhasil diperbarui');
+    }
+
+    public function deleteKriteriaUnjukKerja($id)
+    {
+        $kriteria = KriteriaUnjukKerja::findOrFail($id);
+        $kriteria->delete();
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria unjuk kerja berhasil dihapus');
+    }
+
+    // Kriteria Judul CRUD
+    public function storeKriteriaJudul(Request $request)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        KriteriaUnjukKerjaJudul::create($request->all());
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil ditambahkan');
+    }
+
+    public function updateKriteriaJudul(Request $request, $id)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        $kriteria = KriteriaUnjukKerjaJudul::findOrFail($id);
+        $kriteria->update($request->all());
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil diperbarui');
+    }
+
+    public function deleteKriteriaJudul($id)
+    {
+        $kriteria = KriteriaUnjukKerjaJudul::findOrFail($id);
+        $kriteria->delete();
+
+        return redirect()->route('asesor.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil dihapus');
+    }
+
     public function penugasan()
     {
         $asesor = Auth::user()->asesor;
@@ -184,19 +404,6 @@ class AsesorController extends Controller
     }
 
     // Unit Kompetensi Judul Management
-    public function unitKompetensiJudul()
-    {
-        $units = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial'
-        ];
-        return view('asesor.unit-kompetensi-judul', compact('units', 'judulOptions'));
-    }
 
     public function storeUnitKompetensiJudul(Request $request)
     {

@@ -40,11 +40,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/elemen/{id}', [AdminController::class, 'updateElemen']);
     Route::delete('/elemen/{id}', [AdminController::class, 'deleteElemen']);
     
+    // Elemen Judul
+    Route::post('/elemen-judul', [AdminController::class, 'storeElemenJudul'])->name('elemen-judul');
+    Route::put('/elemen-judul/{id}', [AdminController::class, 'updateElemenJudul']);
+    Route::delete('/elemen-judul/{id}', [AdminController::class, 'deleteElemenJudul']);
+    
     // Kriteria Unjuk Kerja
     Route::get('/kriteria-unjuk-kerja', [AdminController::class, 'kriteriaUnjukKerja'])->name('kriteria-unjuk-kerja');
     Route::post('/kriteria-unjuk-kerja', [AdminController::class, 'storeKriteriaUnjukKerja']);
     Route::put('/kriteria-unjuk-kerja/{id}', [AdminController::class, 'updateKriteriaUnjukKerja']);
     Route::delete('/kriteria-unjuk-kerja/{id}', [AdminController::class, 'deleteKriteriaUnjukKerja']);
+    
+    // Kriteria Unjuk Kerja Judul
+    Route::post('/kriteria-judul', [AdminController::class, 'storeKriteriaJudul'])->name('kriteria-judul');
+    Route::put('/kriteria-judul/{id}', [AdminController::class, 'updateKriteriaJudul']);
+    Route::delete('/kriteria-judul/{id}', [AdminController::class, 'deleteKriteriaJudul']);
     
     // Asesor
     Route::get('/asesor', [AdminController::class, 'asesor'])->name('asesor');
@@ -85,9 +95,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     
-    // Unit Kompetensi Judul
-    Route::get('/unit-kompetensi-judul', [AdminController::class, 'unitKompetensiJudul'])->name('unit-kompetensi-judul');
-    Route::post('/unit-kompetensi-judul', [AdminController::class, 'storeUnitKompetensiJudul']);
+    // Unit Kompetensi Judul (integrated into unit-kompetensi page)
+    Route::post('/unit-kompetensi-judul', [AdminController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul');
     Route::put('/unit-kompetensi-judul/{id}', [AdminController::class, 'updateUnitKompetensiJudul']);
     Route::delete('/unit-kompetensi-judul/{id}', [AdminController::class, 'deleteUnitKompetensiJudul']);
 });
@@ -108,11 +117,32 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
         Route::put('/unit-kompetensi/{id}', [AsesorController::class, 'updateUnitKompetensi']);
         Route::delete('/unit-kompetensi/{id}', [AsesorController::class, 'deleteUnitKompetensi']);
         
-        // Unit Kompetensi Judul
-        Route::get('/unit-kompetensi-judul', [AsesorController::class, 'unitKompetensiJudul'])->name('unit-kompetensi-judul');
-        Route::post('/unit-kompetensi-judul', [AsesorController::class, 'storeUnitKompetensiJudul']);
+        // Unit Kompetensi Judul (integrated into unit-kompetensi page)
+        Route::post('/unit-kompetensi-judul', [AsesorController::class, 'storeUnitKompetensiJudul'])->name('unit-kompetensi-judul');
         Route::put('/unit-kompetensi-judul/{id}', [AsesorController::class, 'updateUnitKompetensiJudul']);
         Route::delete('/unit-kompetensi-judul/{id}', [AsesorController::class, 'deleteUnitKompetensiJudul']);
+        
+        // Elemen
+        Route::get('/elemen', [AsesorController::class, 'elemen'])->name('elemen');
+        Route::post('/elemen', [AsesorController::class, 'storeElemen']);
+        Route::put('/elemen/{id}', [AsesorController::class, 'updateElemen']);
+        Route::delete('/elemen/{id}', [AsesorController::class, 'deleteElemen']);
+        
+        // Elemen Judul
+        Route::post('/elemen-judul', [AsesorController::class, 'storeElemenJudul'])->name('elemen-judul');
+        Route::put('/elemen-judul/{id}', [AsesorController::class, 'updateElemenJudul']);
+        Route::delete('/elemen-judul/{id}', [AsesorController::class, 'deleteElemenJudul']);
+        
+        // Kriteria Unjuk Kerja
+        Route::get('/kriteria-unjuk-kerja', [AsesorController::class, 'kriteriaUnjukKerja'])->name('kriteria-unjuk-kerja');
+        Route::post('/kriteria-unjuk-kerja', [AsesorController::class, 'storeKriteriaUnjukKerja']);
+        Route::put('/kriteria-unjuk-kerja/{id}', [AsesorController::class, 'updateKriteriaUnjukKerja']);
+        Route::delete('/kriteria-unjuk-kerja/{id}', [AsesorController::class, 'deleteKriteriaUnjukKerja']);
+        
+        // Kriteria Unjuk Kerja Judul
+        Route::post('/kriteria-judul', [AsesorController::class, 'storeKriteriaJudul'])->name('kriteria-judul');
+        Route::put('/kriteria-judul/{id}', [AsesorController::class, 'updateKriteriaJudul']);
+        Route::delete('/kriteria-judul/{id}', [AsesorController::class, 'deleteKriteriaJudul']);
 });
 
 // Mahasiswa routes
@@ -128,6 +158,8 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::post('/pendaftaran/step2', [MahasiswaController::class, 'storePendaftaranStep2'])->name('pendaftaran.step2.store');
     Route::get('/pendaftaran/step3', [MahasiswaController::class, 'pendaftaranStep3'])->name('pendaftaran.step3');
     Route::post('/pendaftaran/step3', [MahasiswaController::class, 'storePendaftaranStep3'])->name('pendaftaran.step3.store');
+    Route::get('/pendaftaran/step4', [MahasiswaController::class, 'pendaftaranStep4'])->name('pendaftaran.step4');
+    Route::post('/pendaftaran/step4', [MahasiswaController::class, 'storePendaftaranStep4'])->name('pendaftaran.step4.store');
     
     Route::get('/jadwal', [MahasiswaController::class, 'jadwal'])->name('jadwal');
     Route::get('/dokumen', [MahasiswaController::class, 'dokumen'])->name('dokumen');

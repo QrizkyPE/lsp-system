@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('elemen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('unit_kompetensi_id')->constrained('unit_kompetensi')->onDelete('cascade');
-            $table->string('kode_elemen');
+            $table->string('nomor_elemen');
             $table->string('nama_elemen');
             $table->text('deskripsi');
             $table->timestamps();

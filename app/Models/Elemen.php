@@ -12,7 +12,7 @@ class Elemen extends Model
     
     protected $fillable = [
         'unit_kompetensi_id',
-        'kode_elemen',
+        'nomor_elemen',
         'nama_elemen',
         'deskripsi'
     ];

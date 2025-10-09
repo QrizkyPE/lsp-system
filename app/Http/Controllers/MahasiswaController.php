@@ -10,6 +10,8 @@ use App\Models\SkemaSertifikasi;
 use App\Models\JadwalUji;
 use App\Models\Dokumen;
 use App\Models\UnitKompetensiJudul;
+use App\Models\ElemenJudul;
+use App\Models\KriteriaUnjukKerjaJudul;
 
 class MahasiswaController extends Controller
 {
@@ -189,12 +191,100 @@ class MahasiswaController extends Controller
         return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'judulOptions', 'tujuanOptions', 'unitKompetensiData'));
     }
 
+    public function pendaftaranStep4()
+    {
+        // Ensure step 3 done
+        $data = session('pendaftaran_data');
+        if (!$data || ($data['step'] ?? 0) < 3) {
+            return redirect()->route('mahasiswa.pendaftaran.step3')
+                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        // Get selected judul from step 3
+        $selectedJudul = $data['sertifikasi']['judul'] ?? '';
+        
+        if (empty($selectedJudul)) {
+            return redirect()->route('mahasiswa.pendaftaran.step3')
+                ->with('error', 'Judul sertifikasi belum dipilih.');
+        }
+
+        // Get unit kompetensi data for selected judul
+        $unitKompetensiData = UnitKompetensiJudul::where('judul_sertifikasi', $selectedJudul)
+            ->orderBy('id')
+            ->get();
+
+        // Get elemen data for selected judul
+        $elemenData = ElemenJudul::where('judul_sertifikasi', $selectedJudul)
+            ->orderBy('kode_unit')
+            ->orderBy('nomor_elemen')
+            ->get();
+
+        // Get kriteria unjuk kerja data for selected judul
+        $kriteriaData = KriteriaUnjukKerjaJudul::where('judul_sertifikasi', $selectedJudul)
+            ->orderBy('kode_unit')
+            ->orderBy('nomor_elemen')
+            ->orderBy('nomor_kriteria')
+            ->get();
+
+        // Get nomor skema based on judul
+        $nomorSkemaByJudul = [
+            'PENGEMBANG WEB (WEB DEVELOPER)' => '621/UMDP/XI/Q/2022',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)' => '612/UMDP/XI/Q/2022',
+            'System Analyst' => '606/UMDP/XI/Q/2022',
+            'Junior Web Programmer' => '617/UMDP/XI/Q/2022',
+            'Database Administrator' => '603/UMDP/XI/Q/2022',
+            'Analis Senior Hubungan Industrial' => '617/UMDP/XI/Q/2022'
+        ];
+
+        $nomorSkema = $nomorSkemaByJudul[$selectedJudul] ?? '';
+
+        // Mock bukti data (in real implementation, this would come from uploaded files)
+        $buktiData = [
+            [
+                'kode_unit' => 'J.620100.041.01',
+                'nama_file' => 'Transkrip Nilai.pdf'
+            ],
+            [
+                'kode_unit' => 'J.620100.041.01',
+                'nama_file' => 'Surat Keterangan PKL.pdf'
+            ]
+        ];
+
+        return view('mahasiswa.pendaftaran-step4', compact(
+            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiData', 'nomorSkema', 'selectedJudul'
+        ));
+    }
+
+    public function storePendaftaranStep4(Request $request)
+    {
+        // Ensure step 3 done
+        $data = session('pendaftaran_data');
+        if (!$data || ($data['step'] ?? 0) < 3) {
+            return redirect()->route('mahasiswa.pendaftaran.step3')
+                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        // Validate kriteria responses
+        $request->validate([
+            'kriteria.*.kompeten' => 'nullable|boolean',
+            'kriteria.*.belum_kompeten' => 'nullable|boolean',
+        ]);
+
+        // Update session data with step 4 completion
+        $data['step'] = 4;
+        $data['asesmen_mandiri'] = $request->input('kriteria', []);
+        session(['pendaftaran_data' => $data]);
+
+        return redirect()->route('mahasiswa.pendaftaran.step5')
+            ->with('success', 'Asesmen mandiri berhasil disimpan.');
+    }
+
     public function storePendaftaranStep3(Request $request)
     {
         $request->validate([
             'skema' => 'required|in:KKNI,Okupasi,Klaster',
-            'judul' => 'required|in:PENGEMBANG WEB (WEB DEVELOPER),TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI),System Analyst,Junior Web Programmer,Database Administrator,Analis Senior Hubungan Industrial',
-            'tujuan_asesmen' => 'required|in:Sertifikasi,Pengakuan Kompetensi Terkini (PKT),Rekognisi Pembelajaran Lampau (RPL),Lainnya',
+            'judul' => 'required|string|max:255',
+            'tujuan_asesmen' => 'required|string|max:255',
         ]);
 
         $data = session('pendaftaran_data');
@@ -206,8 +296,8 @@ class MahasiswaController extends Controller
         $data['step'] = 3;
         $data['sertifikasi'] = [
             'skema' => $request->skema,
-            'judul' => $request->judul,
-            'tujuan_asesmen' => $request->tujuan_asesmen,
+            'judul' => trim($request->judul),
+            'tujuan_asesmen' => trim($request->tujuan_asesmen),
             // units are derived in the view; optionally store selection
         ];
         session(['pendaftaran_data' => $data]);

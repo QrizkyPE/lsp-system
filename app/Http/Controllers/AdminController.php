@@ -14,6 +14,8 @@ use App\Models\JadwalUji;
 use App\Models\Penugasan;
 use App\Models\User;
 use App\Models\UnitKompetensiJudul;
+use App\Models\ElemenJudul;
+use App\Models\KriteriaUnjukKerjaJudul;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -169,14 +171,26 @@ class AdminController extends Controller
     {
         $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
         $units = UnitKompetensi::with('skemaSertifikasi')->get();
-        return view('admin.elemen', compact('elemen', 'units'));
+        
+        // Data untuk tab Elemen per Judul
+        $elemenJudul = ElemenJudul::with('kriteriaUnjukKerja')->orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        
+        return view('admin.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions'));
     }
 
     public function storeElemen(Request $request)
     {
         $request->validate([
             'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
-            'kode_elemen' => 'required|string',
+            'nomor_elemen' => 'required|string',
             'nama_elemen' => 'required|string',
             'deskripsi' => 'required|string',
         ]);
@@ -191,7 +205,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
-            'kode_elemen' => 'required|string',
+            'nomor_elemen' => 'required|string',
             'nama_elemen' => 'required|string',
             'deskripsi' => 'required|string',
         ]);
@@ -212,19 +226,74 @@ class AdminController extends Controller
             ->with('success', 'Elemen berhasil dihapus');
     }
 
+    // Elemen Judul CRUD
+    public function storeElemenJudul(Request $request)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        ElemenJudul::create($request->all());
+
+        return redirect()->route('admin.elemen')
+            ->with('success', 'Elemen judul berhasil ditambahkan');
+    }
+
+    public function updateElemenJudul(Request $request, $id)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nama_elemen' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $elemen = ElemenJudul::findOrFail($id);
+        $elemen->update($request->all());
+
+        return redirect()->route('admin.elemen')
+            ->with('success', 'Elemen judul berhasil diperbarui');
+    }
+
+    public function deleteElemenJudul($id)
+    {
+        $elemen = ElemenJudul::findOrFail($id);
+        $elemen->delete();
+
+        return redirect()->route('admin.elemen')
+            ->with('success', 'Elemen judul berhasil dihapus');
+    }
+
     // Kriteria Unjuk Kerja
     public function kriteriaUnjukKerja()
     {
         $kriteria = KriteriaUnjukKerja::with('elemen.unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
         $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->get();
-        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen'));
+        
+        // Data untuk tab Kriteria per Judul
+        $kriteriaJudul = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->orderBy('nomor_kriteria')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        
+        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions'));
     }
 
     public function storeKriteriaUnjukKerja(Request $request)
     {
         $request->validate([
             'elemen_id' => 'required|exists:elemen,id',
-            'kode_kriteria' => 'required|string',
+            'nomor_kriteria' => 'required|string',
             'deskripsi_kriteria' => 'required|string',
             'jenis_bukti' => 'required|string',
             'metode_asesmen' => 'required|string',
@@ -241,7 +310,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'elemen_id' => 'required|exists:elemen,id',
-            'kode_kriteria' => 'required|string',
+            'nomor_kriteria' => 'required|string',
             'deskripsi_kriteria' => 'required|string',
             'jenis_bukti' => 'required|string',
             'metode_asesmen' => 'required|string',
@@ -262,6 +331,55 @@ class AdminController extends Controller
 
         return redirect()->route('admin.kriteria-unjuk-kerja')
             ->with('success', 'Kriteria unjuk kerja berhasil dihapus');
+    }
+
+    // Kriteria Judul CRUD
+    public function storeKriteriaJudul(Request $request)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        KriteriaUnjukKerjaJudul::create($request->all());
+
+        return redirect()->route('admin.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil ditambahkan');
+    }
+
+    public function updateKriteriaJudul(Request $request, $id)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string|max:255',
+            'kode_unit' => 'required|string|max:255',
+            'nomor_elemen' => 'required|string|max:255',
+            'nomor_kriteria' => 'required|string|max:255',
+            'deskripsi_kriteria' => 'required|string',
+            'jenis_bukti' => 'nullable|string|max:255',
+            'metode_asesmen' => 'nullable|string|max:255',
+            'perangkat_asesmen' => 'nullable|string|max:255',
+        ]);
+
+        $kriteria = KriteriaUnjukKerjaJudul::findOrFail($id);
+        $kriteria->update($request->all());
+
+        return redirect()->route('admin.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil diperbarui');
+    }
+
+    public function deleteKriteriaJudul($id)
+    {
+        $kriteria = KriteriaUnjukKerjaJudul::findOrFail($id);
+        $kriteria->delete();
+
+        return redirect()->route('admin.kriteria-unjuk-kerja')
+            ->with('success', 'Kriteria judul berhasil dihapus');
     }
 
     // Asesor
@@ -322,19 +440,6 @@ class AdminController extends Controller
     }
 
     // Unit Kompetensi Judul Management
-    public function unitKompetensiJudul()
-    {
-        $units = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial'
-        ];
-        return view('admin.unit-kompetensi-judul', compact('units', 'judulOptions'));
-    }
 
     public function storeUnitKompetensiJudul(Request $request)
     {
