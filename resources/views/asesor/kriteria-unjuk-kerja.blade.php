@@ -4,29 +4,25 @@
 @section('page-title', 'Kriteria Unjuk Kerja')
 
 @section('content')
-<!-- Tab Navigation -->
-<ul class="nav nav-tabs mb-4" id="kriteriaTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="kriteria-tab" data-bs-toggle="tab" data-bs-target="#kriteria" type="button" role="tab">
-            <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="kriteria-judul-tab" data-bs-toggle="tab" data-bs-target="#kriteria-judul" type="button" role="tab">
-            <i class="fas fa-list-alt me-2"></i>Kriteria per Judul
-        </button>
-    </li>
-</ul>
-
-<!-- Tab Content -->
-<div class="tab-content" id="kriteriaTabsContent">
-    <!-- Tab 1: Kriteria Unjuk Kerja -->
-    <div class="tab-pane fade show active" id="kriteria" role="tabpanel">
+<!-- Main Content -->
+<div class="container-fluid">
+    <!-- Kriteria Unjuk Kerja Section -->
+    <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4>Daftar Kriteria Unjuk Kerja</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKriteriaModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKriteriaJudulModal">
                 <i class="fas fa-plus me-2"></i>Tambah Kriteria
             </button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchKriteria" placeholder="Cari berdasarkan judul sertifikasi, kode unit, atau deskripsi kriteria...">
+                </div>
+            </div>
         </div>
 
         @if(session('success'))
@@ -39,74 +35,7 @@
         <div class="card shadow">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>No</th>
-                                <th>Nomor Kriteria</th>
-                                <th>Deskripsi Kriteria</th>
-                                <th>Elemen</th>
-                                <th>Unit Kompetensi</th>
-                                <th>Skema Sertifikasi</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($kriteria as $index => $item)
-                            <tr>
-                                <td>{{ $kriteria->firstItem() + $index }}</td>
-                                <td>{{ $item->nomor_kriteria }}</td>
-                                <td>{{ $item->deskripsi_kriteria }}</td>
-                                <td>{{ $item->elemen->nama_elemen }}</td>
-                                <td>{{ $item->elemen->unitKompetensi->nama_unit }}</td>
-                                <td>{{ $item->elemen->unitKompetensi->skemaSertifikasi->nama_skema }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editKriteria({{ $item->id }}, '{{ $item->nomor_kriteria }}', '{{ $item->deskripsi_kriteria }}', '{{ $item->jenis_bukti }}', '{{ $item->metode_asesmen }}', '{{ $item->perangkat_asesmen }}', {{ $item->elemen_id }})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('asesor.kriteria-unjuk-kerja') }}/{{ $item->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus kriteria ini?')" 
-                                              style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center">Tidak ada data kriteria</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="d-flex justify-content-center">
-                    {{ $kriteria->links() }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab 2: Kriteria per Judul -->
-    <div class="tab-pane fade" id="kriteria-judul" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Daftar Kriteria Unjuk Kerja per Judul Sertifikasi</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKriteriaJudulModal">
-                <i class="fas fa-plus me-2"></i>Tambah Kriteria Judul
-            </button>
-        </div>
-
-        <div class="card shadow">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover" id="kriteriaTable">
                         <thead class="table-dark">
                             <tr>
                                 <th>No</th>
@@ -147,106 +76,26 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data kriteria judul</td>
+                                <td colspan="7" class="text-center">Tidak ada data kriteria unjuk kerja</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+                
             </div>
         </div>
     </div>
+
+
 </div>
 
-<!-- Add Kriteria Modal (Original) -->
-<div class="modal fade" id="addKriteriaModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Kriteria Unjuk Kerja</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('asesor.kriteria-unjuk-kerja') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="elemen_id" class="form-label">Elemen <span class="text-danger">*</span></label>
-                        <select class="form-select @error('elemen_id') is-invalid @enderror" 
-                                id="elemen_id" name="elemen_id" required>
-                            <option value="">Pilih Elemen</option>
-                            @foreach($elemen as $item)
-                                <option value="{{ $item->id }}">{{ $item->nama_elemen }} - {{ $item->unitKompetensi->nama_unit }}</option>
-                            @endforeach
-                        </select>
-                        @error('elemen_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nomor_kriteria" class="form-label">Nomor Kriteria <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nomor_kriteria') is-invalid @enderror" 
-                                   id="nomor_kriteria" name="nomor_kriteria" value="{{ old('nomor_kriteria') }}" required>
-                            @error('nomor_kriteria')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="jenis_bukti" class="form-label">Jenis Bukti</label>
-                            <input type="text" class="form-control @error('jenis_bukti') is-invalid @enderror" 
-                                   id="jenis_bukti" name="jenis_bukti" value="{{ old('jenis_bukti') }}">
-                            @error('jenis_bukti')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="deskripsi_kriteria" class="form-label">Deskripsi Kriteria <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('deskripsi_kriteria') is-invalid @enderror" 
-                                  id="deskripsi_kriteria" name="deskripsi_kriteria" rows="3" required>{{ old('deskripsi_kriteria') }}</textarea>
-                        @error('deskripsi_kriteria')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="metode_asesmen" class="form-label">Metode Asesmen</label>
-                            <input type="text" class="form-control @error('metode_asesmen') is-invalid @enderror" 
-                                   id="metode_asesmen" name="metode_asesmen" value="{{ old('metode_asesmen') }}">
-                            @error('metode_asesmen')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="perangkat_asesmen" class="form-label">Perangkat Asesmen</label>
-                            <input type="text" class="form-control @error('perangkat_asesmen') is-invalid @enderror" 
-                                   id="perangkat_asesmen" name="perangkat_asesmen" value="{{ old('perangkat_asesmen') }}">
-                            @error('perangkat_asesmen')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Kriteria Judul Modal -->
+<!-- Add Kriteria Modal -->
 <div class="modal fade" id="addKriteriaJudulModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Kriteria per Judul</h5>
+                <h5 class="modal-title">Tambah Kriteria Unjuk Kerja</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('asesor.kriteria-judul') }}" method="POST">
@@ -269,17 +118,14 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <select class="form-control @error('kode_unit') is-invalid @enderror" 
-                                    id="kode_unit" name="kode_unit" required>
-                                <option value="">Pilih Kode Unit</option>
-                                @foreach($unitKompetensiJudul as $unit)
-                                    <option value="{{ $unit->kode_unit }}" 
-                                            data-judul="{{ $unit->judul_sertifikasi }}"
-                                            {{ old('kode_unit') == $unit->kode_unit ? 'selected' : '' }}>
-                                        {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="position-relative">
+                                <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
+                                       id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" 
+                                       placeholder="Ketik kode unit..." required autocomplete="off">
+                                <div id="kode_unit_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                     style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                                </div>
+                            </div>
                             @error('kode_unit')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -434,15 +280,13 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="edit_kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <select class="form-control" id="edit_kode_unit" name="kode_unit" required>
-                                <option value="">Pilih Kode Unit</option>
-                                @foreach($unitKompetensiJudul as $unit)
-                                    <option value="{{ $unit->kode_unit }}" 
-                                            data-judul="{{ $unit->judul_sertifikasi }}">
-                                        {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="edit_kode_unit" name="kode_unit" 
+                                       placeholder="Ketik kode unit..." required autocomplete="off">
+                                <div id="edit_kode_unit_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                     style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-4 mb-3">
@@ -532,19 +376,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // For edit form
-    const editKodeUnitSelect = document.getElementById('edit_kode_unit');
-    const editJudulSertifikasiSelect = document.getElementById('edit_judul_sertifikasi');
+});
+
+// Search functionality
+document.getElementById('searchKriteria').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('kriteriaTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
     
-    if (editKodeUnitSelect && editJudulSertifikasiSelect) {
-        editKodeUnitSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                const judul = selectedOption.getAttribute('data-judul');
-                editJudulSertifikasiSelect.value = judul;
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        
+        // Search in judul sertifikasi (index 1), kode unit (index 2), and deskripsi kriteria (index 5)
+        for (let j = 1; j <= 5; j++) {
+            if (cells[j] && cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                found = true;
+                break;
             }
-        });
+        }
+        
+        row.style.display = found ? '' : 'none';
     }
 });
+
+// Autocomplete functionality for kode unit
+const unitData = @json($unitKompetensiJudul);
+
+function setupAutocomplete(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    
+    if (!input || !suggestions) return;
+    
+    input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        suggestions.innerHTML = '';
+        
+        if (value.length < 2) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        const filtered = unitData.filter(unit => 
+            unit.kode_unit.toLowerCase().includes(value) || 
+            unit.judul_unit.toLowerCase().includes(value)
+        );
+        
+        if (filtered.length > 0) {
+            filtered.forEach(unit => {
+                const div = document.createElement('div');
+                div.className = 'p-2 border-bottom cursor-pointer';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `<strong>${unit.kode_unit}</strong> - ${unit.judul_unit}`;
+                div.addEventListener('click', function() {
+                    input.value = unit.kode_unit;
+                    suggestions.style.display = 'none';
+                });
+                suggestions.appendChild(div);
+            });
+            suggestions.style.display = 'block';
+        } else {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+// Setup autocomplete for both create and edit modals
+setupAutocomplete('kode_unit', 'kode_unit_suggestions');
+setupAutocomplete('edit_kode_unit', 'edit_kode_unit_suggestions');
 </script>
 @endsection

@@ -4,29 +4,25 @@
 @section('page-title', 'Elemen')
 
 @section('content')
-<!-- Tab Navigation -->
-<ul class="nav nav-tabs mb-4" id="elemenTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="elemen-tab" data-bs-toggle="tab" data-bs-target="#elemen" type="button" role="tab">
-            <i class="fas fa-tasks me-2"></i>Elemen
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="elemen-judul-tab" data-bs-toggle="tab" data-bs-target="#elemen-judul" type="button" role="tab">
-            <i class="fas fa-list-alt me-2"></i>Elemen per Judul
-        </button>
-    </li>
-</ul>
-
-<!-- Tab Content -->
-<div class="tab-content" id="elemenTabsContent">
-    <!-- Tab 1: Elemen -->
-    <div class="tab-pane fade show active" id="elemen" role="tabpanel">
+<!-- Main Content -->
+<div class="container-fluid">
+    <!-- Elemen Section -->
+    <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4>Daftar Elemen</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElemenModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElemenJudulModal">
                 <i class="fas fa-plus me-2"></i>Tambah Elemen
             </button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchElemen" placeholder="Cari berdasarkan judul sertifikasi, kode unit, atau nama elemen...">
+                </div>
+            </div>
         </div>
 
         @if(session('success'))
@@ -39,72 +35,7 @@
         <div class="card shadow">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>No</th>
-                                <th>Nomor Elemen</th>
-                                <th>Nama Elemen</th>
-                                <th>Unit Kompetensi</th>
-                                <th>Skema Sertifikasi</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($elemen as $index => $item)
-                            <tr>
-                                <td>{{ $elemen->firstItem() + $index }}</td>
-                                <td>{{ $item->nomor_elemen }}</td>
-                                <td>{{ $item->nama_elemen }}</td>
-                                <td>{{ $item->unitKompetensi->nama_unit }}</td>
-                                <td>{{ $item->unitKompetensi->skemaSertifikasi->nama_skema }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editElemen({{ $item->id }}, '{{ $item->nomor_elemen }}', '{{ $item->nama_elemen }}', '{{ $item->deskripsi }}', {{ $item->unit_kompetensi_id }})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('admin.elemen') }}/{{ $item->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus elemen ini?')" 
-                                              style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center">Tidak ada data elemen</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="d-flex justify-content-center">
-                    {{ $elemen->links() }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab 2: Elemen per Judul -->
-    <div class="tab-pane fade" id="elemen-judul" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Daftar Elemen per Judul Sertifikasi</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElemenJudulModal">
-                <i class="fas fa-plus me-2"></i>Tambah Elemen Judul
-            </button>
-        </div>
-
-        <div class="card shadow">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover" id="elemenTable">
                         <thead class="table-dark">
                             <tr>
                                 <th>No</th>
@@ -147,86 +78,26 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data elemen judul</td>
+                                <td colspan="7" class="text-center">Tidak ada data elemen</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+                
             </div>
         </div>
     </div>
+
+
 </div>
 
-<!-- Add Elemen Modal (Original) -->
-<div class="modal fade" id="addElemenModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Elemen</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('admin.elemen') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="unit_kompetensi_id" class="form-label">Unit Kompetensi <span class="text-danger">*</span></label>
-                        <select class="form-select @error('unit_kompetensi_id') is-invalid @enderror" 
-                                id="unit_kompetensi_id" name="unit_kompetensi_id" required>
-                            <option value="">Pilih Unit Kompetensi</option>
-                            @foreach($units as $unit)
-                                <option value="{{ $unit->id }}">{{ $unit->nama_unit }} - {{ $unit->skemaSertifikasi->nama_skema }}</option>
-                            @endforeach
-                        </select>
-                        @error('unit_kompetensi_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nomor_elemen" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nomor_elemen') is-invalid @enderror" 
-                                   id="nomor_elemen" name="nomor_elemen" value="{{ old('nomor_elemen') }}" required>
-                            @error('nomor_elemen')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="nama_elemen" class="form-label">Nama Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_elemen') is-invalid @enderror" 
-                                   id="nama_elemen" name="nama_elemen" value="{{ old('nama_elemen') }}" required>
-                            @error('nama_elemen')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="deskripsi" class="form-label">Deskripsi <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" 
-                                  id="deskripsi" name="deskripsi" rows="3" required>{{ old('deskripsi') }}</textarea>
-                        @error('deskripsi')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Elemen Judul Modal -->
+<!-- Add Elemen Modal -->
 <div class="modal fade" id="addElemenJudulModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Elemen per Judul</h5>
+                <h5 class="modal-title">Tambah Elemen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.elemen-judul') }}" method="POST">
@@ -248,17 +119,14 @@
 
                     <div class="mb-3">
                         <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                        <select class="form-control @error('kode_unit') is-invalid @enderror" 
-                                id="kode_unit" name="kode_unit" required>
-                            <option value="">Pilih Kode Unit</option>
-                            @foreach($unitKompetensiJudul as $unit)
-                                <option value="{{ $unit->kode_unit }}" 
-                                        data-judul="{{ $unit->judul_sertifikasi }}"
-                                        {{ old('kode_unit') == $unit->kode_unit ? 'selected' : '' }}>
-                                    {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="position-relative">
+                            <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
+                                   id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" 
+                                   placeholder="Ketik kode unit..." required autocomplete="off">
+                            <div id="kode_unit_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                 style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                            </div>
+                        </div>
                         @error('kode_unit')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -372,15 +240,13 @@
 
                     <div class="mb-3">
                         <label for="edit_kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                        <select class="form-control" id="edit_kode_unit" name="kode_unit" required>
-                            <option value="">Pilih Kode Unit</option>
-                            @foreach($unitKompetensiJudul as $unit)
-                                <option value="{{ $unit->kode_unit }}" 
-                                        data-judul="{{ $unit->judul_sertifikasi }}">
-                                    {{ $unit->kode_unit }} - {{ $unit->judul_unit }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="edit_kode_unit" name="kode_unit" 
+                                   placeholder="Ketik kode unit..." required autocomplete="off">
+                            <div id="edit_kode_unit_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                 style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row">
@@ -449,19 +315,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // For edit form
-    const editKodeUnitSelect = document.getElementById('edit_kode_unit');
-    const editJudulSertifikasiSelect = document.getElementById('edit_judul_sertifikasi');
+});
+
+// Search functionality
+document.getElementById('searchElemen').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('elemenTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
     
-    if (editKodeUnitSelect && editJudulSertifikasiSelect) {
-        editKodeUnitSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                const judul = selectedOption.getAttribute('data-judul');
-                editJudulSertifikasiSelect.value = judul;
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        
+        // Search in judul sertifikasi (index 1), kode unit (index 2), and nama elemen (index 4)
+        for (let j = 1; j <= 4; j++) {
+            if (cells[j] && cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                found = true;
+                break;
             }
-        });
+        }
+        
+        row.style.display = found ? '' : 'none';
     }
 });
+
+// Autocomplete functionality for kode unit
+const unitData = @json($unitKompetensiJudul);
+
+function setupAutocomplete(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    
+    if (!input || !suggestions) return;
+    
+    input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        suggestions.innerHTML = '';
+        
+        if (value.length < 2) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        const filtered = unitData.filter(unit => 
+            unit.kode_unit.toLowerCase().includes(value) || 
+            unit.judul_unit.toLowerCase().includes(value)
+        );
+        
+        if (filtered.length > 0) {
+            filtered.forEach(unit => {
+                const div = document.createElement('div');
+                div.className = 'p-2 border-bottom cursor-pointer';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `<strong>${unit.kode_unit}</strong> - ${unit.judul_unit}`;
+                div.addEventListener('click', function() {
+                    input.value = unit.kode_unit;
+                    suggestions.style.display = 'none';
+                });
+                suggestions.appendChild(div);
+            });
+            suggestions.style.display = 'block';
+        } else {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+// Setup autocomplete for both create and edit modals
+setupAutocomplete('kode_unit', 'kode_unit_suggestions');
+setupAutocomplete('edit_kode_unit', 'edit_kode_unit_suggestions');
 </script>
 @endsection

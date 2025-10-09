@@ -4,29 +4,25 @@
 @section('page-title', 'Unit Kompetensi')
 
 @section('content')
-<!-- Tab Navigation -->
-<ul class="nav nav-tabs mb-4" id="unitKompetensiTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="unit-tab" data-bs-toggle="tab" data-bs-target="#unit" type="button" role="tab">
-            <i class="fas fa-list me-2"></i>Unit Kompetensi
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link " id="unit-judul-tab" data-bs-toggle="tab" data-bs-target="#unit-judul" type="button" role="tab">
-            <i class="fas fa-list-alt me-2"></i>Unit Kompetensi Per Judul
-        </button>
-    </li>
-</ul>
-
-<!-- Tab Content -->
-<div class="tab-content" id="unitKompetensiTabsContent">
-    <!-- Tab 1: Unit Kompetensi -->
-    <div class="tab-pane fade show active" id="unit" role="tabpanel">
+<!-- Main Content -->
+<div class="container-fluid">
+    <!-- Unit Kompetensi Section -->
+    <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4>Daftar Unit Kompetensi</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitJudulModal">
                 <i class="fas fa-plus me-2"></i>Tambah Unit
             </button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchUnit" placeholder="Cari berdasarkan judul sertifikasi, kode unit, atau nama unit...">
+                </div>
+            </div>
         </div>
 
         @if(session('success'))
@@ -35,69 +31,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-
-        <div class="card shadow">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>No</th>
-                                <th>Kode Unit</th>
-                                <th>Nama Unit</th>
-                                <th>Skema Sertifikasi</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($units as $index => $unit)
-                            <tr>
-                                <td>{{ $units->firstItem() + $index }}</td>
-                                <td>{{ $unit->kode_unit }}</td>
-                                <td>{{ $unit->nama_unit }}</td>
-                                <td>{{ $unit->skemaSertifikasi->nama_skema }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editUnit({{ $unit->id }}, '{{ $unit->kode_unit }}', '{{ $unit->nama_unit }}', '{{ $unit->deskripsi }}', '{{ $unit->kriteria_penilaian }}', {{ $unit->skema_sertifikasi_id }})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('asesor.unit-kompetensi') }}/{{ $unit->id }}" method="POST" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
-                                              style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-center">Tidak ada data unit kompetensi</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="d-flex justify-content-center">
-                    {{ $units->links() }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab 2: Unit Kompetensi per Judul -->
-    <div class="tab-pane fade" id="unit-judul" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Daftar Unit Kompetensi Per Judul</h4>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitJudulModal">
-                <i class="fas fa-plus me-2"></i>Tambah Unit Judul
-            </button>
-        </div>
 
         <div class="card shadow">
             <div class="card-body">
@@ -136,7 +69,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data unit kompetensi judul</td>
+                                <td colspan="6" class="text-center">Tidak ada data unit kompetensi</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -145,86 +78,16 @@
             </div>
         </div>
     </div>
+
+
 </div>
 
-<!-- Add Unit Modal (Original) -->
-<div class="modal fade" id="addUnitModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Unit Kompetensi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('asesor.unit-kompetensi') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="skema_sertifikasi_id" class="form-label">Skema Sertifikasi <span class="text-danger">*</span></label>
-                        <select class="form-select @error('skema_sertifikasi_id') is-invalid @enderror" 
-                                id="skema_sertifikasi_id" name="skema_sertifikasi_id" required>
-                            <option value="">Pilih Skema Sertifikasi</option>
-                            @foreach($skemas as $skema)
-                                <option value="{{ $skema->id }}">{{ $skema->nama_skema }}</option>
-                            @endforeach
-                        </select>
-                        @error('skema_sertifikasi_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="kode_unit" class="form-label">Kode Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('kode_unit') is-invalid @enderror" 
-                                   id="kode_unit" name="kode_unit" value="{{ old('kode_unit') }}" required>
-                            @error('kode_unit')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="nama_unit" class="form-label">Nama Unit <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nama_unit') is-invalid @enderror" 
-                                   id="nama_unit" name="nama_unit" value="{{ old('nama_unit') }}" required>
-                            @error('nama_unit')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="deskripsi" class="form-label">Deskripsi <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" 
-                                  id="deskripsi" name="deskripsi" rows="3" required>{{ old('deskripsi') }}</textarea>
-                        @error('deskripsi')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="kriteria_penilaian" class="form-label">Kriteria Penilaian <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('kriteria_penilaian') is-invalid @enderror" 
-                                  id="kriteria_penilaian" name="kriteria_penilaian" rows="3" required>{{ old('kriteria_penilaian') }}</textarea>
-                        @error('kriteria_penilaian')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Unit Judul Modal -->
+<!-- Add Unit Modal -->
 <div class="modal fade" id="addUnitJudulModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Unit Kompetensi per Judul</h5>
+                <h5 class="modal-title">Tambah Unit Kompetensi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('asesor.unit-kompetensi-judul.store') }}" method="POST">
@@ -488,5 +351,28 @@ function showAlert(type, message) {
         }
     }, 5000);
 }
+
+// Search functionality
+document.getElementById('searchUnit').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('unitJudulTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        
+        // Search in judul sertifikasi (index 1), kode unit (index 2), and judul unit (index 3)
+        for (let j = 1; j <= 3; j++) {
+            if (cells[j] && cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                found = true;
+                break;
+            }
+        }
+        
+        row.style.display = found ? '' : 'none';
+    }
+});
 </script>
 @endsection
