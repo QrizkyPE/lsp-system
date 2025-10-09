@@ -9,6 +9,7 @@ use App\Models\Pendaftaran;
 use App\Models\SkemaSertifikasi;
 use App\Models\JadwalUji;
 use App\Models\Dokumen;
+use App\Models\UnitKompetensiJudul;
 
 class MahasiswaController extends Controller
 {
@@ -182,7 +183,10 @@ class MahasiswaController extends Controller
             'Lainnya',
         ];
 
-        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'judulOptions', 'tujuanOptions'));
+        // Get unit kompetensi data from database
+        $unitKompetensiData = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
+
+        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'judulOptions', 'tujuanOptions', 'unitKompetensiData'));
     }
 
     public function storePendaftaranStep3(Request $request)

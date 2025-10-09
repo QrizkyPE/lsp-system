@@ -245,96 +245,12 @@
 
 @section('scripts')
 <script>
-const unitsByJudul = {
-  'PENGEMBANG WEB (WEB DEVELOPER)': [
-    ['J.620100.041.01','Melaksanakan cutover aplikasi','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.045.01','Melakukan pemantauan resource yang digunakan aplikasi','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.025.02','Melakukan debugging','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.038.01','Melaksanakan pengujian oleh pengguna (UAT)','SKKNI No. 282 Tahun 2016'],
-    ['J.62090.018.01','Mengelola risiko keamanan Informasi','SKKNI No. 55 Tahun 2015'],
-    ['J.620100.020.02','Menggunakan SQL','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.044.01','Menerapkan alert notification jika aplikasi bermasalah','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.003.01','Melakukan identifikasi library, komponen atau framework yang diperlukan','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.024.02','Melakukan migrasi ke teknologi baru','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.047.01','Melakukan pembaharuan perangkat lunak','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.039.02','Memberikan petunjuk teknis kepada pelanggan','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.030.02','Menerapkan pemrograman multimedia','SKKNI No. 282 Tahun 2016'],
-    ['TIK.SM03.001.01','Menentukan arsitektur perangkat keras','SKKNI No. 610 Tahun 2012'],
-    ['M.702090.001.0','Mengelola proyek secara terintegrasi (project integration management)','SKKNI No. 349 Tahun 2014'],
-    ['J.620100.001.01','Menganalisis tools','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.002.01','Menganalisis skalabilitas perangkat lunak','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.043.01','Menganalisis dampak perubahan terhadap aplikasi','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.029.02','Menerapkan pemrograman paralel','SKKNI No. 282 Tahun 2016'],
-    ['M.702090.005.0','Mengelola kualitas proyek (project quality management)','SKKNI No. 349 Tahun 2014'],
-    ['J.620100.022.02','Mengimplementasikan algoritma pemrograman','SKKNI No. 282 Tahun 2016'],
-    ['J.620100.028.02','Menerapkan pemrograman real time','SKKNI No. 282 Tahun 2016'],
-    ['M.702090.002.0','Mengelola ruang lingkup proyek (project scope management)','SKKNI No. 349 Tahun 2014']
-  ],
-  'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)': [
-    ['M.692000.001.01','Menyiapkan Pendaftaran Nomor Pokok Wajib Pajak (NPWP)','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.006.01','Mengisi dan Penyerahan Formulir Pendaftaran','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.007.01','Menyiapkan Perubahan Data Wajib Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.010.01','Menentukan Dasar Pengenaan Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.011.01','Menghitung Pajak Terutang','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.022.01','Menyiapkan dan Mengisi Surat Pemberitahuan (SPT)','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.015.01','Menyiapkan dan Mengisi Surat Setoran Pajak (SSP)','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.020.01','Melakukan Pembayaran atau Penyetoran','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.026.01','Menyampaikan Surat Pemberitahuan (SPT)','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.031.01','Menyiapkan Dokumen Pada Saat Pemeriksaan Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.041.01','Memperoleh Tanda Bukti Sebagai Wajib Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.048.01','Mengajukan Perubahan Data Wajib Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.052.01','Mengajukan Penghapusan Dan Pencabutan NPWP','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.056.01','Mengajukan Permohonan Angsuran','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.057.01','Mengajukan Permohonan Penundaan Pembayaran Pajak','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.058.01','Mengajukan Pengungkapan Kesalahan Dalam Surat Pemberitahuan (SPT)/SPTPD','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.059.01','Mengajukan Pembetulan Surat Pemberitahuan (SPT)/ SPTPD','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.060.01','Mengajukan Perpanjangan Batas Waktu Penyampaian Surat Pemberitahuan (SPT)/SPTPD','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.061.01','Mengajukan Kompensasi','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.062.01','Mengajukan Restitusi','SKKNI No: 347 Tahun 2014'],
-    ['M.692000.071.01','Mengajukan Permohonan Pengurangan, Keringanan, Pembatalan, Penghapusan Sanksi Administrasi','SKKNI No: 347 Tahun 2014']
-  ],
-  'System Analyst': [
-    ['J.62SAD00.001.1','Mengaplikasikan metodologi pengembangan perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.002.1','Melakukan identifikasi sumber kebutuhan','SKKNI No.'],
-    ['J.62SAD00.003.1','Menentukan teknik elisitasi yang sesuai','SKKNI No.'],
-    ['J.62SAD00.004.1','Melakukan klasifikasi dan alokasi kebutuhan perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.005.1','Melakukan negosiasi kebutuhan perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.006.1','Membuat Kebutuhan Dokumentasi Spesifikasi Perangkat Lunak','SKKNI No.'],
-    ['J.62SAD00.007.1','Menyusun spesifikasi kebutuhan software environment','SKKNI No.'],
-    ['J.62SAD00.008.1','Menyusun spesifikasi kebutuhan perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.009.1','Meninjau ulang (review) kebutuhan perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.010.1','Melakukan Validasi Spesifikasi dan Menyusun Uji Penerimaan Pengguna Kebutuhan Perangkat Lunak','SKKNI No.'],
-    ['J.62SAD00.011.1','Merancang struktur perangkat lunak','SKKNI No.'],
-    ['J.62SAD00.013.1','Merancang user interface (UI)','SKKNI No.'],
-    ['J.62SAD00.014.1','Merancang user experience (UX)','SKKNI No.']
-  ],
-  'Junior Web Programmer': [
-    ['J.620100.004.02','Menggunakan struktur data','SKKNI No 282 Tahun 2016'],
-    ['J.620100.005.02','Mengimplementasikan user interface','SKKNI No 282 Tahun 2016'],
-    ['J.620100.011.01','Melakukan instalasi software tools pemrograman','SKKNI No 282 Tahun 2016'],
-    ['J.620100.016.01','Menulis kode dengan prinsip sesuai guidelines dan best practices','SKKNI No 282 Tahun 2016'],
-    ['J.620100.017.02','Mengimplementasikan pemrograman terstruktur','SKKNI No 282 Tahun 2016'],
-    ['J.620100.019.02','Menggunakan library atau komponen pre---existing','SKKNI No 282 Tahun 2016'],
-    ['J.620100.023.02','Membuat dokumen kode program','SKKNI No 282 Tahun 2016'],
-    ['J.620100.025.02','Melakukan debugging','SKKNI No 282 Tahun 2016']
-  ],
-  'Database Administrator': [
-    ['J.62DMS00.006.1','Mendesain basis data','SKKNI No 268 Tahun 2020'],
-    ['J.62DMS00.010.1','Membuat basis data','SKKNI No 268 Tahun 2020'],
-    ['J.62DMS00.011.1','Membuat integrasi data','SKKNI No 268 Tahun 2020'],
-    ['J.62DMS00.012.1','Mengelola kualitas data','SKKNI No 268 Tahun 2020'],
-    ['J.62DMS00.016.1','Mengelola dokumen dan konten','SKKNI No 268 Tahun 2020'],
-    ['J.620100.020.02','Menggunakan SQL','SKKNI No 282 Tahun 2016'],
-    ['J.620100.021.02','Menerapkan akses basis data','SKKNI No 282 Tahun 2016']
-  ],
-  'Analis Senior Hubungan Industrial': [
-    ['M.70SDM01.010.2','Menyusun Uraian Jabatan','SKKNI No 14 Tahun 2020'],
-    ['M.70SDM01.013.2','Menyusun Standar Operasional Prosedur (SOP) MSDM','SKKNI No 14 Tahun 2020'],
-    ['M.70SDM01.026.2','Mengelola Proses Perumusan Indikator Kinerja Indvidu','SKKNI No 14 Tahun 2020'],
-    ['M.70SDM01.031.2','Menyusun Kebutuhan Pembelajaran dan Pengembangan','SKKNI No 14 Tahun 2020'],
-    ['M.70SDM01.001.2','Merumuskan Strategi dan  Kebijakan MSDM','SKKNI No 14 Tahun 2020']
-  ]
-};
+// Data unit kompetensi dari database
+const unitsByJudul = @json($unitKompetensiData->groupBy('judul_sertifikasi')->map(function($items) {
+    return $items->map(function($item) {
+        return [$item->kode_unit, $item->judul_unit, $item->standar_kompetensi_kerja];
+    })->toArray();
+}));
 
 // All judul now have the same skema display format
 

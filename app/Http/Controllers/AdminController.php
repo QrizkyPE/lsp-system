@@ -13,6 +13,7 @@ use App\Models\Tuk;
 use App\Models\JadwalUji;
 use App\Models\Penugasan;
 use App\Models\User;
+use App\Models\UnitKompetensiJudul;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -106,7 +107,19 @@ class AdminController extends Controller
     {
         $units = UnitKompetensi::with('skemaSertifikasi')->latest()->paginate(10);
         $skemas = SkemaSertifikasi::all();
-        return view('admin.unit-kompetensi', compact('units', 'skemas'));
+        
+        // Data untuk tab Unit Kompetensi per Judul
+        $unitsJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        
+        return view('admin.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions'));
     }
 
     public function storeUnitKompetensi(Request $request)
@@ -306,6 +319,61 @@ class AdminController extends Controller
 
         return redirect()->route('admin.asesor')
             ->with('success', 'Asesor berhasil dihapus');
+    }
+
+    // Unit Kompetensi Judul Management
+    public function unitKompetensiJudul()
+    {
+        $units = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
+        $judulOptions = [
+            'PENGEMBANG WEB (WEB DEVELOPER)',
+            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
+            'System Analyst',
+            'Junior Web Programmer',
+            'Database Administrator',
+            'Analis Senior Hubungan Industrial'
+        ];
+        return view('admin.unit-kompetensi-judul', compact('units', 'judulOptions'));
+    }
+
+    public function storeUnitKompetensiJudul(Request $request)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string',
+            'kode_unit' => 'required|string',
+            'judul_unit' => 'required|string',
+            'standar_kompetensi_kerja' => 'required|string',
+        ]);
+
+        UnitKompetensiJudul::create($request->all());
+
+        return redirect()->route('admin.unit-kompetensi-judul')
+            ->with('success', 'Unit kompetensi berhasil ditambahkan');
+    }
+
+    public function updateUnitKompetensiJudul(Request $request, $id)
+    {
+        $request->validate([
+            'judul_sertifikasi' => 'required|string',
+            'kode_unit' => 'required|string',
+            'judul_unit' => 'required|string',
+            'standar_kompetensi_kerja' => 'required|string',
+        ]);
+
+        $unit = UnitKompetensiJudul::findOrFail($id);
+        $unit->update($request->all());
+
+        return redirect()->route('admin.unit-kompetensi-judul')
+            ->with('success', 'Unit kompetensi berhasil diupdate');
+    }
+
+    public function deleteUnitKompetensiJudul($id)
+    {
+        $unit = UnitKompetensiJudul::findOrFail($id);
+        $unit->delete();
+
+        return redirect()->route('admin.unit-kompetensi-judul')
+            ->with('success', 'Unit kompetensi berhasil dihapus');
     }
 
     // TUK

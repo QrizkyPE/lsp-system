@@ -62,7 +62,7 @@
                                                 onclick="editUnit({{ $unit->id }}, '{{ $unit->kode_unit }}', '{{ $unit->nama_unit }}', '{{ $unit->deskripsi }}', '{{ $unit->kriteria_penilaian }}', {{ $unit->skema_sertifikasi_id }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('admin.unit-kompetensi') }}/{{ $unit->id }}" method="POST" 
+                                        <form action="{{ route('asesor.unit-kompetensi') }}/{{ $unit->id }}" method="POST" 
                                               onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
                                               style="display: inline;">
                                             @csrf
@@ -127,7 +127,7 @@
                                                 onclick="editUnitJudul({{ $unit->id }}, '{{ $unit->judul_sertifikasi }}', '{{ $unit->kode_unit }}', '{{ $unit->judul_unit }}', '{{ $unit->standar_kompetensi_kerja }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('admin.unit-kompetensi-judul') }}/{{ $unit->id }}" method="POST" 
+                                        <form action="{{ route('asesor.unit-kompetensi-judul') }}/{{ $unit->id }}" method="POST" 
                                               onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit ini?')" 
                                               style="display: inline;">
                                             @csrf
@@ -160,7 +160,7 @@
                 <h5 class="modal-title">Tambah Unit Kompetensi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('admin.unit-kompetensi') }}" method="POST">
+            <form action="{{ route('asesor.unit-kompetensi') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -232,7 +232,7 @@
                 <h5 class="modal-title">Tambah Unit Kompetensi per Judul</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('admin.unit-kompetensi-judul') }}" method="POST">
+            <form action="{{ route('asesor.unit-kompetensi-judul') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -390,7 +390,7 @@
 @section('scripts')
 <script>
 function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
-    document.getElementById('editUnitForm').action = '{{ route("admin.unit-kompetensi") }}/' + id;
+    document.getElementById('editUnitForm').action = '{{ route("asesor.unit-kompetensi") }}/' + id;
     document.getElementById('edit_kode_unit').value = kode;
     document.getElementById('edit_nama_unit').value = nama;
     document.getElementById('edit_deskripsi').value = deskripsi;
@@ -401,7 +401,7 @@ function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
 }
 
 function editUnitJudul(id, judul, kode, nama, standar) {
-    document.getElementById('editUnitJudulForm').action = '{{ route("admin.unit-kompetensi-judul") }}/' + id;
+    document.getElementById('editUnitJudulForm').action = '{{ route("asesor.unit-kompetensi-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
     document.getElementById('edit_kode_unit_judul').value = kode;
     document.getElementById('edit_judul_unit_judul').value = nama;

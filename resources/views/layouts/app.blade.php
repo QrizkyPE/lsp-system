@@ -118,6 +118,11 @@
                                     <i class="fas fa-clipboard-check me-2"></i>Asesmen
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
+                                    <i class="fas fa-list me-2"></i>Unit Kompetensi
+                                </a>
+                            </li>
                         @elseif(auth()->user()->role === 'mahasiswa')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.dashboard') ? 'active' : '' }}" href="{{ route('mahasiswa.dashboard') }}">

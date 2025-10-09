@@ -84,6 +84,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    
+    // Unit Kompetensi Judul
+    Route::get('/unit-kompetensi-judul', [AdminController::class, 'unitKompetensiJudul'])->name('unit-kompetensi-judul');
+    Route::post('/unit-kompetensi-judul', [AdminController::class, 'storeUnitKompetensiJudul']);
+    Route::put('/unit-kompetensi-judul/{id}', [AdminController::class, 'updateUnitKompetensiJudul']);
+    Route::delete('/unit-kompetensi-judul/{id}', [AdminController::class, 'deleteUnitKompetensiJudul']);
 });
 
 // Asesor routes
@@ -95,6 +101,18 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::post('/dokumen/{id}/reject', [AsesorController::class, 'rejectDokumen']);
     Route::get('/asesmen', [AsesorController::class, 'asesmen'])->name('asesmen');
     Route::post('/asesmen/{id}/submit', [AsesorController::class, 'submitAsesmen']);
+    
+        // Unit Kompetensi
+        Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
+        Route::post('/unit-kompetensi', [AsesorController::class, 'storeUnitKompetensi']);
+        Route::put('/unit-kompetensi/{id}', [AsesorController::class, 'updateUnitKompetensi']);
+        Route::delete('/unit-kompetensi/{id}', [AsesorController::class, 'deleteUnitKompetensi']);
+        
+        // Unit Kompetensi Judul
+        Route::get('/unit-kompetensi-judul', [AsesorController::class, 'unitKompetensiJudul'])->name('unit-kompetensi-judul');
+        Route::post('/unit-kompetensi-judul', [AsesorController::class, 'storeUnitKompetensiJudul']);
+        Route::put('/unit-kompetensi-judul/{id}', [AsesorController::class, 'updateUnitKompetensiJudul']);
+        Route::delete('/unit-kompetensi-judul/{id}', [AsesorController::class, 'deleteUnitKompetensiJudul']);
 });
 
 // Mahasiswa routes
