@@ -245,14 +245,16 @@ class MahasiswaController extends Controller
         // Get uploaded files from step 3
         $buktiFiles = $data['sertifikasi']['bukti_files'] ?? [];
         $buktiAdminFiles = $data['sertifikasi']['bukti_admin_files'] ?? [];
+        $signatureData = $data['sertifikasi']['signature_data'] ?? '';
         
         // Debug: Log session data
         Log::info('Session data in step 4:', $data);
         Log::info('Bukti files:', $buktiFiles);
         Log::info('Bukti admin files:', $buktiAdminFiles);
+        Log::info('Signature data:', ['signature' => $signatureData]);
 
         return view('mahasiswa.pendaftaran-step4', compact(
-            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiFiles', 'buktiAdminFiles', 'nomorSkema', 'selectedJudul'
+            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiFiles', 'buktiAdminFiles', 'nomorSkema', 'selectedJudul', 'signatureData'
         ));
     }
 
@@ -269,11 +271,20 @@ class MahasiswaController extends Controller
         $request->validate([
             'kriteria.*.kompeten' => 'nullable|boolean',
             'kriteria.*.belum_kompeten' => 'nullable|boolean',
+            'signature_data' => 'nullable|string',
         ]);
 
         // Update session data with step 4 completion
         $data['step'] = 4;
         $data['asesmen_mandiri'] = $request->input('kriteria', []);
+        
+        // Use existing signature if no new signature provided
+        if (empty($request->signature_data) && !empty($data['sertifikasi']['signature_data'])) {
+            $data['asesmen_mandiri']['signature_data'] = $data['sertifikasi']['signature_data'];
+        } else {
+            $data['asesmen_mandiri']['signature_data'] = $request->signature_data;
+        }
+        
         session(['pendaftaran_data' => $data]);
 
         return redirect()->route('mahasiswa.pendaftaran.step5')
@@ -288,6 +299,7 @@ class MahasiswaController extends Controller
             'tujuan_asesmen' => 'required|string|max:255',
             'bukti_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'bukti_admin_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'signature_data' => 'nullable|string',
         ]);
 
         $data = session('pendaftaran_data');
@@ -337,6 +349,7 @@ class MahasiswaController extends Controller
             'tujuan_asesmen' => trim($request->tujuan_asesmen),
             'bukti_files' => $buktiFiles,
             'bukti_admin_files' => $buktiAdminFiles,
+            'signature_data' => $request->signature_data,
         ];
         
         // Debug: Log uploaded files

@@ -62,7 +62,7 @@
                     <!-- Form Asesmen Mandiri -->
                     <form action="{{ route('mahasiswa.pendaftaran.step4.store') }}" method="POST" id="asesmenForm">
                         @csrf
-                        <input type="hidden" name="signature_data" id="signature_data">
+                        <input type="hidden" name="signature_data" id="signature_data" value="{{ $signatureData }}">
                         
                         <!-- Unit Kompetensi 1 -->
                         <div class="mb-4" id="unitKompetensiContainer">
@@ -235,10 +235,12 @@ const elemenData = @json($elemenData);
 const kriteriaData = @json($kriteriaData);
 const buktiFilesData = @json($buktiFiles);
 const buktiAdminFilesData = @json($buktiAdminFiles);
+const signatureData = @json($signatureData);
 
 // Debug: Log data files
 // console.log('Bukti Files Data:', buktiFilesData);
 // console.log('Bukti Admin Files Data:', buktiAdminFilesData);
+// console.log('Signature Data:', signatureData);
 
 // Fungsi untuk membuat tabel unit kompetensi
 function renderUnitKompetensi() {
@@ -316,7 +318,7 @@ function renderUnitKompetensi() {
             html += `
                 <tr>
                     <td class="elemen-header" colspan="4">
-                        ${elemenIndex + 1} Elemen : ${elemen.nama_elemen}
+                        ${elemenIndex + 1} Elemen : ${elemen.nama_elemen} <br>&nbsp;&nbsp;&nbsp;Kriteria Unjuk Kerja :
                     </td>
                 </tr>
             `;
@@ -419,6 +421,15 @@ function initializeSignature() {
     // Set canvas background to white
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Load existing signature if available
+    if (signatureData && signatureData.trim() !== '') {
+        const img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = signatureData;
+    }
     
     // Mouse events
     canvas.addEventListener('mousedown', startDrawing);
