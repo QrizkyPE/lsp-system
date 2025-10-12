@@ -55,7 +55,7 @@ class MahasiswaController extends Controller
         $skemas = SkemaSertifikasi::where('status', true)->get();
         $jadwalUji = JadwalUji::with(['skemaSertifikasi', 'tuk'])
             ->where('status', 'open')
-            ->where('kuota_terisi', '<', \DB::raw('kuota_maksimal'))
+            ->where('kuota_terisi', '<', DB::raw('kuota_maksimal'))
             ->get();
         
         return view('mahasiswa.pendaftaran-step1', compact('skemas', 'jadwalUji'));
@@ -71,7 +71,7 @@ class MahasiswaController extends Controller
         ]);
 
         // Check if user already registered for this jadwal
-        $existingPendaftaran = Pendaftaran::where('user_id', auth()->id())
+        $existingPendaftaran = Pendaftaran::where('user_id', Auth::id())
             ->where('jadwal_uji_id', $request->jadwal_uji_id)
             ->first();
 
@@ -168,16 +168,18 @@ class MahasiswaController extends Controller
                 ->with('error', 'Silakan lengkapi step sebelumnya.');
         }
 
+        // Get skema sertifikasi from step 1
+        $skemaSertifikasi = SkemaSertifikasi::find($data['skema_sertifikasi_id']);
+        if (!$skemaSertifikasi) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Skema sertifikasi tidak ditemukan.');
+        }
+
+        // Get judul from skema sertifikasi
+        $selectedJudul = $skemaSertifikasi->nama_skema;
+
         // Provide options to the view
         $skemaOptions = ['KKNI', 'Okupasi', 'Klaster'];
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial',
-        ];
         $tujuanOptions = [
             'Sertifikasi',
             'Pengakuan Kompetensi Terkini (PKT)',
@@ -185,10 +187,11 @@ class MahasiswaController extends Controller
             'Lainnya',
         ];
 
-        // Get unit kompetensi data from database
-        $unitKompetensiData = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
+        // Get unit kompetensi data from database based on selected judul
+        $unitKompetensiData = UnitKompetensiJudul::where('judul_sertifikasi', $selectedJudul)
+            ->orderBy('id')->get();
 
-        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'judulOptions', 'tujuanOptions', 'unitKompetensiData'));
+        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'tujuanOptions', 'unitKompetensiData', 'selectedJudul'));
     }
 
     public function pendaftaranStep4()

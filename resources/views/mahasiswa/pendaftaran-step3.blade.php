@@ -47,7 +47,7 @@
                 <div class="card-body">
                     <div class="alert alert-info">
                         <p class="mb-0">
-                            Pilih Judul dan Nomor Skema Sertifikasi yang anda ajukan berikut Daftar Unit Kompetensi sesuai kemasan pada skema sertifikasi untuk mendapatkan pengakuan sesuai dengan latar belakang pendidikan, pelatihan serta pengalaman kerja yang anda miliki.
+                            Pilih Tujuan Asesmen yang anda ajukan berikut Daftar Unit Kompetensi sesuai kemasan pada skema sertifikasi untuk mendapatkan pengakuan sesuai dengan latar belakang pendidikan, pelatihan serta pengalaman kerja yang anda miliki.
                         </p>
                     </div>
 
@@ -65,12 +65,10 @@
                             </div>
                             <div class="col-md-5 mb-3">
                                 <label class="form-label"><strong>Judul</strong></label>
-                                <select class="form-select" id="judul" name="judul" required>
-                                    <option value="">Pilih Judul</option>
-                                    @foreach($judulOptions as $opt)
-                                        <option value="{{ $opt }}">{{ $opt }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="form-control-plaintext" id="judulDisplay">
+                                    {{ $selectedJudul }}
+                                </div>
+                                <input type="hidden" id="judul" name="judul" value="{{ $selectedJudul }}">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label"><strong>Tujuan Asesmen</strong></label>
@@ -557,19 +555,12 @@ function updateNomorSkema(judul) {
 document.addEventListener('DOMContentLoaded', () => {
   const judul = document.getElementById('judul');
 
-  judul.addEventListener('change', () => {
-    renderUnits(judul.value);
-    renderBukti(judul.value);
-    renderBuktiAdmin(judul.value);
-    updateNomorSkema(judul.value);
-  });
-
   // Initialize signature canvas and set current date
   initSignatureCanvas();
   setCurrentDate();
   setPemohonName();
 
-  // initial render if judul is already selected
+  // Render units, bukti, and nomor skema since judul is already selected
   if (judul.value){
     renderUnits(judul.value);
     renderBukti(judul.value);
