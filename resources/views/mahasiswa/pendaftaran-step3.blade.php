@@ -252,7 +252,7 @@ const unitsByJudul = @json($unitKompetensiData->groupBy('judul_sertifikasi')->ma
     })->toArray();
 }));
 
-// All judul now have the same skema display format
+// Skema display format
 
 const nomorSkemaByJudul = {
   'PENGEMBANG WEB (WEB DEVELOPER)': 'Nomor: 621/UMDP/XI/Q/2022',

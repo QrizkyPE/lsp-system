@@ -216,13 +216,13 @@ class MahasiswaController extends Controller
         // Get elemen data for selected judul
         $elemenData = ElemenJudul::where('judul_sertifikasi', $selectedJudul)
             ->orderBy('kode_unit')
-            ->orderBy('nomor_elemen')
+            ->orderBy('kode_elemen')
             ->get();
 
         // Get kriteria unjuk kerja data for selected judul
         $kriteriaData = KriteriaUnjukKerjaJudul::where('judul_sertifikasi', $selectedJudul)
             ->orderBy('kode_unit')
-            ->orderBy('nomor_elemen')
+            ->orderBy('kode_elemen')
             ->orderBy('nomor_kriteria')
             ->get();
 

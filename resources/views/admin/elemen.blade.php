@@ -41,7 +41,7 @@
                                 <th>No</th>
                                 <th>Judul Sertifikasi</th>
                                 <th>Kode Unit</th>
-                                <th>Nomor Elemen</th>
+                                <th>Kode Elemen</th>
                                 <th>Nama Elemen</th>
                                 <th>Kriteria</th>
                                 <th>Actions</th>
@@ -53,7 +53,7 @@
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $item->judul_sertifikasi }}</td>
                                 <td>{{ $item->kode_unit }}</td>
-                                <td>{{ $item->nomor_elemen }}</td>
+                                <td>{{ $item->kode_elemen }}</td>
                                 <td>{{ $item->nama_elemen }}</td>
                                 <td>
                                     <span class="badge bg-info">{{ $item->kriteriaUnjukKerja->count() }} kriteria</span>
@@ -61,7 +61,7 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editElemenJudul({{ $item->id }}, '{{ $item->judul_sertifikasi }}', '{{ $item->kode_unit }}', '{{ $item->nomor_elemen }}', '{{ $item->nama_elemen }}', '{{ $item->deskripsi }}')">
+                                                onclick="editElemenJudul({{ $item->id }}, '{{ $item->judul_sertifikasi }}', '{{ $item->kode_unit }}', '{{ $item->kode_elemen }}', '{{ $item->nama_elemen }}', '{{ $item->deskripsi }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <form action="{{ route('admin.elemen-judul') }}/{{ $item->id }}" method="POST" 
@@ -134,10 +134,10 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="nomor_elemen_judul" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('nomor_elemen') is-invalid @enderror" 
-                                   id="nomor_elemen_judul" name="nomor_elemen" value="{{ old('nomor_elemen') }}" required>
-                            @error('nomor_elemen')
+                            <label for="kode_elemen_judul" class="form-label">Kode Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('kode_elemen') is-invalid @enderror" 
+                                   id="kode_elemen_judul" name="kode_elemen" value="{{ old('kode_elemen') }}" required>
+                            @error('kode_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -193,8 +193,8 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_nomor_elemen" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_nomor_elemen" name="nomor_elemen" required>
+                            <label for="edit_kode_elemen" class="form-label">Kode Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_kode_elemen" name="kode_elemen" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -251,8 +251,8 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_nomor_elemen_judul" class="form-label">Nomor Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_nomor_elemen_judul" name="nomor_elemen" required>
+                            <label for="edit_kode_elemen_judul" class="form-label">Kode Elemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_kode_elemen_judul" name="kode_elemen" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -280,7 +280,7 @@
 <script>
 function editElemen(id, kode, nama, deskripsi, unitId) {
     document.getElementById('editElemenForm').action = '{{ route("admin.elemen") }}/' + id;
-    document.getElementById('edit_nomor_elemen').value = kode;
+    document.getElementById('edit_kode_elemen').value = kode;
     document.getElementById('edit_nama_elemen').value = nama;
     document.getElementById('edit_deskripsi').value = deskripsi;
     document.getElementById('edit_unit_kompetensi_id').value = unitId;
@@ -292,7 +292,7 @@ function editElemenJudul(id, judul, kodeUnit, kodeElemen, nama, deskripsi) {
     document.getElementById('editElemenJudulForm').action = '{{ route("admin.elemen-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
     document.getElementById('edit_kode_unit').value = kodeUnit;
-    document.getElementById('edit_nomor_elemen_judul').value = kodeElemen;
+    document.getElementById('edit_kode_elemen_judul').value = kodeElemen;
     document.getElementById('edit_nama_elemen_judul').value = nama;
     document.getElementById('edit_deskripsi_judul').value = deskripsi;
     

@@ -14,14 +14,14 @@ class ElemenJudul extends Model
     protected $fillable = [
         'judul_sertifikasi',
         'kode_unit',
-        'nomor_elemen',
+        'kode_elemen',
         'nama_elemen',
         'deskripsi',
     ];
 
     public function kriteriaUnjukKerja()
     {
-        return $this->hasMany(KriteriaUnjukKerjaJudul::class, 'nomor_elemen', 'nomor_elemen')
+        return $this->hasMany(KriteriaUnjukKerjaJudul::class, 'kode_elemen', 'kode_elemen')
             ->where('judul_sertifikasi', $this->judul_sertifikasi)
             ->where('kode_unit', $this->kode_unit);
     }

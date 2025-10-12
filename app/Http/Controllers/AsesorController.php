@@ -112,7 +112,7 @@ class AsesorController extends Controller
         $units = UnitKompetensi::with('skemaSertifikasi')->get();
         
         // Data untuk tab Elemen per Judul
-        $elemenJudul = ElemenJudul::with('kriteriaUnjukKerja')->orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->get();
+        $elemenJudul = ElemenJudul::with('kriteriaUnjukKerja')->orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->get();
         $judulOptions = [
             'PENGEMBANG WEB (WEB DEVELOPER)',
             'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
@@ -132,7 +132,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'required|string',
         ]);
@@ -147,7 +147,7 @@ class AsesorController extends Controller
     {
         $request->validate([
             'unit_kompetensi_id' => 'required|exists:unit_kompetensi,id',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'required|string',
         ]);
@@ -174,7 +174,7 @@ class AsesorController extends Controller
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
             'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
         ]);
@@ -190,7 +190,7 @@ class AsesorController extends Controller
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
             'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nama_elemen' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
         ]);
@@ -218,7 +218,7 @@ class AsesorController extends Controller
         $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->get();
         
         // Data untuk tab Kriteria per Judul
-        $kriteriaJudul = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('nomor_elemen')->orderBy('nomor_kriteria')->get();
+        $kriteriaJudul = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->orderBy('nomor_kriteria')->get();
         $judulOptions = [
             'PENGEMBANG WEB (WEB DEVELOPER)',
             'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
@@ -284,7 +284,7 @@ class AsesorController extends Controller
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
             'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nomor_kriteria' => 'required|string|max:255',
             'deskripsi_kriteria' => 'required|string',
             'jenis_bukti' => 'nullable|string|max:255',
@@ -303,7 +303,7 @@ class AsesorController extends Controller
         $request->validate([
             'judul_sertifikasi' => 'required|string|max:255',
             'kode_unit' => 'required|string|max:255|exists:unit_kompetensi_judul,kode_unit',
-            'nomor_elemen' => 'required|string|max:255',
+            'kode_elemen' => 'required|string|max:255',
             'nomor_kriteria' => 'required|string|max:255',
             'deskripsi_kriteria' => 'required|string',
             'jenis_bukti' => 'nullable|string|max:255',

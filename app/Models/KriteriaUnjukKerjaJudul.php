@@ -14,7 +14,7 @@ class KriteriaUnjukKerjaJudul extends Model
     protected $fillable = [
         'judul_sertifikasi',
         'kode_unit',
-        'nomor_elemen',
+        'kode_elemen',
         'nomor_kriteria',
         'deskripsi_kriteria',
         'jenis_bukti',
@@ -24,7 +24,7 @@ class KriteriaUnjukKerjaJudul extends Model
 
     public function elemen()
     {
-        return $this->belongsTo(ElemenJudul::class, 'nomor_elemen', 'nomor_elemen')
+        return $this->belongsTo(ElemenJudul::class, 'kode_elemen', 'kode_elemen')
             ->where('judul_sertifikasi', $this->judul_sertifikasi)
             ->where('kode_unit', $this->kode_unit);
     }

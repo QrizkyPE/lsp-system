@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('judul_sertifikasi'); 
             $table->string('kode_unit'); 
-            $table->string('nomor_elemen'); 
+            $table->string('kode_elemen'); 
             $table->string('nama_elemen'); 
             $table->text('deskripsi')->nullable();
             $table->timestamps();

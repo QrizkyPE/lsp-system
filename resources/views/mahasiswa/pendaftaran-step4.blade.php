@@ -62,10 +62,83 @@
                     <!-- Form Asesmen Mandiri -->
                     <form action="{{ route('mahasiswa.pendaftaran.step4.store') }}" method="POST" id="asesmenForm">
                         @csrf
+                        <input type="hidden" name="signature_data" id="signature_data">
                         
                         <!-- Unit Kompetensi 1 -->
                         <div class="mb-4" id="unitKompetensiContainer">
                             <!-- Content akan diisi oleh JavaScript -->
+                        </div>
+
+                        <!-- Rekomendasi dan Persetujuan -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">Rekomendasi dan Persetujuan</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                                    <tr>
+                                        <!-- Kolom kiri: Rekomendasi -->
+                                        <td rowspan="2" style="width: 65%; vertical-align: top; padding: 15px;">
+                                            <strong>Rekomendasi Untuk Asesi:</strong><br>
+                                     
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="rekomendasi" id="dapat" value="Dapat" disabled>
+                                                <label class="form-check-label" for="dapat">
+                                                    <strong>Asesmen dapat</strong>
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="rekomendasi" id="tidak_dapat" value="Tidak dapat" disabled>
+                                                <label class="form-check-label" for="tidak_dapat">
+                                                    <strong>Tidak dapat</strong>
+                                                </label>
+                                            </div>
+                                            <span class="text-muted small">dilanjutkan</span>
+                                        </td>
+
+                                        <!-- Kolom kanan atas: Asesi -->
+                                        <td style="width: 35%; vertical-align: top; padding: 15px;">
+                                            <strong>Asesi :</strong><br><br>
+                                            <div class="mb-2">
+                                                <label class="form-label">Nama :</label>
+                                                <input type="text" class="form-control form-control-sm" name="nama_pemohon" id="nama_pemohon" value="{{ session('pendaftaran.profil.nama_lengkap', auth()->user()->nama_lengkap) }}" readonly>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Tanda tangan :</label>
+                                                <div class="signature-container">
+                                                    <canvas id="signatureCanvas" width="300" height="100" style="border: 1px solid #ccc; cursor: crosshair;"></canvas>
+                                                    <div class="mt-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearSignature">Hapus</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Tanggal :</label>
+                                                <input type="text" class="form-control form-control-sm" name="tanggal_pemohon" id="tanggal_pemohon" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <!-- Kolom kanan bawah: Asesor -->
+                                        <td style="vertical-align: top; padding: 15px;">
+                                            <strong>Ditinjau Oleh Asesor :</strong><br><br>
+                                            <div class="mb-2">
+                                                <label class="form-label">Nama :</label>
+                                                <input type="text" class="form-control form-control-sm" name="nama_asesor" readonly placeholder="Akan diisi oleh Asesor">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">No. Reg:</label>
+                                                <input type="text" class="form-control form-control-sm" name="no_reg" readonly placeholder="Akan diisi oleh Asesor">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Tanda tangan/ Tanggal :</label>
+                                                <div class="text-muted small">
+                                                    Akan diisi oleh Asesor
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
 
                         <!-- Tombol Submit -->
@@ -87,6 +160,23 @@
 <style>
 .strike {
     text-decoration: line-through;
+}
+
+.signature-container {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+#signatureCanvas {
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    background-color: white;
+}
+
+.signature-container button {
+    font-size: 0.875rem;
 }
 
 .unit-kompetensi-table {
@@ -161,16 +251,16 @@ function renderUnitKompetensi() {
             };
         }
         
-        if (!unitsByKode[kriteria.kode_unit].elemen[kriteria.nomor_elemen]) {
-            const elemen = elemenData.find(e => e.nomor_elemen === kriteria.nomor_elemen && e.kode_unit === kriteria.kode_unit);
-            unitsByKode[kriteria.kode_unit].elemen[kriteria.nomor_elemen] = {
-                nomor_elemen: kriteria.nomor_elemen,
+        if (!unitsByKode[kriteria.kode_unit].elemen[kriteria.kode_elemen]) {
+            const elemen = elemenData.find(e => e.kode_elemen === kriteria.kode_elemen && e.kode_unit === kriteria.kode_unit);
+            unitsByKode[kriteria.kode_unit].elemen[kriteria.kode_elemen] = {
+                kode_elemen: kriteria.kode_elemen,
                 nama_elemen: elemen?.nama_elemen || '',
                 kriteria: []
             };
         }
         
-        unitsByKode[kriteria.kode_unit].elemen[kriteria.nomor_elemen].kriteria.push(kriteria);
+        unitsByKode[kriteria.kode_unit].elemen[kriteria.kode_elemen].kriteria.push(kriteria);
     });
 
     // Render setiap unit kompetensi
@@ -210,11 +300,11 @@ function renderUnitKompetensi() {
                     <tbody>
         `;
  
-        // Render setiap elemen (sorted by nomor_elemen)
+        // Render setiap elemen (sorted by kode_elemen)
         const elemenList = Object.values(unit.elemen).sort((a, b) => {
             // numeric aware compare, fallback to string
-            const ax = a.nomor_elemen?.toString() || '';
-            const bx = b.nomor_elemen?.toString() || '';
+            const ax = a.kode_elemen?.toString() || '';
+            const bx = b.kode_elemen?.toString() || '';
             return ax.localeCompare(bx, 'id', { numeric: true, sensitivity: 'base' });
         });
         elemenList.forEach((elemen, elemenIndex) => {
@@ -303,6 +393,110 @@ function renderUnitKompetensi() {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     renderUnitKompetensi();
+    initializeSignature();
+    setCurrentDate();
+});
+
+// Initialize signature canvas
+function initializeSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    const clearBtn = document.getElementById('clearSignature');
+    
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    
+    // Set canvas background to white
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+    
+    function startDrawing(e) {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+    
+    function draw(e) {
+        if (!isDrawing) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+        
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+    
+    function stopDrawing() {
+        isDrawing = false;
+        ctx.beginPath();
+    }
+    
+    function handleTouch(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                         e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+    
+    // Clear signature
+    clearBtn.addEventListener('click', function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+}
+
+// Set current date
+function setCurrentDate() {
+    const tanggalInput = document.getElementById('tanggal_pemohon');
+    if (tanggalInput) {
+        const today = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        tanggalInput.value = today.toLocaleDateString('id-ID', options);
+    }
+}
+
+// Save signature data before form submit
+document.getElementById('asesmenForm').addEventListener('submit', function(e) {
+    const canvas = document.getElementById('signatureCanvas');
+    const signatureData = document.getElementById('signature_data');
+    
+    if (canvas && signatureData) {
+        // Convert canvas to base64 image
+        const dataURL = canvas.toDataURL('image/png');
+        signatureData.value = dataURL;
+    }
 });
 </script>
 @endsection
