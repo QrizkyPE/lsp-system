@@ -519,7 +519,8 @@ class AdminController extends Controller
     public function tuk()
     {
         $tuks = Tuk::latest()->paginate(10);
-        return view('admin.tuk', compact('tuks'));
+        $skemas = SkemaSertifikasi::where('status', true)->get();
+        return view('admin.tuk', compact('tuks', 'skemas'));
     }
 
     public function storeTuk(Request $request)
@@ -577,7 +578,7 @@ class AdminController extends Controller
     {
         $jadwals = JadwalUji::with(['skemaSertifikasi', 'tuk'])->latest()->paginate(10);
         $skemas = SkemaSertifikasi::all();
-        $tuks = Tuk::all();
+        $tuks = Tuk::where('status', true)->get();
         return view('admin.jadwal-uji', compact('jadwals', 'skemas', 'tuks'));
     }
 

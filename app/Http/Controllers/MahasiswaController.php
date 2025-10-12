@@ -325,6 +325,10 @@ class MahasiswaController extends Controller
             'tanggal_pendaftaran' => now(),
         ]);
 
+        // Update kuota terisi
+        $jadwal = JadwalUji::find($request->jadwal_uji_id);
+        $jadwal->increment('kuota_terisi');
+
         return redirect()->route('mahasiswa.pendaftaran')
             ->with('success', 'Pendaftaran berhasil diajukan');
     }
