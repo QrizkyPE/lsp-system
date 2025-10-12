@@ -91,7 +91,7 @@
                                                     <strong>Tidak dapat</strong>
                                                 </label>
                                             </div>
-                                            <span class="text-muted small">dilanjutkan</span>
+                                            <span class="text-muted large">dilanjutkan</span>
                                         </td>
 
                                         <!-- Kolom kanan atas: Asesi -->
@@ -233,7 +233,12 @@
 const unitKompetensiData = @json($unitKompetensiData);
 const elemenData = @json($elemenData);
 const kriteriaData = @json($kriteriaData);
-const buktiData = @json($buktiData);
+const buktiFilesData = @json($buktiFiles);
+const buktiAdminFilesData = @json($buktiAdminFiles);
+
+// Debug: Log data files
+// console.log('Bukti Files Data:', buktiFilesData);
+// console.log('Bukti Admin Files Data:', buktiAdminFilesData);
 
 // Fungsi untuk membuat tabel unit kompetensi
 function renderUnitKompetensi() {
@@ -323,9 +328,13 @@ function renderUnitKompetensi() {
                 return ax.localeCompare(bx, 'id', { numeric: true, sensitivity: 'base' });
             });
             kriteriaList.forEach((kriteria, kriteriaIndex) => {
-                const buktiFiles = buktiData.filter(b => b.kode_unit === kriteria.kode_unit);
-                const buktiHtml = buktiFiles.map(bukti => 
-                    `<div class="bukti-file">${bukti.nama_file}</div>`
+                // Get uploaded files from step 3 (show all files for now)
+                const buktiHtml = buktiFilesData.map(bukti => 
+                    `<div class="bukti-file">
+                        <a href="/storage/bukti_persyaratan/${bukti.filename}" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-file-pdf text-danger me-1"></i>${bukti.original_name}
+                        </a>
+                    </div>`
                 ).join('');
  
                 html += `

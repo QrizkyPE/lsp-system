@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Pendaftaran;
 use App\Models\SkemaSertifikasi;
 use App\Models\JadwalUji;
@@ -241,20 +242,17 @@ class MahasiswaController extends Controller
 
         $nomorSkema = $nomorSkemaByJudul[$selectedJudul] ?? '';
 
-        // Mock bukti data (in real implementation, this would come from uploaded files)
-        $buktiData = [
-            [
-                'kode_unit' => 'J.620100.041.01',
-                'nama_file' => 'Transkrip Nilai.pdf'
-            ],
-            [
-                'kode_unit' => 'J.620100.041.01',
-                'nama_file' => 'Surat Keterangan PKL.pdf'
-            ]
-        ];
+        // Get uploaded files from step 3
+        $buktiFiles = $data['sertifikasi']['bukti_files'] ?? [];
+        $buktiAdminFiles = $data['sertifikasi']['bukti_admin_files'] ?? [];
+        
+        // Debug: Log session data
+        Log::info('Session data in step 4:', $data);
+        Log::info('Bukti files:', $buktiFiles);
+        Log::info('Bukti admin files:', $buktiAdminFiles);
 
         return view('mahasiswa.pendaftaran-step4', compact(
-            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiData', 'nomorSkema', 'selectedJudul'
+            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiFiles', 'buktiAdminFiles', 'nomorSkema', 'selectedJudul'
         ));
     }
 
@@ -288,6 +286,8 @@ class MahasiswaController extends Controller
             'skema' => 'required|in:KKNI,Okupasi,Klaster',
             'judul' => 'required|string|max:255',
             'tujuan_asesmen' => 'required|string|max:255',
+            'bukti_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'bukti_admin_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $data = session('pendaftaran_data');
@@ -296,13 +296,54 @@ class MahasiswaController extends Controller
                 ->with('error', 'Silakan lengkapi step sebelumnya.');
         }
 
+        // Handle file uploads for bukti persyaratan dasar
+        $buktiFiles = [];
+        if ($request->hasFile('bukti_files')) {
+            foreach ($request->file('bukti_files') as $key => $file) {
+                if ($file && $file->isValid()) {
+                    $filename = time() . '_' . $key . '_' . $file->getClientOriginalName();
+                    $file->storeAs('bukti_persyaratan', $filename, 'public');
+                    $buktiFiles[] = [
+                        'filename' => $filename,
+                        'original_name' => $file->getClientOriginalName(),
+                        'bukti_type' => $request->input('bukti_types.' . $key),
+                        'kode_unit' => $request->input('bukti_kode_units.' . $key)
+                    ];
+                }
+            }
+        }
+
+        // Handle file uploads for bukti administratif
+        $buktiAdminFiles = [];
+        if ($request->hasFile('bukti_admin_files')) {
+            foreach ($request->file('bukti_admin_files') as $key => $file) {
+                if ($file && $file->isValid()) {
+                    $filename = time() . '_admin_' . $key . '_' . $file->getClientOriginalName();
+                    $file->storeAs('bukti_administratif', $filename, 'public');
+                    $buktiAdminFiles[] = [
+                        'filename' => $filename,
+                        'original_name' => $file->getClientOriginalName(),
+                        'bukti_type' => $request->input('bukti_admin_types.' . $key),
+                        'kode_unit' => $request->input('bukti_admin_kode_units.' . $key)
+                    ];
+                }
+            }
+        }
+
         $data['step'] = 3;
         $data['sertifikasi'] = [
             'skema' => $request->skema,
             'judul' => trim($request->judul),
             'tujuan_asesmen' => trim($request->tujuan_asesmen),
-            // units are derived in the view; optionally store selection
+            'bukti_files' => $buktiFiles,
+            'bukti_admin_files' => $buktiAdminFiles,
         ];
+        
+        // Debug: Log uploaded files
+        Log::info('Uploaded bukti files:', $buktiFiles);
+        Log::info('Uploaded bukti admin files:', $buktiAdminFiles);
+        Log::info('Session data after step 3:', $data);
+        
         session(['pendaftaran_data' => $data]);
 
         // Next would be step 4

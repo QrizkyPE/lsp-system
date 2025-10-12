@@ -51,7 +51,7 @@
                         </p>
                     </div>
 
-                    <form action="{{ route('mahasiswa.pendaftaran.step3.store') }}" method="POST" id="sertifikasiForm">
+                    <form action="{{ route('mahasiswa.pendaftaran.step3.store') }}" method="POST" id="sertifikasiForm" enctype="multipart/form-data">
                         @csrf
 
                         <div class="row">
@@ -351,7 +351,9 @@ function renderBukti(judul){
       </td>
       <td></td>
       <td>
-        <input type="file" class="form-control form-control-sm uploadCtl" data-row="${rowId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
+        <input type="file" class="form-control form-control-sm uploadCtl" data-row="${rowId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" name="bukti_files[]">
+        <input type="hidden" name="bukti_types[]" value="${text}">
+        <input type="hidden" name="bukti_kode_units[]" value="">
         <small class="text-muted">PDF/JPG/PNG, maks 2MB</small>
       </td>
     `;
@@ -408,7 +410,9 @@ function renderBuktiAdmin(judul){
       </td>
       <td></td>
       <td>
-        <input type="file" class="form-control form-control-sm uploadCtl" data-row="${rowId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none;">
+        <input type="file" class="form-control form-control-sm uploadCtl" data-row="${rowId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" name="bukti_admin_files[]">
+        <input type="hidden" name="bukti_admin_types[]" value="${text}">
+        <input type="hidden" name="bukti_admin_kode_units[]" value="">
         <small class="text-muted">PDF/JPG/PNG, maks 2MB</small>
       </td>
     `;
