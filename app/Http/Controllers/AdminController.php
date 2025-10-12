@@ -17,6 +17,7 @@ use App\Models\UnitKompetensiJudul;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -392,28 +393,11 @@ class AdminController extends Controller
     public function asesor()
     {
         $asesor = Asesor::with('user')->latest()->paginate(10);
-        return view('admin.asesor', compact('asesor'));
+        $skemas = SkemaSertifikasi::where('status', true)->get();
+        $users = User::where('role', 'asesor')->whereDoesntHave('asesor')->get();
+        return view('admin.asesor', compact('asesor', 'skemas', 'users'));
     }
 
-    public function storeAsesor(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'nama_lengkap' => 'required|string',
-            'nip' => 'required|string',
-            'jabatan' => 'required|string',
-            'instansi' => 'required|string',
-            'no_sertifikat_asesor' => 'required|string',
-            'tanggal_sertifikat' => 'required|date',
-            'tanggal_expired' => 'required|date',
-            'skema_kompetensi' => 'required|array',
-        ]);
-
-        Asesor::create($request->all());
-
-        return redirect()->route('admin.asesor')
-            ->with('success', 'Asesor berhasil ditambahkan');
-    }
 
     public function updateAsesor(Request $request, $id)
     {
@@ -443,6 +427,77 @@ class AdminController extends Controller
 
         return redirect()->route('admin.asesor')
             ->with('success', 'Asesor berhasil dihapus');
+    }
+
+    // Create Asesor Account
+    public function createAsesorAccount()
+    {
+        $skemas = SkemaSertifikasi::where('status', true)->get();
+        return view('admin.create-asesor-account', compact('skemas'));
+    }
+
+    public function storeAsesorAccount(Request $request)
+    {
+        $request->validate([
+            // User validation
+            'name' => 'required|string|max:255|unique:users,name',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
+            
+            // Asesor validation
+            'nama_lengkap' => 'required|string|max:255',
+            'nip' => 'required|string|max:255|unique:asesor,nip',
+            'jabatan' => 'required|string|max:255',
+            'instansi' => 'required|string|max:255',
+            'no_sertifikat_asesor' => 'required|string|max:255|unique:asesor,no_sertifikat_asesor',
+            'tanggal_sertifikat' => 'required|date',
+            'tanggal_expired' => 'required|date|after:tanggal_sertifikat',
+            'skema_kompetensi' => 'required|array|min:1',
+            'skema_kompetensi.*' => 'exists:skema_sertifikasi,id',
+            'no_telepon' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create user account
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'asesor',
+                'nama_lengkap' => $request->nama_lengkap,
+                'no_telepon' => $request->no_telepon,
+                'alamat' => $request->alamat,
+            ]);
+
+            // Create asesor profile
+            Asesor::create([
+                'user_id' => $user->id,
+                'nama_lengkap' => $request->nama_lengkap,
+                'nip' => $request->nip,
+                'jabatan' => $request->jabatan,
+                'instansi' => $request->instansi,
+                'no_sertifikat_asesor' => $request->no_sertifikat_asesor,
+                'tanggal_sertifikat' => $request->tanggal_sertifikat,
+                'tanggal_expired' => $request->tanggal_expired,
+                'skema_kompetensi' => $request->skema_kompetensi,
+                'status' => true,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.asesor')
+                ->with('success', 'Akun asesor berhasil dibuat. User dapat login dengan email: ' . $user->email);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()
+                ->with('error', 'Gagal membuat akun asesor: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     // Unit Kompetensi Judul Management
@@ -637,7 +692,7 @@ class AdminController extends Controller
     {
         $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'asesor.user'])->latest()->paginate(10);
         $jadwals = JadwalUji::with('skemaSertifikasi')->get();
-        $asesor = Asesor::with('user')->get();
+        $asesor = Asesor::with('user')->where('status', true)->get();
         return view('admin.penugasan', compact('penugasan', 'jadwals', 'asesor'));
     }
 

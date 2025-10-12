@@ -58,9 +58,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Asesor
     Route::get('/asesor', [AdminController::class, 'asesor'])->name('asesor');
-    Route::post('/asesor', [AdminController::class, 'storeAsesor']);
     Route::put('/asesor/{id}', [AdminController::class, 'updateAsesor']);
     Route::delete('/asesor/{id}', [AdminController::class, 'deleteAsesor']);
+    
+    // Create Asesor Account
+    Route::get('/create-asesor-account', [AdminController::class, 'createAsesorAccount'])->name('create-asesor-account');
+    Route::post('/create-asesor-account', [AdminController::class, 'storeAsesorAccount']);
     
     // TUK
     Route::get('/tuk', [AdminController::class, 'tuk'])->name('tuk');
