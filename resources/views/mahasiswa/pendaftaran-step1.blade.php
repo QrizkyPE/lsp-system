@@ -113,52 +113,13 @@
                             </select>
                             <div class="form-text text-success">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Perhatikan nama jadwal, Pilih jadwal berdasarkan Skema dan Tempat Uji Kompetensi
+                                Perhatikan Skema dan Jadwal Uji Kompetensi yang dipilih.
                             </div>
                             @error('jadwal_uji_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <!-- Sumber Anggaran -->
-                        <div class="mb-4">
-                            <label for="sumber_anggaran" class="form-label">
-                                <strong>Sumber Anggaran <span class="text-danger">*</span></strong>
-                            </label>
-                            <select class="form-select @error('sumber_anggaran') is-invalid @enderror" 
-                                    id="sumber_anggaran" name="sumber_anggaran" required>
-                                <option value="">Pilih Sumber Anggaran</option>
-                                <option value="sumber anggaran biaya mandiri" 
-                                        {{ old('sumber_anggaran') == 'sumber anggaran biaya mandiri' ? 'selected' : '' }}>
-                                    Sumber Anggaran Biaya Mandiri
-                                </option>
-                                <option value="sumber anggaran perusahaan" 
-                                        {{ old('sumber_anggaran') == 'sumber anggaran perusahaan' ? 'selected' : '' }}>
-                                    Sumber Anggaran Perusahaan
-                                </option>
-                                <option value="sumber anggaran pemerintah" 
-                                        {{ old('sumber_anggaran') == 'sumber anggaran pemerintah' ? 'selected' : '' }}>
-                                    Sumber Anggaran Pemerintah
-                                </option>
-                            </select>
-                            @error('sumber_anggaran')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Pemberi Anggaran -->
-                        <div class="mb-4">
-                            <label for="pemberi_anggaran" class="form-label">
-                                <strong>Pemberi Anggaran <span class="text-danger">*</span></strong>
-                            </label>
-                            <input type="text" class="form-control @error('pemberi_anggaran') is-invalid @enderror" 
-                                   id="pemberi_anggaran" name="pemberi_anggaran" 
-                                   value="{{ old('pemberi_anggaran', 'Biaya Mandiri') }}" 
-                                   placeholder="Masukkan pemberi anggaran" required>
-                            @error('pemberi_anggaran')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-between">

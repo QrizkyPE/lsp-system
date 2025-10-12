@@ -67,8 +67,6 @@ class MahasiswaController extends Controller
         $request->validate([
             'skema_sertifikasi_id' => 'required|exists:skema_sertifikasi,id',
             'jadwal_uji_id' => 'required|exists:jadwal_uji,id',
-            'sumber_anggaran' => 'required|string|max:255',
-            'pemberi_anggaran' => 'required|string|max:255',
         ]);
 
         // Check if user already registered for this jadwal
@@ -95,8 +93,6 @@ class MahasiswaController extends Controller
             'pendaftaran_data' => [
                 'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
                 'jadwal_uji_id' => $request->jadwal_uji_id,
-                'sumber_anggaran' => $request->sumber_anggaran,
-                'pemberi_anggaran' => $request->pemberi_anggaran,
                 'step' => 1
             ]
         ]);
