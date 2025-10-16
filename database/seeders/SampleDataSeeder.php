@@ -14,7 +14,7 @@ class SampleDataSeeder extends Seeder
     {
         // Create sample skema sertifikasi
         $skema1 = \App\Models\SkemaSertifikasi::create([
-            'nama_skema' => 'Sertifikasi Kompetensi Web Developer',
+            'nama_skema' => 'PENGEMBANG WEB (WEB DEVELOPER)',
             'deskripsi' => 'Sertifikasi untuk kompetensi pengembangan website',
             'kode_skema' => 'SK-WD-001',
             'level_kompetensi' => 'Level 3',
@@ -23,7 +23,7 @@ class SampleDataSeeder extends Seeder
         ]);
 
         $skema2 = \App\Models\SkemaSertifikasi::create([
-            'nama_skema' => 'Sertifikasi Kompetensi Database Administrator',
+            'nama_skema' => 'Database Administrator',
             'deskripsi' => 'Sertifikasi untuk kompetensi administrasi database',
             'kode_skema' => 'SK-DBA-001',
             'level_kompetensi' => 'Level 4',
