@@ -43,6 +43,14 @@ class AsesorController extends Controller
         ));
     }
 
+    public function pendaftaran()
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->latest()
+            ->paginate(10);
+        return view('asesor.pendaftaran', compact('pendaftaran'));
+    }
+
     // Unit Kompetensi
     public function unitKompetensi()
     {
@@ -382,10 +390,30 @@ class AsesorController extends Controller
 
     public function asesmen()
     {
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'dokumen'])
-            ->where('status', 'approved')
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->where('status', 'pending')
+            ->whereNotNull('asesmen_data')
             ->latest()
             ->paginate(10);
+
+        // Ambil data elemen dan kriteria untuk setiap pendaftaran
+        foreach ($pendaftaran as $p) {
+            if ($p->sertifikasi_data) {
+                $sertifikasiData = is_string($p->sertifikasi_data) ? json_decode($p->sertifikasi_data, true) : $p->sertifikasi_data;
+                if (isset($sertifikasiData['judul'])) {
+                    $judul = $sertifikasiData['judul'];
+                    
+                    // Ambil unit kompetensi per judul
+                    $p->unitKompetensiJudul = UnitKompetensiJudul::where('judul_sertifikasi', $judul)->get();
+                    
+                    // Ambil elemen per judul
+                    $p->elemenJudul = ElemenJudul::where('judul_sertifikasi', $judul)->get();
+                    
+                    // Ambil kriteria per judul
+                    $p->kriteriaJudul = KriteriaUnjukKerjaJudul::where('judul_sertifikasi', $judul)->get();
+                }
+            }
+        }
 
         return view('asesor.asesmen', compact('pendaftaran'));
     }

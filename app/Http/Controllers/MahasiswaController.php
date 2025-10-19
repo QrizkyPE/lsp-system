@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\Pendaftaran;
 use App\Models\SkemaSertifikasi;
 use App\Models\JadwalUji;
@@ -13,6 +12,7 @@ use App\Models\Dokumen;
 use App\Models\UnitKompetensiJudul;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
+use App\Models\PendaftaranVerification;
 
 class MahasiswaController extends Controller
 {
@@ -88,11 +88,29 @@ class MahasiswaController extends Controller
                 ->withInput();
         }
 
+        // Create or update pendaftaran record
+        $user = Auth::user();
+        $noPendaftaran = 'REG' . date('Ymd') . str_pad(Pendaftaran::count() + 1, 4, '0', STR_PAD_LEFT);
+        
+        $pendaftaran = Pendaftaran::updateOrCreate(
+            ['user_id' => $user->id, 'status' => 'draft'],
+            [
+                'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+                'jadwal_uji_id' => $request->jadwal_uji_id,
+                'no_pendaftaran' => $noPendaftaran,
+                'status' => 'draft',
+                'tanggal_pendaftaran' => now(),
+            ]
+        );
+
         // Store in session for multi-step process
         session([
             'pendaftaran_data' => [
-                'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
-                'jadwal_uji_id' => $request->jadwal_uji_id,
+                'pendaftaran_id' => $pendaftaran->id,
+                'pengajuan' => [
+                    'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+                    'jadwal_uji_id' => $request->jadwal_uji_id,
+                ],
                 'step' => 1
             ]
         ]);
@@ -108,7 +126,18 @@ class MahasiswaController extends Controller
                 ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
 
-        return view('mahasiswa.pendaftaran-step2');
+        // Load existing data if available
+        $pendaftaranData = session('pendaftaran_data');
+        $existingData = [];
+        
+        if (isset($pendaftaranData['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($pendaftaranData['pendaftaran_id']);
+            if ($pendaftaran && $pendaftaran->profil_data) {
+                $existingData = $pendaftaran->profil_data;
+            }
+        }
+
+        return view('mahasiswa.pendaftaran-step2', compact('existingData'));
     }
 
     public function storePendaftaranStep2(Request $request)
@@ -149,7 +178,17 @@ class MahasiswaController extends Controller
         // Update session with step 2 data
         $pendaftaranData = session('pendaftaran_data');
         $pendaftaranData['step'] = 2;
-        $pendaftaranData['profil_data'] = $request->all();
+        $pendaftaranData['profil'] = $request->all();
+        
+        // Update pendaftaran record with profil data
+        if (isset($pendaftaranData['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($pendaftaranData['pendaftaran_id']);
+            if ($pendaftaran) {
+                $pendaftaran->update([
+                    'profil_data' => json_encode($request->all()),
+                ]);
+            }
+        }
         
         session(['pendaftaran_data' => $pendaftaranData]);
 
@@ -166,7 +205,13 @@ class MahasiswaController extends Controller
         }
 
         // Get skema sertifikasi from step 1
-        $skemaSertifikasi = SkemaSertifikasi::find($data['skema_sertifikasi_id']);
+        $skemaSertifikasiId = $data['pengajuan']['skema_sertifikasi_id'] ?? null;
+        if (!$skemaSertifikasiId) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Data pengajuan tidak lengkap. Silakan mulai dari awal.');
+        }
+        
+        $skemaSertifikasi = SkemaSertifikasi::find($skemaSertifikasiId);
         if (!$skemaSertifikasi) {
             return redirect()->route('mahasiswa.pendaftaran.step1')
                 ->with('error', 'Skema sertifikasi tidak ditemukan.');
@@ -174,6 +219,15 @@ class MahasiswaController extends Controller
 
         // Get judul from skema sertifikasi
         $selectedJudul = $skemaSertifikasi->nama_skema;
+        
+        // Load existing data if available
+        $existingData = [];
+        if (isset($data['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+            if ($pendaftaran && $pendaftaran->sertifikasi_data) {
+                $existingData = $pendaftaran->sertifikasi_data;
+            }
+        }
 
         // Provide options to the view
         $skemaOptions = ['KKNI', 'Okupasi', 'Klaster'];
@@ -188,7 +242,7 @@ class MahasiswaController extends Controller
         $unitKompetensiData = UnitKompetensiJudul::where('judul_sertifikasi', $selectedJudul)
             ->orderBy('id')->get();
 
-        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'tujuanOptions', 'unitKompetensiData', 'selectedJudul'));
+        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'tujuanOptions', 'unitKompetensiData', 'selectedJudul', 'existingData'));
     }
 
     public function pendaftaranStep4()
@@ -206,6 +260,15 @@ class MahasiswaController extends Controller
         if (empty($selectedJudul)) {
             return redirect()->route('mahasiswa.pendaftaran.step3')
                 ->with('error', 'Judul sertifikasi belum dipilih.');
+        }
+        
+        // Load existing data if available
+        $existingData = [];
+        if (isset($data['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+            if ($pendaftaran && $pendaftaran->asesmen_data) {
+                $existingData = $pendaftaran->asesmen_data;
+            }
         }
 
         // Get unit kompetensi data for selected judul
@@ -243,14 +306,9 @@ class MahasiswaController extends Controller
         $buktiAdminFiles = $data['sertifikasi']['bukti_admin_files'] ?? [];
         $signatureData = $data['sertifikasi']['signature_data'] ?? '';
         
-        // Debug: Log session data
-        Log::info('Session data in step 4:', $data);
-        Log::info('Bukti files:', $buktiFiles);
-        Log::info('Bukti admin files:', $buktiAdminFiles);
-        Log::info('Signature data:', ['signature' => $signatureData]);
 
         return view('mahasiswa.pendaftaran-step4', compact(
-            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiFiles', 'buktiAdminFiles', 'nomorSkema', 'selectedJudul', 'signatureData'
+            'data', 'unitKompetensiData', 'elemenData', 'kriteriaData', 'buktiFiles', 'buktiAdminFiles', 'nomorSkema', 'selectedJudul', 'signatureData', 'existingData'
         ));
     }
 
@@ -281,10 +339,46 @@ class MahasiswaController extends Controller
             $data['asesmen_mandiri']['signature_data'] = $request->signature_data;
         }
         
-        session(['pendaftaran_data' => $data]);
+        // Update pendaftaran record with asesmen data and change status to pending
+        if (isset($data['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+            if ($pendaftaran) {
+                $pendaftaran->update([
+                    'asesmen_data' => json_encode($data['asesmen_mandiri']),
+                    'status' => 'pending',
+                ]);
+            }
+        } else {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Data pengajuan tidak lengkap. Silakan mulai dari awal.');
+        }
 
-        return redirect()->route('mahasiswa.pendaftaran.step5')
-            ->with('success', 'Asesmen mandiri berhasil disimpan.');
+        // Create verification records for admin and asesor
+        PendaftaranVerification::create([
+            'pendaftaran_id' => $pendaftaran->id,
+            'verifier_id' => null, // Will be filled when admin verifies
+            'type' => 'admin_verification',
+            'status' => 'pending',
+        ]);
+
+        PendaftaranVerification::create([
+            'pendaftaran_id' => $pendaftaran->id,
+            'verifier_id' => null, // Will be filled when asesor verifies
+            'type' => 'asesor_verification',
+            'status' => 'pending',
+        ]);
+
+        // Update kuota terisi
+        $jadwal = JadwalUji::find($pendaftaran->jadwal_uji_id);
+        if ($jadwal) {
+            $jadwal->increment('kuota_terisi');
+        }
+
+        // Clear session data
+        session()->forget('pendaftaran_data');
+
+        return redirect()->route('mahasiswa.pendaftaran')
+            ->with('success', 'Pendaftaran berhasil diajukan. Data permohonan sertifikasi akan dikirim ke Admin dan Asesmen Mandiri akan dikirim ke Asesor untuk verifikasi.');
     }
 
     public function storePendaftaranStep3(Request $request)
@@ -346,12 +440,19 @@ class MahasiswaController extends Controller
             'bukti_files' => $buktiFiles,
             'bukti_admin_files' => $buktiAdminFiles,
             'signature_data' => $request->signature_data,
+            'bukti_persyaratan' => $request->input('bukti_persyaratan', []),
+            'bukti_administratif' => $request->input('bukti_administratif', []),
         ];
         
-        // Debug: Log uploaded files
-        Log::info('Uploaded bukti files:', $buktiFiles);
-        Log::info('Uploaded bukti admin files:', $buktiAdminFiles);
-        Log::info('Session data after step 3:', $data);
+        // Update pendaftaran record with sertifikasi data
+        if (isset($data['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+            if ($pendaftaran) {
+                $pendaftaran->update([
+                    'sertifikasi_data' => json_encode($data['sertifikasi']),
+                ]);
+            }
+        }
         
         session(['pendaftaran_data' => $data]);
 
@@ -359,31 +460,11 @@ class MahasiswaController extends Controller
         return redirect()->route('mahasiswa.pendaftaran.step4');
     }
 
-    public function storePendaftaran(Request $request)
+    public function clearPendaftaranSession()
     {
-        $request->validate([
-            'skema_sertifikasi_id' => 'required|exists:skema_sertifikasi,id',
-            'jadwal_uji_id' => 'required|exists:jadwal_uji,id',
-        ]);
-
-        $user = Auth::user();
-        $noPendaftaran = 'REG' . date('Ymd') . str_pad(Pendaftaran::count() + 1, 4, '0', STR_PAD_LEFT);
-
-        Pendaftaran::create([
-            'user_id' => $user->id,
-            'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
-            'jadwal_uji_id' => $request->jadwal_uji_id,
-            'no_pendaftaran' => $noPendaftaran,
-            'status' => 'pending',
-            'tanggal_pendaftaran' => now(),
-        ]);
-
-        // Update kuota terisi
-        $jadwal = JadwalUji::find($request->jadwal_uji_id);
-        $jadwal->increment('kuota_terisi');
-
+        session()->forget('pendaftaran_data');
         return redirect()->route('mahasiswa.pendaftaran')
-            ->with('success', 'Pendaftaran berhasil diajukan');
+            ->with('success', 'Data pendaftaran yang belum selesai telah dihapus.');
     }
 
     public function jadwal()

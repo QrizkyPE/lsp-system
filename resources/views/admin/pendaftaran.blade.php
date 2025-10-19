@@ -1,0 +1,327 @@
+@extends('layouts.app')
+
+@section('title', 'Pendaftaran LSP')
+@section('page-title', 'Pendaftaran LSP')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Pendaftaran LSP</h4>
+                </div>
+                <div class="card-body">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    <!-- Filter and Search -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Cari pendaftaran...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Semua Status</option>
+                                <option value="pending">Menunggu Verifikasi</option>
+                                <option value="approved">Disetujui</option>
+                                <option value="rejected">Ditolak</option>
+                                <option value="completed">Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Pendaftaran List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Daftar Pendaftaran</h5>
+                        </div>
+                        <div class="card-body">
+                            @if($pendaftaran->count() > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="pendaftaranTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>No. Pendaftaran</th>
+                                                <th>Mahasiswa</th>
+                                                <th>Skema Sertifikasi</th>
+                                                <th>Jadwal Uji</th>
+                                                <th>Status</th>
+                                                <th>Tanggal Pendaftaran</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($pendaftaran as $p)
+                                                <tr data-status="{{ $p->status }}">
+                                                    <td>
+                                                        <strong>{{ $p->no_pendaftaran }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-bold">{{ $p->user->nama_lengkap ?? '-' }}</div>
+                                                        <small class="text-muted">{{ $p->user->email ?? '-' }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-bold">{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</div>
+                                                        <small class="text-muted">{{ $p->skemaSertifikasi->kode_skema ?? '-' }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-bold">{{ $p->jadwalUji->nama_batch ?? '-' }}</div>
+                                                        <small class="text-muted">
+                                                            {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
+                                                            - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        @switch($p->status)
+                                                            @case('pending')
+                                                                <span class="badge bg-warning">Menunggu Verifikasi</span>
+                                                                @break
+                                                            @case('approved')
+                                                                <span class="badge bg-success">Disetujui</span>
+                                                                @break
+                                                            @case('rejected')
+                                                                <span class="badge bg-danger">Ditolak</span>
+                                                                @break
+                                                            @case('completed')
+                                                                <span class="badge bg-primary">Selesai</span>
+                                                                @break
+                                                            @default
+                                                                <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
+                                                        @endswitch
+                                                    </td>
+                                                    <td>
+                                                        {{ $p->tanggal_pendaftaran ? \Carbon\Carbon::parse($p->tanggal_pendaftaran)->format('d/m/Y H:i') : '-' }}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a href="{{ route('admin.pendaftaran.detail', $p->id) }}" class="btn btn-sm btn-outline-info">
+                                                                <i class="fas fa-eye"></i> Detail
+                                                            </a>
+                                                            @if($p->status == 'pending')
+                                                                <form action="{{ route('admin.pendaftaran.approve', $p->id) }}" method="POST" class="d-inline">
+                                                                    @csrf
+                                                                    @method('PUT')
+                                                                    <button type="submit" class="btn btn-sm btn-success" 
+                                                                            onclick="return confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')">
+                                                                        <i class="fas fa-check"></i>
+                                                                    </button>
+                                                                </form>
+                                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                                        data-bs-toggle="modal" 
+                                                                        data-bs-target="#rejectModal{{ $p->id }}">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div class="d-flex justify-content-center">
+                                    {{ $pendaftaran->links() }}
+                                </div>
+                            @else
+                                <div class="text-center py-5">
+                                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Belum ada pendaftaran</h5>
+                                    <p class="text-muted">Tidak ada pendaftaran yang perlu diverifikasi.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+@foreach($pendaftaran as $p)
+<div class="modal fade" id="detailModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Pendaftaran - {{ $p->no_pendaftaran }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informasi Pendaftaran</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>No. Pendaftaran:</strong></td>
+                                <td>{{ $p->no_pendaftaran }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    @switch($p->status)
+                                        @case('pending')
+                                            <span class="badge bg-warning">Menunggu Verifikasi</span>
+                                            @break
+                                        @case('approved')
+                                            <span class="badge bg-success">Disetujui</span>
+                                            @break
+                                        @case('rejected')
+                                            <span class="badge bg-danger">Ditolak</span>
+                                            @break
+                                        @case('completed')
+                                            <span class="badge bg-primary">Selesai</span>
+                                            @break
+                                        @default
+                                            <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
+                                    @endswitch
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Pendaftaran:</strong></td>
+                                <td>{{ $p->tanggal_pendaftaran ? \Carbon\Carbon::parse($p->tanggal_pendaftaran)->format('d/m/Y H:i') : '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Data Mahasiswa</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nama:</strong></td>
+                                <td>{{ $p->user->nama_lengkap ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ $p->user->email ?? '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Skema Sertifikasi</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nama Skema:</strong></td>
+                                <td>{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kode Skema:</strong></td>
+                                <td>{{ $p->skemaSertifikasi->kode_skema ?? '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Jadwal Uji</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nama Batch:</strong></td>
+                                <td>{{ $p->jadwalUji->nama_batch ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal:</strong></td>
+                                <td>
+                                    {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
+                                    - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                @if($p->status == 'rejected' && $p->alasan_penolakan)
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Alasan Penolakan:</h6>
+                        <p class="mb-0">{{ $p->alasan_penolakan }}</p>
+                    </div>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tolak Pendaftaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.pendaftaran.reject', $p->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="alasan_penolakan" class="form-label">Alasan Penolakan:</label>
+                        <textarea class="form-control" id="alasan_penolakan" name="alasan_penolakan" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Tolak Pendaftaran</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
+@endsection
+
+@section('scripts')
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('pendaftaranTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+});
+
+// Status filter
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const selectedStatus = this.value;
+    const table = document.getElementById('pendaftaranTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const status = row.getAttribute('data-status');
+        if (selectedStatus === '' || status === selectedStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+});
+</script>
+@endsection

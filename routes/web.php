@@ -65,6 +65,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/create-asesor-account', [AdminController::class, 'createAsesorAccount'])->name('create-asesor-account');
     Route::post('/create-asesor-account', [AdminController::class, 'storeAsesorAccount']);
     
+    // Personalization
+    Route::get('/personalization', [AdminController::class, 'personalization'])->name('personalization');
+    Route::post('/personalization', [AdminController::class, 'storePersonalization']);
+    
+    // Verifications
+    Route::get('/verifications', [AdminController::class, 'verifications'])->name('verifications');
+    Route::post('/verifications/{id}/verify', [AdminController::class, 'verifyPendaftaran'])->name('verifications.verify');
+    
     // TUK
     Route::get('/tuk', [AdminController::class, 'tuk'])->name('tuk');
     Route::post('/tuk', [AdminController::class, 'storeTuk']);
@@ -85,8 +93,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Pendaftaran
     Route::get('/pendaftaran', [AdminController::class, 'pendaftaran'])->name('pendaftaran');
-    Route::put('/pendaftaran/{id}/approve', [AdminController::class, 'approvePendaftaran']);
-    Route::put('/pendaftaran/{id}/reject', [AdminController::class, 'rejectPendaftaran']);
+    Route::get('/pendaftaran/{id}/detail', [AdminController::class, 'viewPendaftaranDetail'])->name('pendaftaran.detail');
+    Route::put('/pendaftaran/{id}/approve', [AdminController::class, 'approvePendaftaran'])->name('pendaftaran.approve');
+    Route::put('/pendaftaran/{id}/reject', [AdminController::class, 'rejectPendaftaran'])->name('pendaftaran.reject');
     
     // Laporan
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
@@ -107,12 +116,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Asesor routes
 Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     Route::get('/dashboard', [AsesorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/pendaftaran', [AsesorController::class, 'pendaftaran'])->name('pendaftaran');
     Route::get('/penugasan', [AsesorController::class, 'penugasan'])->name('penugasan');
     Route::get('/dokumen', [AsesorController::class, 'dokumen'])->name('dokumen');
     Route::post('/dokumen/{id}/approve', [AsesorController::class, 'approveDokumen']);
     Route::post('/dokumen/{id}/reject', [AsesorController::class, 'rejectDokumen']);
     Route::get('/asesmen', [AsesorController::class, 'asesmen'])->name('asesmen');
     Route::post('/asesmen/{id}/submit', [AsesorController::class, 'submitAsesmen']);
+    
+    // Personalization
+    Route::get('/personalization', [AsesorController::class, 'personalization'])->name('personalization');
+    Route::post('/personalization', [AsesorController::class, 'storePersonalization']);
+    
+    // Verifications
+    Route::get('/verifications', [AsesorController::class, 'verifications'])->name('verifications');
+    Route::post('/verifications/{id}/verify', [AsesorController::class, 'verifyPendaftaran'])->name('verifications.verify');
     
         // Unit Kompetensi
         Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
@@ -152,7 +170,6 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
 Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
     Route::get('/dashboard', [MahasiswaController::class, 'dashboard'])->name('dashboard');
     Route::get('/pendaftaran', [MahasiswaController::class, 'pendaftaran'])->name('pendaftaran');
-    Route::post('/pendaftaran', [MahasiswaController::class, 'storePendaftaran']);
     
     // Multi-step pendaftaran
     Route::get('/pendaftaran/step1', [MahasiswaController::class, 'pendaftaranStep1'])->name('pendaftaran.step1');
@@ -163,6 +180,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::post('/pendaftaran/step3', [MahasiswaController::class, 'storePendaftaranStep3'])->name('pendaftaran.step3.store');
     Route::get('/pendaftaran/step4', [MahasiswaController::class, 'pendaftaranStep4'])->name('pendaftaran.step4');
     Route::post('/pendaftaran/step4', [MahasiswaController::class, 'storePendaftaranStep4'])->name('pendaftaran.step4.store');
+    Route::post('/pendaftaran/clear', [MahasiswaController::class, 'clearPendaftaranSession'])->name('pendaftaran.clear');
     
     Route::get('/jadwal', [MahasiswaController::class, 'jadwal'])->name('jadwal');
     Route::get('/dokumen', [MahasiswaController::class, 'dokumen'])->name('dokumen');

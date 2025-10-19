@@ -344,10 +344,10 @@ function renderBukti(judul){
       <td>${i}.</td>
       <td>${text}</td>
       <td class="text-center">
-        <input class="form-check-input msChk" type="checkbox" data-row="${rowId}" aria-label="Memenuhi Syarat">
+        <input class="form-check-input msChk" type="checkbox" data-row="${rowId}" aria-label="Memenuhi Syarat" name="bukti_persyaratan[${i}][memenuhi_syarat]">
       </td>
       <td class="text-center">
-        <input class="form-check-input tmsChk" type="checkbox" data-row="${rowId}" aria-label="Tidak Memenuhi Syarat">
+        <input class="form-check-input tmsChk" type="checkbox" data-row="${rowId}" aria-label="Tidak Memenuhi Syarat" name="bukti_persyaratan[${i}][tidak_memenuhi_syarat]">
       </td>
       <td></td>
       <td>
@@ -403,10 +403,10 @@ function renderBuktiAdmin(judul){
       <td>${i}.</td>
       <td>${text}</td>
       <td class="text-center">
-        <input class="form-check-input msChk" type="checkbox" data-row="${rowId}" aria-label="Memenuhi Syarat">
+        <input class="form-check-input msChk" type="checkbox" data-row="${rowId}" aria-label="Memenuhi Syarat" name="bukti_administratif[${i}][memenuhi_syarat]">
       </td>
       <td class="text-center">
-        <input class="form-check-input tmsChk" type="checkbox" data-row="${rowId}" aria-label="Tidak Memenuhi Syarat">
+        <input class="form-check-input tmsChk" type="checkbox" data-row="${rowId}" aria-label="Tidak Memenuhi Syarat" name="bukti_administratif[${i}][tidak_memenuhi_syarat]">
       </td>
       <td></td>
       <td>

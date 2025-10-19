@@ -758,6 +758,14 @@ class AdminController extends Controller
             ->with('success', 'Pendaftaran berhasil disetujui');
     }
 
+    public function viewPendaftaranDetail($id)
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->findOrFail($id);
+        
+        return view('admin.pendaftaran-detail', compact('pendaftaran'));
+    }
+
     public function rejectPendaftaran(Request $request, $id)
     {
         $request->validate([

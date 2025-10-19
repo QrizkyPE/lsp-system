@@ -23,11 +23,7 @@ class Pendaftaran extends Model
         'tanggal_selesai',
         'hasil_asesmen',
         'catatan_asesmen',
-        'nama_lengkap', 'no_ktp', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin',
-        'kebangsaan', 'alamat_rumah', 'kode_pos', 'rumah', 'kantor', 'no_telp', 'email',
-        'kualifikasi_pendidikan', 'pekerjaan', 'nama_institusi', 'jabatan',
-        'alamat_lembaga', 'kode_pos_lembaga', 'no_telp_lembaga', 'no_fax_lembaga', 'email_lembaga',
-        'sumber_anggaran', 'pemberi_anggaran'
+        'profil_data', 'sertifikasi_data', 'asesmen_data'
     ];
 
     protected $casts = [
@@ -56,5 +52,55 @@ class Pendaftaran extends Model
     public function dokumen(): HasMany
     {
         return $this->hasMany(Dokumen::class);
+    }
+
+    public function verifications(): HasMany
+    {
+        return $this->hasMany(PendaftaranVerification::class);
+    }
+
+    // Accessor untuk memastikan asesmen_data di-decode dengan benar
+    public function getAsesmenDataAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true);
+        }
+        return $value;
+    }
+
+    // Accessor untuk memastikan profil_data di-decode dengan benar
+    public function getProfilDataAttribute($value)
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return $decoded ?: [];
+        }
+        return $value ?: [];
+    }
+
+    // Accessor untuk memastikan sertifikasi_data di-decode dengan benar
+    public function getSertifikasiDataAttribute($value)
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return $decoded ?: [];
+        }
+        return $value ?: [];
+    }
+
+    // Mutator untuk memastikan data disimpan sebagai JSON
+    public function setProfilDataAttribute($value)
+    {
+        $this->attributes['profil_data'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function setSertifikasiDataAttribute($value)
+    {
+        $this->attributes['sertifikasi_data'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function setAsesmenDataAttribute($value)
+    {
+        $this->attributes['asesmen_data'] = is_array($value) ? json_encode($value) : $value;
     }
 }
