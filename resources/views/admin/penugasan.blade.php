@@ -94,10 +94,10 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <strong>{{ $p->jadwalUji->nama_jadwal ?? '-' }}</strong>
+                                                <strong>{{ $p->jadwalUji->nama_batch ?? '-' }}</strong>
                                                 <br>
                                                 <small class="text-muted">
-                                                    {{ $p->jadwalUji->tanggal_uji ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_uji)->format('d/m/Y') : '-' }}
+                                                    {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
                                                 </small>
                                             </div>
                                         </td>
@@ -203,8 +203,8 @@
                                     <option value="">Pilih Jadwal Uji</option>
                                     @foreach($jadwals as $jadwal)
                                         <option value="{{ $jadwal->id }}">
-                                            {{ $jadwal->nama_jadwal }} - {{ $jadwal->skemaSertifikasi->nama_skema ?? '-' }}
-                                            ({{ $jadwal->tanggal_uji ? \Carbon\Carbon::parse($jadwal->tanggal_uji)->format('d/m/Y') : '-' }})
+                                            {{ $jadwal->nama_batch }} - {{ $jadwal->skemaSertifikasi->nama_skema ?? '-' }}
+                                            ({{ $jadwal->tanggal_mulai ? \Carbon\Carbon::parse($jadwal->tanggal_mulai)->format('d/m/Y') : '-' }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -274,8 +274,8 @@
                                     <option value="">Pilih Jadwal Uji</option>
                                     @foreach($jadwals as $jadwal)
                                         <option value="{{ $jadwal->id }}">
-                                            {{ $jadwal->nama_jadwal }} - {{ $jadwal->skemaSertifikasi->nama_skema ?? '-' }}
-                                            ({{ $jadwal->tanggal_uji ? \Carbon\Carbon::parse($jadwal->tanggal_uji)->format('d/m/Y') : '-' }})
+                                            {{ $jadwal->nama_batch }} - {{ $jadwal->skemaSertifikasi->nama_skema ?? '-' }}
+                                            ({{ $jadwal->tanggal_mulai ? \Carbon\Carbon::parse($jadwal->tanggal_mulai)->format('d/m/Y') : '-' }})
                                         </option>
                                     @endforeach
                                 </select>

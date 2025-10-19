@@ -692,7 +692,7 @@ class AdminController extends Controller
     // Penugasan
     public function penugasan()
     {
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'asesor.user'])->latest()->paginate(10);
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])->latest()->paginate(10);
         $jadwals = JadwalUji::with('skemaSertifikasi')->get();
         $asesor = Asesor::with('user')->where('status', true)->get();
         return view('admin.penugasan', compact('penugasan', 'jadwals', 'asesor'));
@@ -741,7 +741,7 @@ class AdminController extends Controller
 
     public function getPenugasan($id)
     {
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'asesor.user'])->findOrFail($id);
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])->findOrFail($id);
         return response()->json($penugasan);
     }
 

@@ -343,12 +343,24 @@ class AsesorController extends Controller
             return redirect()->route('login')->with('error', 'Anda bukan asesor');
         }
 
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi'])
+        $penugasan = \App\Models\Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk'])
             ->where('asesor_id', $asesor->id)
             ->latest()
             ->paginate(10);
 
-        return view('asesor.penugasan', compact('penugasan'));
+        // Calculate summary statistics
+        $totalPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->count();
+        $pendingPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->where('status', 'pending')->count();
+        $acceptedPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->where('status', 'accepted')->count();
+        $rejectedPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->where('status', 'rejected')->count();
+
+        return view('asesor.penugasan', compact(
+            'penugasan', 
+            'totalPenugasan', 
+            'pendingPenugasan', 
+            'acceptedPenugasan', 
+            'rejectedPenugasan'
+        ));
     }
 
     public function dokumen()
@@ -535,5 +547,42 @@ class AsesorController extends Controller
             return redirect()->route('asesor.personalization')
                 ->with('error', 'Gagal menyimpan tanda tangan: ' . $e->getMessage());
         }
+    }
+
+    public function getPenugasan($id)
+    {
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $penugasan = \App\Models\Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk'])
+            ->where('asesor_id', $asesor->id)
+            ->findOrFail($id);
+        
+        return response()->json($penugasan);
+    }
+
+    public function updatePenugasanStatus(Request $request, $id)
+    {
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'status' => 'required|in:accepted,rejected'
+        ]);
+
+        $penugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->findOrFail($id);
+        $penugasan->update([
+            'status' => $request->status,
+            'tanggal_respon' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status penugasan berhasil diupdate'
+        ]);
     }
 }

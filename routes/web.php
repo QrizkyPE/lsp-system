@@ -170,9 +170,14 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
         Route::put('/kriteria-judul/{id}', [AsesorController::class, 'updateKriteriaJudul']);
         Route::delete('/kriteria-judul/{id}', [AsesorController::class, 'deleteKriteriaJudul']);
         
-        // Personalization
-        Route::get('/personalization', [AsesorController::class, 'personalization'])->name('personalization');
-        Route::post('/personalization', [AsesorController::class, 'storePersonalization'])->name('personalization.store');
+    // Personalization
+    Route::get('/personalization', [AsesorController::class, 'personalization'])->name('personalization');
+    Route::post('/personalization', [AsesorController::class, 'storePersonalization'])->name('personalization.store');
+    
+    // Penugasan
+    Route::get('/penugasan', [AsesorController::class, 'penugasan'])->name('penugasan');
+    Route::get('/penugasan/{id}', [AsesorController::class, 'getPenugasan'])->name('penugasan.show');
+    Route::post('/penugasan/{id}/status', [AsesorController::class, 'updatePenugasanStatus'])->name('penugasan.status');
 });
 
 // Mahasiswa routes
