@@ -392,9 +392,11 @@
                                                                                     $status = null;
                                                                                     $detail = '';
                                                                                     
-                                                                                    // Map kriteriaKey to asesmenData key
-                                                                                    // Extract the first number from kriteriaKey (e.g., "1.1" -> "1", "2.3" -> "2")
-                                                                                    $mappedKey = explode('.', $kriteriaKey)[0];
+                                                                                    // Map kriteriaKey to asesmenData key based on sequential order
+                                                                                    // Since asesmenData uses keys "1", "2", "3", etc., we need to map based on order
+                                                                                    static $kriteriaCounter = 0;
+                                                                                    $kriteriaCounter++;
+                                                                                    $mappedKey = (string)$kriteriaCounter;
                                                                                     
                                                                                     if(isset($asesmenData[$mappedKey])) {
                                                                                         // Handle both boolean and string formats
