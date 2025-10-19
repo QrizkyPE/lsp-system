@@ -16,8 +16,10 @@ use App\Models\User;
 use App\Models\UnitKompetensiJudul;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
+use App\Models\UserPersonalization;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -737,6 +739,12 @@ class AdminController extends Controller
             ->with('success', 'Penugasan berhasil dihapus');
     }
 
+    public function getPenugasan($id)
+    {
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'asesor.user'])->findOrFail($id);
+        return response()->json($penugasan);
+    }
+
     // Pendaftaran
     public function pendaftaran()
     {
@@ -898,5 +906,34 @@ class AdminController extends Controller
     {
         // Implementation for AK.05 report generation
         return response()->download(public_path('reports/ak05-report.pdf'));
+    }
+
+    public function personalization()
+    {
+        $personalization = UserPersonalization::where('user_id', Auth::id())->first();
+        return view('admin.personalization', compact('personalization'));
+    }
+
+    public function storePersonalization(Request $request)
+    {
+        $request->validate([
+            'signature_data' => 'required|string'
+        ]);
+
+        try {
+            UserPersonalization::updateOrCreate(
+                ['user_id' => Auth::id()],
+                [
+                    'signature_data' => $request->signature_data,
+                    'updated_at' => now()
+                ]
+            );
+
+            return redirect()->route('admin.personalization')
+                ->with('success', 'Tanda tangan berhasil disimpan!');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.personalization')
+                ->with('error', 'Gagal menyimpan tanda tangan: ' . $e->getMessage());
+        }
     }
 }

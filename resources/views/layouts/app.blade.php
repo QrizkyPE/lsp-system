@@ -97,6 +97,11 @@
                                     <i class="fas fa-chart-bar me-2"></i>Laporan
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.personalization') ? 'active' : '' }}" href="{{ route('admin.personalization') }}">
+                                    <i class="fas fa-signature me-2"></i>Personalisasi
+                                </a>
+                            </li>
                         @elseif(auth()->user()->role === 'asesor')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.dashboard') ? 'active' : '' }}" href="{{ route('asesor.dashboard') }}">
@@ -131,6 +136,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.kriteria-unjuk-kerja') ? 'active' : '' }}" href="{{ route('asesor.kriteria-unjuk-kerja') }}">
                                     <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.personalization') ? 'active' : '' }}" href="{{ route('asesor.personalization') }}">
+                                    <i class="fas fa-signature me-2"></i>Personalisasi
                                 </a>
                             </li>
                         @elseif(auth()->user()->role === 'mahasiswa')

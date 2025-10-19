@@ -14,6 +14,7 @@ use App\Models\Elemen;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerja;
 use App\Models\KriteriaUnjukKerjaJudul;
+use App\Models\UserPersonalization;
 
 class AsesorController extends Controller
 {
@@ -504,6 +505,35 @@ class AsesorController extends Controller
 
             return redirect()->route('asesor.unit-kompetensi')
                 ->with('error', 'Gagal menghapus unit kompetensi');
+        }
+    }
+
+    public function personalization()
+    {
+        $personalization = UserPersonalization::where('user_id', Auth::id())->first();
+        return view('asesor.personalization', compact('personalization'));
+    }
+
+    public function storePersonalization(Request $request)
+    {
+        $request->validate([
+            'signature_data' => 'required|string'
+        ]);
+
+        try {
+            UserPersonalization::updateOrCreate(
+                ['user_id' => Auth::id()],
+                [
+                    'signature_data' => $request->signature_data,
+                    'updated_at' => now()
+                ]
+            );
+
+            return redirect()->route('asesor.personalization')
+                ->with('success', 'Tanda tangan berhasil disimpan!');
+        } catch (\Exception $e) {
+            return redirect()->route('asesor.personalization')
+                ->with('error', 'Gagal menyimpan tanda tangan: ' . $e->getMessage());
         }
     }
 }

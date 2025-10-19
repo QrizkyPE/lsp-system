@@ -59,7 +59,7 @@
                                                 <th>No. Pendaftaran</th>
                                                 <th>Mahasiswa</th>
                                                 <th>Skema Sertifikasi</th>
-                                                <th>Jadwal Uji</th>
+                                                {{-- <th>Jadwal Uji</th> --}}
                                                 <th>Status</th>
                                                 <th>Tanggal Pendaftaran</th>
                                                 <th>Aksi</th>
@@ -226,7 +226,7 @@
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <h6>Jadwal Uji</h6>
+                        {{-- <h6>Jadwal Uji</h6> --}}
                         <table class="table table-sm">
                             <tr>
                                 <td><strong>Nama Batch:</strong></td>
@@ -322,10 +322,10 @@
                                             <td><strong>Skema Sertifikasi:</strong></td>
                                             <td>{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</td>
                                         </tr>
-                                        <tr>
+                                        {{-- <tr>
                                             <td><strong>Jadwal Uji:</strong></td>
                                             <td>{{ $p->jadwalUji->nama_jadwal ?? '-' }}</td>
-                                        </tr>
+                                        </tr> --}}
                                         <tr>
                                             <td><strong>Tanggal Pendaftaran:</strong></td>
                                             <td>{{ $p->tanggal_pendaftaran ? \Carbon\Carbon::parse($p->tanggal_pendaftaran)->format('d/m/Y H:i') : '-' }}</td>
@@ -553,6 +553,7 @@
                                     <h6>Data Profil Mahasiswa</h6>
                                     <div class="row">
                                         <div class="col-md-6">
+                                            <h6>Data Pribadi</h6>
                                             <table class="table table-sm">
                                                 <tr>
                                                     <td><strong>Nama Lengkap:</strong></td>
@@ -570,26 +571,69 @@
                                                     <td><strong>Jenis Kelamin:</strong></td>
                                                     <td>{{ $profilData['jenis_kelamin'] ?? '-' }}</td>
                                                 </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <table class="table table-sm">
                                                 <tr>
-                                                    <td><strong>Email:</strong></td>
-                                                    <td>{{ $profilData['email'] ?? '-' }}</td>
+                                                    <td><strong>Kebangsaan:</strong></td>
+                                                    <td>{{ $profilData['kebangsaan'] ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Alamat Rumah:</strong></td>
+                                                    <td>{{ $profilData['alamat_rumah'] ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Kode Pos:</strong></td>
+                                                    <td>{{ $profilData['kode_pos'] ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>No. Telp:</strong></td>
                                                     <td>{{ $profilData['no_telp'] ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
+                                                    <td><strong>Email:</strong></td>
+                                                    <td>{{ $profilData['email'] ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
                                                     <td><strong>Kualifikasi Pendidikan:</strong></td>
                                                     <td>{{ $profilData['kualifikasi_pendidikan'] ?? '-' }}</td>
                                                 </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Data Pekerjaan Sekarang</h6>
+                                            <table class="table table-sm">
                                                 <tr>
                                                     <td><strong>Pekerjaan:</strong></td>
                                                     <td>{{ $profilData['pekerjaan'] ?? '-' }}</td>
                                                 </tr>
+                                                @if(isset($profilData['pekerjaan']) && $profilData['pekerjaan'] !== 'Belum/Tidak Bekerja')
+                                                    <tr>
+                                                        <td><strong>Nama Institusi/Perusahaan:</strong></td>
+                                                        <td>{{ $profilData['nama_institusi'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Jabatan:</strong></td>
+                                                        <td>{{ $profilData['jabatan'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Alamat Lembaga/Perusahaan:</strong></td>
+                                                        <td>{{ $profilData['alamat_lembaga'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Kode POS Perusahaan:</strong></td>
+                                                        <td>{{ $profilData['kode_pos_lembaga'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>No. Telp:</strong></td>
+                                                        <td>{{ $profilData['no_telp_lembaga'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>No. Fax:</strong></td>
+                                                        <td>{{ $profilData['no_fax_lembaga'] ?? '-' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Email:</strong></td>
+                                                        <td>{{ $profilData['email_lembaga'] ?? '-' }}</td>
+                                                    </tr>
+                                                @endif
                                             </table>
                                         </div>
                                     </div>
