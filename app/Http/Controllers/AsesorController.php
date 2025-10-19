@@ -15,6 +15,7 @@ use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerja;
 use App\Models\KriteriaUnjukKerjaJudul;
 use App\Models\UserPersonalization;
+use App\Models\PendaftaranVerification;
 
 class AsesorController extends Controller
 {
@@ -404,10 +405,16 @@ class AsesorController extends Controller
     public function asesmen()
     {
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'approved'])
             ->whereNotNull('asesmen_data')
             ->latest()
             ->paginate(10);
+
+        // Calculate summary statistics
+        $totalAsesmen = Pendaftaran::whereNotNull('asesmen_data')->count();
+        $pendingAsesmen = Pendaftaran::where('status', 'approved')->whereNotNull('asesmen_data')->count();
+        $verifiedAsesmen = Pendaftaran::where('status', 'in_progress')->whereNotNull('asesmen_data')->count();
+        $rejectedAsesmen = Pendaftaran::where('status', 'rejected')->whereNotNull('asesmen_data')->count();
 
         // Ambil data elemen dan kriteria untuk setiap pendaftaran
         foreach ($pendaftaran as $p) {
@@ -428,7 +435,77 @@ class AsesorController extends Controller
             }
         }
 
-        return view('asesor.asesmen', compact('pendaftaran'));
+        return view('asesor.asesmen', compact(
+            'pendaftaran', 
+            'totalAsesmen', 
+            'pendingAsesmen', 
+            'verifiedAsesmen', 
+            'rejectedAsesmen'
+        ));
+    }
+
+
+    public function verifyAsesmen(Request $request, $id)
+    {
+        $pendaftaran = Pendaftaran::findOrFail($id);
+        
+        // Update pendaftaran status
+        $pendaftaran->update([
+            'status' => 'in_progress',
+            'tanggal_asesmen' => now()
+        ]);
+
+        // Update verification record with signature
+        $verification = PendaftaranVerification::where('pendaftaran_id', $id)
+            ->where('type', 'asesor_verification')
+            ->first();
+        
+        if ($verification) {
+            $updateData = [
+                'verifier_id' => Auth::id(),
+                'status' => 'verified',
+                'verification_date' => now()
+            ];
+            
+            // Add signature data if provided
+            if ($request->has('signature_data')) {
+                $updateData['signature_data'] = $request->signature_data;
+            }
+            
+            $verification->update($updateData);
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function rejectAsesmen($id)
+    {
+        $pendaftaran = Pendaftaran::findOrFail($id);
+        
+        // Update pendaftaran status
+        $pendaftaran->update([
+            'status' => 'rejected',
+            'tanggal_asesmen' => now()
+        ]);
+
+        // Update verification record
+        $verification = PendaftaranVerification::where('pendaftaran_id', $id)
+            ->where('type', 'asesor_verification')
+            ->first();
+        
+        if ($verification) {
+            $verification->update([
+                'verifier_id' => Auth::id(),
+                'status' => 'rejected',
+                'verification_date' => now()
+            ]);
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function submitAsesmen(Request $request, $id)
@@ -547,6 +624,23 @@ class AsesorController extends Controller
             return redirect()->route('asesor.personalization')
                 ->with('error', 'Gagal menyimpan tanda tangan: ' . $e->getMessage());
         }
+    }
+
+    public function getSignature()
+    {
+        $personalization = UserPersonalization::where('user_id', Auth::id())->first();
+        
+        if ($personalization && $personalization->signature_data) {
+            return response()->json([
+                'success' => true,
+                'signature' => $personalization->signature_data
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Tanda tangan tidak ditemukan'
+        ]);
     }
 
     public function getPenugasan($id)

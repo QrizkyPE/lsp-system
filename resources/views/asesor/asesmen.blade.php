@@ -26,6 +26,71 @@
                         </div>
                     @endif
 
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">{{ $totalAsesmen ?? 0 }}</h4>
+                                            <p class="mb-0">Total Asesmen</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-clipboard-check fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">{{ $pendingAsesmen ?? 0 }}</h4>
+                                            <p class="mb-0">Pending</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-clock fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">{{ $verifiedAsesmen ?? 0 }}</h4>
+                                            <p class="mb-0">Terverifikasi</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0">{{ $rejectedAsesmen ?? 0 }}</h4>
+                                            <p class="mb-0">Ditolak</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-times-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <!-- Filter and Search -->
                     <div class="row mb-4">
                         <div class="col-md-6">
@@ -59,7 +124,7 @@
                                                 <th>No. Pendaftaran</th>
                                                 <th>Mahasiswa</th>
                                                 <th>Skema Sertifikasi</th>
-                                                {{-- <th>Jadwal Uji</th> --}}
+                                                <th>Jadwal Uji</th>
                                                 <th>Status</th>
                                                 <th>Tanggal Pendaftaran</th>
                                                 <th>Aksi</th>
@@ -83,10 +148,20 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <div class="fw-bold">{{ $p->jadwalUji->nama_batch ?? '-' }}</div>
+                                                        <div class="fw-bold">
+                                                            @if($p->jadwalUji)
+                                                                {{ $p->jadwalUji->nama_batch }}
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </div>
                                                         <small class="text-muted">
-                                                            {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
-                                                            - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                                            @if($p->jadwalUji)
+                                                                {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
+                                                                - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
                                                         </small>
                                                     </td>
                                                     <td>
@@ -123,6 +198,8 @@
                                                                         data-bs-target="#asesmenModal{{ $p->id }}">
                                                                     <i class="fas fa-clipboard-check"></i> Asesmen
                                                                 </button>
+                                                            @else
+                                                                <span class="badge bg-info">Belum ada asesmen data</span>
                                                             @endif
                                                         </div>
                                                     </td>
@@ -226,17 +303,27 @@
                         </table>
                     </div>
                     <div class="col-md-6">
-                        {{-- <h6>Jadwal Uji</h6> --}}
+                        <h6>Jadwal Uji</h6>
                         <table class="table table-sm">
                             <tr>
                                 <td><strong>Nama Batch:</strong></td>
-                                <td>{{ $p->jadwalUji->nama_batch ?? '-' }}</td>
+                                <td>
+                                    @if($p->jadwalUji)
+                                        {{ $p->jadwalUji->nama_batch }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <td><strong>Tanggal:</strong></td>
                                 <td>
-                                    {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
-                                    - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                    @if($p->jadwalUji)
+                                        {{ $p->jadwalUji->tanggal_mulai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_mulai)->format('d/m/Y') : '-' }}
+                                        - {{ $p->jadwalUji->tanggal_selesai ? \Carbon\Carbon::parse($p->jadwalUji->tanggal_selesai)->format('d/m/Y') : '-' }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
@@ -322,10 +409,16 @@
                                             <td><strong>Skema Sertifikasi:</strong></td>
                                             <td>{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</td>
                                         </tr>
-                                        {{-- <tr>
+                                        <tr>
                                             <td><strong>Jadwal Uji:</strong></td>
-                                            <td>{{ $p->jadwalUji->nama_jadwal ?? '-' }}</td>
-                                        </tr> --}}
+                                            <td>
+                                                @if($p->jadwalUji)
+                                                    {{ $p->jadwalUji->nama_batch }}
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <td><strong>Tanggal Pendaftaran:</strong></td>
                                             <td>{{ $p->tanggal_pendaftaran ? \Carbon\Carbon::parse($p->tanggal_pendaftaran)->format('d/m/Y H:i') : '-' }}</td>
@@ -716,7 +809,103 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-success">Verifikasi Asesmen</button>
+                <button type="button" class="btn btn-success" onclick="openVerificationModal({{ $p->id }})">
+                    <i class="fas fa-check"></i> Verifikasi Asesmen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+
+<!-- Modal Verifikasi Asesmen -->
+@foreach($pendaftaran as $p)
+<div class="modal fade" id="verifikasiModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Verifikasi Asesmen Mandiri</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Mahasiswa</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nama:</strong></td>
+                                <td>{{ $p->user->nama_lengkap ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ $p->user->email ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Skema:</strong></td>
+                                <td>{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status Asesmen</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    @switch($p->status)
+                                        @case('approved')
+                                            <span class="badge bg-success">Disetujui</span>
+                                            @break
+                                        @default
+                                            <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
+                                    @endswitch
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Asesmen:</strong></td>
+                                <td>{{ $p->tanggal_asesmen ? \Carbon\Carbon::parse($p->tanggal_asesmen)->format('d/m/Y H:i') : '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>Verifikasi dan Tanda Tangan Asesor</h6>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Silakan berikan tanda tangan digital untuk memverifikasi asesmen mandiri ini.
+                        </div>
+                        
+                        <div class="signature-section">
+                            <label class="form-label">Tanda Tangan Asesor:</label>
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Menggunakan tanda tangan dari personalisasi</strong><br>
+                                Tanda tangan akan diambil dari data personalisasi asesor yang sudah tersimpan.
+                            </div>
+                            <div id="signaturePreview{{ $p->id }}" class="signature-preview">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Memuat tanda tangan dari personalisasi...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="rejectAsesmen({{ $p->id }})">
+                    <i class="fas fa-times"></i> Tolak
+                </button>
+                <button type="button" class="btn btn-success" onclick="verifyAsesmenWithSignature({{ $p->id }})">
+                    <i class="fas fa-check"></i> Verifikasi Asesmen
+                </button>
             </div>
         </div>
     </div>
@@ -759,5 +948,187 @@ document.getElementById('statusFilter').addEventListener('change', function() {
         }
     }
 });
+
+// Signature from personalization functionality
+let signatureData = {};
+
+// Load signature from personalization
+function loadSignatureFromPersonalization(id) {
+    // Fetch signature from personalization endpoint
+    fetch('/asesor/personalization/get-signature')
+        .then(response => response.json())
+        .then(data => {
+            const preview = document.getElementById(`signaturePreview${id}`);
+            if (preview && data.signature) {
+                preview.innerHTML = `
+                    <div class="text-center">
+                        <img src="${data.signature}" alt="Tanda Tangan Asesor" 
+                             style="max-width: 300px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <p class="mt-2 text-success">
+                            <i class="fas fa-check-circle"></i> Tanda tangan dari personalisasi
+                        </p>
+                    </div>
+                `;
+                
+                // Store signature data for verification
+                signatureData[id] = data.signature;
+            } else {
+                preview.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Tanda tangan tidak ditemukan. Silakan buat tanda tangan di halaman personalisasi terlebih dahulu.
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading signature:', error);
+            const preview = document.getElementById(`signaturePreview${id}`);
+            if (preview) {
+                preview.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Gagal memuat tanda tangan. Silakan coba lagi.
+                    </div>
+                `;
+            }
+        });
+}
+
+function verifyAsesmenWithSignature(id) {
+    if (!signatureData[id]) {
+        alert('Silakan buat dan simpan tanda tangan terlebih dahulu!');
+        return;
+    }
+    
+    if (confirm('Apakah Anda yakin ingin memverifikasi asesmen ini dengan tanda tangan?')) {
+        // Get CSRF token safely
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        const token = csrfToken ? csrfToken.getAttribute('content') : '';
+        
+        fetch(`/asesor/asesmen/${id}/verified`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({
+                signature_data: signatureData[id]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal memverifikasi asesmen');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal memverifikasi asesmen');
+        });
+    }
+}
+
+// Initialize signature canvas when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all signature canvases
+    @foreach($pendaftaran as $p)
+        initializeSignatureCanvas({{ $p->id }});
+    @endforeach
+    
+    // Initialize modals for verification
+    @foreach($pendaftaran as $p)
+        const modal{{ $p->id }}Element = document.getElementById('verifikasiModal{{ $p->id }}');
+        if (modal{{ $p->id }}Element) {
+            // Initialize modal manually
+            const modal{{ $p->id }} = new bootstrap.Modal(modal{{ $p->id }}Element);
+        }
+        
+        // Add click event listener for verification button
+        const verifikasiBtn{{ $p->id }} = document.getElementById('verifikasiBtn{{ $p->id }}');
+        if (verifikasiBtn{{ $p->id }}) {
+            verifikasiBtn{{ $p->id }}.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Verifikasi button clicked for ID: {{ $p->id }}');
+                openVerificationModal({{ $p->id }});
+            });
+        }
+    @endforeach
+});
+
+// Function to open verification modal
+function openVerificationModal(id) {
+    const modalElement = document.getElementById(`verifikasiModal${id}`);
+    
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Load signature from personalization when modal opens
+        loadSignatureFromPersonalization(id);
+    } else {
+        console.error('Modal not found for ID:', id);
+        alert('Modal tidak ditemukan!');
+    }
+}
+
+// AJAX functions for verification
+function verifyAsesmen(id) {
+    if (confirm('Apakah Anda yakin ingin memverifikasi asesmen ini?')) {
+        // Get CSRF token safely
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        const token = csrfToken ? csrfToken.getAttribute('content') : '';
+        
+        fetch(`/asesor/asesmen/${id}/verified`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal memverifikasi asesmen');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal memverifikasi asesmen');
+        });
+    }
+}
+
+function rejectAsesmen(id) {
+    if (confirm('Apakah Anda yakin ingin menolak asesmen ini?')) {
+        // Get CSRF token safely
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        const token = csrfToken ? csrfToken.getAttribute('content') : '';
+        
+        fetch(`/asesor/asesmen/${id}/rejected`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal menolak asesmen');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal menolak asesmen');
+        });
+    }
+}
 </script>
 @endsection

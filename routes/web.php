@@ -95,6 +95,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Pendaftaran
     Route::get('/pendaftaran', [AdminController::class, 'pendaftaran'])->name('pendaftaran');
     Route::get('/pendaftaran/{id}/detail', [AdminController::class, 'viewPendaftaranDetail'])->name('pendaftaran.detail');
+    
+    // Verifikasi Pendaftaran (integrated into pendaftaran page)
+    Route::post('/pendaftaran/{id}/approved', [AdminController::class, 'approvePendaftaran'])->name('pendaftaran.approved');
+    Route::post('/pendaftaran/{id}/rejected', [AdminController::class, 'rejectPendaftaran'])->name('pendaftaran.rejected');
     Route::put('/pendaftaran/{id}/approve', [AdminController::class, 'approvePendaftaran'])->name('pendaftaran.approve');
     Route::put('/pendaftaran/{id}/reject', [AdminController::class, 'rejectPendaftaran'])->name('pendaftaran.reject');
     
@@ -116,6 +120,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Personalization
     Route::get('/personalization', [AdminController::class, 'personalization'])->name('personalization');
     Route::post('/personalization', [AdminController::class, 'storePersonalization'])->name('personalization.store');
+    Route::get('/personalization/get-signature', [AdminController::class, 'getSignature'])->name('personalization.get-signature');
 });
 
 // Asesor routes
@@ -173,11 +178,16 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     // Personalization
     Route::get('/personalization', [AsesorController::class, 'personalization'])->name('personalization');
     Route::post('/personalization', [AsesorController::class, 'storePersonalization'])->name('personalization.store');
+    Route::get('/personalization/get-signature', [AsesorController::class, 'getSignature'])->name('personalization.get-signature');
     
     // Penugasan
     Route::get('/penugasan', [AsesorController::class, 'penugasan'])->name('penugasan');
     Route::get('/penugasan/{id}', [AsesorController::class, 'getPenugasan'])->name('penugasan.show');
     Route::post('/penugasan/{id}/status', [AsesorController::class, 'updatePenugasanStatus'])->name('penugasan.status');
+    
+    // Verifikasi Asesmen (integrated into asesmen page)
+    Route::post('/asesmen/{id}/verified', [AsesorController::class, 'verifyAsesmen'])->name('asesmen.verified');
+    Route::post('/asesmen/{id}/rejected', [AsesorController::class, 'rejectAsesmen'])->name('asesmen.rejected');
 });
 
 // Mahasiswa routes
@@ -201,4 +211,8 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::post('/dokumen', [MahasiswaController::class, 'storeDokumen']);
     Route::get('/hasil', [MahasiswaController::class, 'hasil'])->name('hasil');
     Route::post('/banding', [MahasiswaController::class, 'submitBanding'])->name('banding');
+    
+    // Riwayat Pendaftaran
+    Route::get('/riwayat-pendaftaran', [MahasiswaController::class, 'riwayatPendaftaran'])->name('riwayat-pendaftaran');
+    Route::get('/pendaftaran/{id}/detail', [MahasiswaController::class, 'detailPendaftaran'])->name('pendaftaran.detail');
 });

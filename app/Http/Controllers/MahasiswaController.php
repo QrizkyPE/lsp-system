@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Pendaftaran;
 use App\Models\SkemaSertifikasi;
@@ -90,18 +91,39 @@ class MahasiswaController extends Controller
 
         // Create or update pendaftaran record
         $user = Auth::user();
-        $noPendaftaran = 'REG' . date('Ymd') . str_pad(Pendaftaran::count() + 1, 4, '0', STR_PAD_LEFT);
         
-        $pendaftaran = Pendaftaran::updateOrCreate(
-            ['user_id' => $user->id, 'status' => 'draft'],
-            [
-                'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
-                'jadwal_uji_id' => $request->jadwal_uji_id,
-                'no_pendaftaran' => $noPendaftaran,
-                'status' => 'draft',
-                'tanggal_pendaftaran' => now(),
-            ]
-        );
+        // Use database transaction to prevent race conditions
+        $pendaftaran = DB::transaction(function () use ($user, $request) {
+            // Check if user already has a draft or in_progress pendaftaran
+            $existingPendaftaran = Pendaftaran::where('user_id', $user->id)
+                ->whereIn('status', ['draft', 'in_progress'])
+                ->first();
+            
+            if ($existingPendaftaran) {
+                // Update existing draft - keep the same no_pendaftaran
+                $existingPendaftaran->update([
+                    'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+                    'jadwal_uji_id' => $request->jadwal_uji_id,
+                    'tanggal_pendaftaran' => now(),
+                ]);
+                return $existingPendaftaran;
+            } else {
+                // Generate unique no_pendaftaran for new record
+                do {
+                    $noPendaftaran = 'REG' . date('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                } while (Pendaftaran::where('no_pendaftaran', $noPendaftaran)->exists());
+                
+                // Create new draft
+                return Pendaftaran::create([
+                    'user_id' => $user->id,
+                    'skema_sertifikasi_id' => $request->skema_sertifikasi_id,
+                    'jadwal_uji_id' => $request->jadwal_uji_id,
+                    'no_pendaftaran' => $noPendaftaran,
+                    'status' => 'draft',
+                    'tanggal_pendaftaran' => now(),
+                ]);
+            }
+        });
 
         // Store in session for multi-step process
         session([
@@ -552,5 +574,115 @@ class MahasiswaController extends Controller
 
         return redirect()->route('mahasiswa.hasil')
             ->with('success', 'Banding berhasil diajukan');
+    }
+
+    public function riwayatPendaftaran()
+    {
+        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji', 'verifications'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(10);
+
+        // Calculate summary statistics
+        $totalPendaftaran = Pendaftaran::where('user_id', Auth::id())->count();
+        $pendingPendaftaran = Pendaftaran::where('user_id', Auth::id())->where('status', 'pending')->count();
+        $approvedPendaftaran = Pendaftaran::where('user_id', Auth::id())->where('status', 'approved')->count();
+        $rejectedPendaftaran = Pendaftaran::where('user_id', Auth::id())->where('status', 'rejected')->count();
+
+        $skemaOptions = SkemaSertifikasi::all();
+
+        return view('mahasiswa.riwayat-pendaftaran', compact(
+            'pendaftaran', 
+            'totalPendaftaran', 
+            'pendingPendaftaran', 
+            'approvedPendaftaran', 
+            'rejectedPendaftaran',
+            'skemaOptions'
+        ));
+    }
+
+    public function detailPendaftaran($id)
+    {
+        $user = Auth::user();
+        
+        // Get pendaftaran with all related data
+        $pendaftaran = Pendaftaran::with([
+            'user', 
+            'skemaSertifikasi', 
+            'jadwalUji.tuk',
+            'verifications' => function($query) {
+                $query->with('verifier');
+            }
+        ])
+        ->where('id', $id)
+        ->where('user_id', $user->id)
+        ->firstOrFail();
+
+        // Decode JSON data safely
+        $profilData = null;
+        $sertifikasiData = null;
+        $asesmenData = null;
+
+        if ($pendaftaran->profil_data) {
+            if (is_string($pendaftaran->profil_data)) {
+                $decoded = json_decode($pendaftaran->profil_data, true);
+                $profilData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+                
+            } else {
+                $profilData = $pendaftaran->profil_data;
+            }
+        }
+
+        if ($pendaftaran->sertifikasi_data) {
+            if (is_string($pendaftaran->sertifikasi_data)) {
+                $decoded = json_decode($pendaftaran->sertifikasi_data, true);
+                $sertifikasiData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            } else {
+                $sertifikasiData = $pendaftaran->sertifikasi_data;
+            }
+        }
+
+        if ($pendaftaran->asesmen_data) {
+            if (is_string($pendaftaran->asesmen_data)) {
+                $decoded = json_decode($pendaftaran->asesmen_data, true);
+                $asesmenData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            } else {
+                $asesmenData = $pendaftaran->asesmen_data;
+            }
+        }
+
+        // Get unit kompetensi, elemen, dan kriteria if sertifikasi data exists
+        $unitKompetensiJudul = collect();
+        $elemenJudul = collect();
+        $kriteriaUnjukKerjaJudul = collect();
+
+        if ($sertifikasiData && isset($sertifikasiData['judul']) && is_array($sertifikasiData['judul'])) {
+            $judul = $sertifikasiData['judul'];
+            
+            if (!empty($judul)) {
+                $unitKompetensiJudul = UnitKompetensiJudul::with(['unitKompetensi'])
+                    ->whereIn('id', $judul)
+                    ->get();
+
+                $elemenJudul = ElemenJudul::with(['elemen'])
+                    ->whereIn('unit_kompetensi_judul_id', $judul)
+                    ->get();
+
+                $kriteriaUnjukKerjaJudul = KriteriaUnjukKerjaJudul::with(['kriteriaUnjukKerja'])
+                    ->whereIn('elemen_judul_id', $elemenJudul->pluck('id'))
+                    ->get();
+            }
+        }
+
+
+        return view('mahasiswa.detail-pendaftaran', compact(
+            'pendaftaran',
+            'profilData',
+            'sertifikasiData', 
+            'asesmenData',
+            'unitKompetensiJudul',
+            'elemenJudul',
+            'kriteriaUnjukKerjaJudul'
+        ));
     }
 }

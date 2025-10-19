@@ -393,13 +393,9 @@
                     <!-- Action Buttons -->
                     <div class="d-flex gap-2">
                         @if($pendaftaran->status == 'pending')
-                            <form action="{{ route('admin.pendaftaran.approve', $pendaftaran->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PUT')
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')">
-                                    <i class="fas fa-check me-2"></i>Setujui Pendaftaran
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-success" onclick="openApprovalModal({{ $pendaftaran->id }})">
+                                <i class="fas fa-check me-2"></i>Setujui Pendaftaran
+                            </button>
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
                                 <i class="fas fa-times me-2"></i>Tolak Pendaftaran
                             </button>
@@ -436,4 +432,188 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Preview Tanda Tangan untuk Approval -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-signature me-2"></i>Konfirmasi Persetujuan Pendaftaran
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Konfirmasi Persetujuan</strong><br>
+                    Tanda tangan admin akan digunakan untuk menyetujui pendaftaran ini.
+                </div>
+                
+                <div class="text-center">
+                    <h6 class="mb-3">Tanda Tangan Admin</h6>
+                    <div id="signaturePreview" class="signature-preview">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Memuat tanda tangan dari personalisasi...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <p class="text-muted">
+                        <small>
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Pastikan tanda tangan sudah benar sebelum melanjutkan.
+                        </small>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Batal
+                </button>
+                <button type="button" class="btn btn-success" id="confirmApprovalBtn" disabled>
+                    <i class="fas fa-check me-2"></i>Setujui Pendaftaran
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPendaftaranId = null;
+let signatureData = null;
+
+function openApprovalModal(id) {
+    currentPendaftaranId = id;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+    modal.show();
+    
+    // Load signature
+    loadSignatureFromPersonalization();
+}
+
+function loadSignatureFromPersonalization() {
+    fetch('/admin/personalization/get-signature')
+        .then(response => response.json())
+        .then(data => {
+            const preview = document.getElementById('signaturePreview');
+            if (preview && data.signature) {
+                preview.innerHTML = `
+                    <div class="text-center">
+                        <img src="${data.signature}" alt="Tanda Tangan Admin" 
+                             style="max-width: 300px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <p class="mt-2 text-success">
+                            <i class="fas fa-check-circle"></i> Tanda tangan dari personalisasi
+                        </p>
+                    </div>
+                `;
+                signatureData = data.signature;
+                
+                // Enable confirm button
+                document.getElementById('confirmApprovalBtn').disabled = false;
+            } else {
+                preview.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Tanda tangan tidak ditemukan. Silakan buat tanda tangan di halaman personalisasi terlebih dahulu.
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading signature:', error);
+            const preview = document.getElementById('signaturePreview');
+            if (preview) {
+                preview.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Gagal memuat tanda tangan. Silakan coba lagi.
+                    </div>
+                `;
+            }
+        });
+}
+
+function approvePendaftaran() {
+    if (!currentPendaftaranId || !signatureData) {
+        alert('Data tidak valid untuk persetujuan');
+        return;
+    }
+    
+    if (confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')) {
+        // Get admin signature from personalization
+        fetch('/admin/personalization/get-signature')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(signatureData => {
+                const signature = signatureData.signature || null;
+                
+                // Debug info
+                console.log('Signature loaded:', signature ? 'YES' : 'NO');
+                console.log('Signature length:', signature ? signature.length : 0);
+                
+                // Send approval request with signature
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+                
+                fetch(`/admin/pendaftaran/${currentPendaftaranId}/approved`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken.getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        signature_data: signature
+                    })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('approvalModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Gagal menyetujui pendaftaran');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Gagal menyetujui pendaftaran: ' + error.message);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading signature:', error);
+                alert('Gagal memuat tanda tangan admin: ' + error.message);
+            });
+    }
+}
+
+// Event listener for confirm button
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmApprovalBtn').addEventListener('click', function() {
+        approvePendaftaran();
+    });
+});
+
+</script>
 @endsection

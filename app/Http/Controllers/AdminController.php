@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\SkemaSertifikasi;
 use App\Models\Asesor;
 use App\Models\Pendaftaran;
@@ -17,6 +18,7 @@ use App\Models\UnitKompetensiJudul;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
 use App\Models\UserPersonalization;
+use App\Models\PendaftaranVerification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -751,20 +753,104 @@ class AdminController extends Controller
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
             ->latest()
             ->paginate(10);
-        return view('admin.pendaftaran', compact('pendaftaran'));
+
+        // Calculate summary statistics
+        $totalPendaftaran = Pendaftaran::count();
+        $pendingPendaftaran = Pendaftaran::where('status', 'pending')->count();
+        $approvedPendaftaran = Pendaftaran::where('status', 'approved')->count();
+        $rejectedPendaftaran = Pendaftaran::where('status', 'rejected')->count();
+
+        return view('admin.pendaftaran', compact(
+            'pendaftaran', 
+            'totalPendaftaran', 
+            'pendingPendaftaran', 
+            'approvedPendaftaran', 
+            'rejectedPendaftaran'
+        ));
     }
 
-    public function approvePendaftaran($id)
+
+    public function approvePendaftaran(Request $request, $id)
     {
         $pendaftaran = Pendaftaran::findOrFail($id);
+        
+        // Temporary debug - remove after testing
+        if (config('app.debug')) {
+            Log::info('Admin Approval Request', [
+                'request_all' => $request->all(),
+                'signature_data' => $request->signature_data,
+                'has_signature' => $request->has('signature_data')
+            ]);
+        }
+        
+        // Update pendaftaran status
         $pendaftaran->update([
             'status' => 'approved',
             'tanggal_verifikasi' => now()
         ]);
 
-        return redirect()->route('admin.pendaftaran')
-            ->with('success', 'Pendaftaran berhasil disetujui');
+        // Update verification record
+        $verification = PendaftaranVerification::where('pendaftaran_id', $id)
+            ->where('type', 'admin_verification')
+            ->first();
+        
+        if ($verification) {
+            $updateData = [
+                'verifier_id' => Auth::id(),
+                'status' => 'verified',
+                'verification_date' => now()
+            ];
+            
+            // Add signature data if provided
+            if ($request->has('signature_data') && $request->signature_data) {
+                $updateData['signature_data'] = $request->signature_data;
+            }
+            
+            $verification->update($updateData);
+            
+            // Temporary debug - remove after testing
+            if (config('app.debug')) {
+                Log::info('Verification Update Result', [
+                    'verification_id' => $verification->id,
+                    'update_data' => $updateData,
+                    'final_signature' => $verification->fresh()->signature_data ? 'EXISTS' : 'NULL'
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
     }
+
+    public function rejectPendaftaran($id)
+    {
+        $pendaftaran = Pendaftaran::findOrFail($id);
+        
+        // Update pendaftaran status
+        $pendaftaran->update([
+            'status' => 'rejected',
+            'tanggal_verifikasi' => now()
+        ]);
+
+        // Update verification record
+        $verification = PendaftaranVerification::where('pendaftaran_id', $id)
+            ->where('type', 'admin_verification')
+            ->first();
+        
+        if ($verification) {
+            $verification->update([
+                'verifier_id' => Auth::id(),
+                'status' => 'rejected',
+                'verification_date' => now()
+            ]);
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
 
     public function viewPendaftaranDetail($id)
     {
@@ -774,22 +860,6 @@ class AdminController extends Controller
         return view('admin.pendaftaran-detail', compact('pendaftaran'));
     }
 
-    public function rejectPendaftaran(Request $request, $id)
-    {
-        $request->validate([
-            'alasan_penolakan' => 'required|string'
-        ]);
-
-        $pendaftaran = Pendaftaran::findOrFail($id);
-        $pendaftaran->update([
-            'status' => 'rejected',
-            'alasan_penolakan' => $request->alasan_penolakan,
-            'tanggal_verifikasi' => now()
-        ]);
-
-        return redirect()->route('admin.pendaftaran')
-            ->with('success', 'Pendaftaran berhasil ditolak');
-    }
 
     // Laporan
     public function laporan()
@@ -935,5 +1005,22 @@ class AdminController extends Controller
             return redirect()->route('admin.personalization')
                 ->with('error', 'Gagal menyimpan tanda tangan: ' . $e->getMessage());
         }
+    }
+
+    public function getSignature()
+    {
+        $personalization = UserPersonalization::where('user_id', Auth::id())->first();
+        
+        if ($personalization && $personalization->signature_data) {
+            return response()->json([
+                'success' => true,
+                'signature' => $personalization->signature_data
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Tanda tangan tidak ditemukan'
+        ]);
     }
 }
