@@ -438,7 +438,7 @@
                                             <h6 class="mb-0">
                                                 <i class="fas fa-user-shield me-2"></i>
                                                 {{ $verification->verifier->name ?? 'Unknown' }}
-                                                @if($verification->type === 'admin_approval')
+                                                @if($verification->type === 'admin_verification')
                                                     <span class="badge bg-primary">Admin</span>
                                                 @elseif($verification->type === 'asesor_verification')
                                                     <span class="badge bg-info">Asesor</span>
@@ -476,7 +476,7 @@
                                         <div class="card-header">
                                             <h6 class="mb-0">
                                                 <i class="fas fa-signature me-2"></i>
-                                                Tanda Tangan {{ $verification->type === 'admin_approval' ? 'Admin' : 'Asesor' }}
+                                                Tanda Tangan {{ $verification->type === 'admin_verification' ? 'Admin' : 'Asesor' }}
                                             </h6>
                                         </div>
                                         <div class="card-body text-center">
@@ -491,9 +491,9 @@
                                                 <div class="text-muted">
                                                     <i class="fas fa-signature fa-3x mb-2"></i>
                                                     <p>Tanda tangan tidak tersedia</p>
-                                                    @if(config('app.debug'))
+                                                    {{-- @if(config('app.debug'))
                                                         <small class="text-danger">Debug: signature_data is null or empty</small>
-                                                    @endif
+                                                    @endif --}}
                                                 </div>
                                             @endif
                                         </div>
