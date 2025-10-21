@@ -821,90 +821,51 @@
 <!-- Modal Verifikasi Asesmen -->
 @foreach($pendaftaran as $p)
 <div class="modal fade" id="verifikasiModal{{ $p->id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Verifikasi Asesmen Mandiri</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-signature me-2"></i>Konfirmasi Verifikasi Asesmen
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Data Mahasiswa</h6>
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>Nama:</strong></td>
-                                <td>{{ $p->user->nama_lengkap ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Email:</strong></td>
-                                <td>{{ $p->user->email ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Skema:</strong></td>
-                                <td>{{ $p->skemaSertifikasi->nama_skema ?? '-' }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Status Asesmen</h6>
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>Status:</strong></td>
-                                <td>
-                                    @switch($p->status)
-                                        @case('approved')
-                                            <span class="badge bg-success">Disetujui</span>
-                                            @break
-                                        @default
-                                            <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
-                                    @endswitch
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tanggal Asesmen:</strong></td>
-                                <td>{{ $p->tanggal_asesmen ? \Carbon\Carbon::parse($p->tanggal_asesmen)->format('d/m/Y H:i') : '-' }}</td>
-                            </tr>
-                        </table>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Konfirmasi Verifikasi</strong><br>
+                    Tanda tangan asesor akan digunakan untuk memverifikasi asesmen mandiri ini.
+                </div>
+                
+                <div class="text-center">
+                    <h6 class="mb-3">Tanda Tangan Asesor</h6>
+                    <div id="signaturePreview{{ $p->id }}" class="signature-preview">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Memuat tanda tangan dari personalisasi...</p>
+                        </div>
                     </div>
                 </div>
-
-                <hr>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        <h6>Verifikasi dan Tanda Tangan Asesor</h6>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Silakan berikan tanda tangan digital untuk memverifikasi asesmen mandiri ini.
-                        </div>
-                        
-                        <div class="signature-section">
-                            <label class="form-label">Tanda Tangan Asesor:</label>
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <strong>Menggunakan tanda tangan dari personalisasi</strong><br>
-                                Tanda tangan akan diambil dari data personalisasi asesor yang sudah tersimpan.
-                            </div>
-                            <div id="signaturePreview{{ $p->id }}" class="signature-preview">
-                                <div class="text-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                    <p class="mt-2 text-muted">Memuat tanda tangan dari personalisasi...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div class="mt-3">
+                    <p class="text-muted">
+                        <small>
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Pastikan tanda tangan sudah benar sebelum melanjutkan.
+                        </small>
+                    </p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" onclick="rejectAsesmen({{ $p->id }})">
-                    <i class="fas fa-times"></i> Tolak
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Batal
                 </button>
-                <button type="button" class="btn btn-success" onclick="verifyAsesmenWithSignature({{ $p->id }})">
-                    <i class="fas fa-check"></i> Verifikasi Asesmen
+                <button type="button" class="btn btn-danger" onclick="rejectAsesmen({{ $p->id }})">
+                    <i class="fas fa-times me-2"></i>Tolak
+                </button>
+                <button type="button" class="btn btn-success" id="confirmVerificationBtn{{ $p->id }}" disabled>
+                    <i class="fas fa-check me-2"></i>Verifikasi Asesmen
                 </button>
             </div>
         </div>
@@ -972,6 +933,22 @@ function loadSignatureFromPersonalization(id) {
                 
                 // Store signature data for verification
                 signatureData[id] = data.signature;
+                
+                // Enable confirm button
+                const confirmBtn = document.getElementById(`confirmVerificationBtn${id}`);
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    
+                    // Ensure event listener is still attached
+                    if (!confirmBtn.hasAttribute('data-listener-added')) {
+                        confirmBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            verifyAsesmenWithSignature(id);
+                        });
+                        confirmBtn.setAttribute('data-listener-added', 'true');
+                    }
+                } else {
+                }
             } else {
                 preview.innerHTML = `
                     <div class="alert alert-warning">
@@ -1001,7 +978,8 @@ function verifyAsesmenWithSignature(id) {
         return;
     }
     
-    if (confirm('Apakah Anda yakin ingin memverifikasi asesmen ini dengan tanda tangan?')) {
+    // Direct verification without confirmation
+    {
         // Get CSRF token safely
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         const token = csrfToken ? csrfToken.getAttribute('content') : '';
@@ -1019,13 +997,17 @@ function verifyAsesmenWithSignature(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById(`verifikasiModal${id}`));
+                if (modal) {
+                    modal.hide();
+                }
                 location.reload();
             } else {
                 alert('Gagal memverifikasi asesmen');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
             alert('Gagal memverifikasi asesmen');
         });
     }
@@ -1051,10 +1033,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (verifikasiBtn{{ $p->id }}) {
             verifikasiBtn{{ $p->id }}.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('Verifikasi button clicked for ID: {{ $p->id }}');
                 openVerificationModal({{ $p->id }});
             });
         }
+        
+        // Note: Event listener for confirm button will be added when modal opens
     @endforeach
 });
 
@@ -1066,10 +1049,24 @@ function openVerificationModal(id) {
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
         
+        // Add event listener for confirm button when modal opens
+        const confirmBtn = document.getElementById(`confirmVerificationBtn${id}`);
+        if (confirmBtn) {
+            // Remove any existing event listeners first
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            // Add new event listener
+            newConfirmBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                verifyAsesmenWithSignature(id);
+            });
+        } else {
+        }
+        
         // Load signature from personalization when modal opens
         loadSignatureFromPersonalization(id);
     } else {
-        console.error('Modal not found for ID:', id);
         alert('Modal tidak ditemukan!');
     }
 }
@@ -1097,7 +1094,6 @@ function verifyAsesmen(id) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
             alert('Gagal memverifikasi asesmen');
         });
     }
@@ -1125,7 +1121,6 @@ function rejectAsesmen(id) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
             alert('Gagal menolak asesmen');
         });
     }

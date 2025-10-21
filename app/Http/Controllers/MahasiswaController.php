@@ -260,11 +260,14 @@ class MahasiswaController extends Controller
             'Lainnya',
         ];
 
+        // Get skema sertifikasi data from database
+        $skemaSertifikasi = \App\Models\SkemaSertifikasi::where('status', true)->get();
+
         // Get unit kompetensi data from database based on selected judul
         $unitKompetensiData = UnitKompetensiJudul::where('judul_sertifikasi', $selectedJudul)
             ->orderBy('id')->get();
 
-        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'tujuanOptions', 'unitKompetensiData', 'selectedJudul', 'existingData'));
+        return view('mahasiswa.pendaftaran-step3', compact('skemaOptions', 'tujuanOptions', 'unitKompetensiData', 'selectedJudul', 'existingData', 'skemaSertifikasi'));
     }
 
     public function pendaftaranStep4()
@@ -458,6 +461,7 @@ class MahasiswaController extends Controller
         $data['sertifikasi'] = [
             'skema' => $request->skema,
             'judul' => trim($request->judul),
+            'nomor_skema' => trim($request->nomor_skema),
             'tujuan_asesmen' => trim($request->tujuan_asesmen),
             'bukti_files' => $buktiFiles,
             'bukti_admin_files' => $buktiAdminFiles,

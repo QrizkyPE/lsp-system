@@ -34,6 +34,16 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
+                    <label for="nomor_skema" class="form-label">Nomor Skema <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control @error('nomor_skema') is-invalid @enderror" 
+                           id="nomor_skema" name="nomor_skema" value="{{ old('nomor_skema', $skema->nomor_skema) }}" 
+                           placeholder="Contoh: Nomor: 621/UMDP/XI/Q/2022" required>
+                    @error('nomor_skema')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-6 mb-3">
                     <label for="level_kompetensi" class="form-label">Level Kompetensi <span class="text-danger">*</span></label>
                     <select class="form-select @error('level_kompetensi') is-invalid @enderror" 
                             id="level_kompetensi" name="level_kompetensi" required>

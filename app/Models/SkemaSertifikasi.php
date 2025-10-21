@@ -13,6 +13,7 @@ class SkemaSertifikasi extends Model
         'nama_skema',
         'deskripsi',
         'kode_skema',
+        'nomor_skema',
         'level_kompetensi',
         'standar_kompetensi',
         'status'

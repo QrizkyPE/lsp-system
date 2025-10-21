@@ -62,6 +62,7 @@
                                 </div>
                                 <div class="form-text" id="nomorSkema"></div>
                                 <input type="hidden" id="skema" name="skema" value="Okupasi">
+                                <input type="hidden" id="nomor_skema" name="nomor_skema" value="">
                             </div>
                             <div class="col-md-5 mb-3">
                                 <label class="form-label"><strong>Judul</strong></label>
@@ -252,13 +253,11 @@ const unitsByJudul = @json($unitKompetensiData->groupBy('judul_sertifikasi')->ma
 
 // Skema display format
 
+// Get nomor skema from database
 const nomorSkemaByJudul = {
-  'PENGEMBANG WEB (WEB DEVELOPER)': 'Nomor: 621/UMDP/XI/Q/2022',
-  'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)': 'Nomor: 612/UMDP/XI/Q/2022',
-  'System Analyst': 'Nomor: 606/UMDP/XI/Q/2022',
-  'Junior Web Programmer': 'Nomor: 617/UMDP/XI/Q/2022',
-  'Database Administrator': 'Nomor: 603/UMDP/XI/Q/2022',
-  'Analis Senior Hubungan Industrial': 'Nomor: 617/UMDP/XI/Q/2022'
+  @foreach($skemaSertifikasi as $skema)
+    '{{ $skema->nama_skema }}': '{{ $skema->nomor_skema }}',
+  @endforeach
 };
 
 const buktiByJudul = {
@@ -550,9 +549,13 @@ function saveSignatureData() {
 
 function updateNomorSkema(judul) {
   const nomorSkemaElement = document.getElementById('nomorSkema');
+  const nomorSkemaHidden = document.getElementById('nomor_skema');
   if (nomorSkemaElement) {
     const nomor = nomorSkemaByJudul[judul] || '';
     nomorSkemaElement.textContent = nomor;
+    if (nomorSkemaHidden) {
+      nomorSkemaHidden.value = nomor;
+    }
   }
 }
 

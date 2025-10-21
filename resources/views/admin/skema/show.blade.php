@@ -22,6 +22,11 @@
                 </div>
                 
                 <div class="row mb-3">
+                    <div class="col-sm-3"><strong>Nomor Skema:</strong></div>
+                    <div class="col-sm-9"><span class="text-dark fw-normal">{{ $skema->nomor_skema }}</span></div>
+                </div>
+                
+                <div class="row mb-3">
                     <div class="col-sm-3"><strong>Level Kompetensi:</strong></div>
                     <div class="col-sm-9">{{ $skema->level_kompetensi }}</div>
                 </div>

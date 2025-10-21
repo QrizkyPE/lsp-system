@@ -65,6 +65,7 @@ class AdminController extends Controller
             'nama_skema' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'kode_skema' => 'required|string|unique:skema_sertifikasi',
+            'nomor_skema' => 'required|string|max:255',
             'level_kompetensi' => 'required|string',
             'standar_kompetensi' => 'required|string',
         ]);
@@ -91,6 +92,7 @@ class AdminController extends Controller
             'nama_skema' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'kode_skema' => 'required|string|unique:skema_sertifikasi,kode_skema,' . $skema->id,
+            'nomor_skema' => 'required|string|max:255',
             'level_kompetensi' => 'required|string',
             'standar_kompetensi' => 'required|string',
         ]);
@@ -673,6 +675,7 @@ class AdminController extends Controller
             'jam_selesai' => 'required',
             'kuota_maksimal' => 'required|integer|min:1',
             'keterangan' => 'nullable|string',
+            'status' => 'required|in:draft,open,closed,completed',
         ]);
 
         $jadwal = JadwalUji::findOrFail($id);

@@ -20,6 +20,7 @@
                         <th>No</th>
                         <th>Kode Skema</th>
                         <th>Nama Skema</th>
+                        <th>Nomor Skema</th>
                         <th>Level Kompetensi</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -31,6 +32,7 @@
                         <td>{{ $skemas->firstItem() + $index }}</td>
                         <td>{{ $skema->kode_skema }}</td>
                         <td>{{ $skema->nama_skema }}</td>
+                        <td><span class="text-dark fw-normal">{{ $skema->nomor_skema }}</span></td>
                         <td>{{ $skema->level_kompetensi }}</td>
                         <td>
                             <span class="badge bg-{{ $skema->status ? 'success' : 'danger' }}">
@@ -66,9 +68,65 @@
             </table>
         </div>
         
-        <div class="d-flex justify-content-center">
-            {{ $skemas->links() }}
-        </div>
+        @if($skemas->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    <small>
+                        Menampilkan {{ $skemas->firstItem() }} sampai {{ $skemas->lastItem() }} dari {{ $skemas->total() }} hasil
+                        (Halaman {{ $skemas->currentPage() }} dari {{ $skemas->lastPage() }})
+                    </small>
+                </div>
+                <div class="pagination-wrapper">
+                    {{ $skemas->links('vendor.pagination.custom-bootstrap-5') }}
+                </div>
+            </div>
+        @else
+            {{-- <div class="d-flex justify-content-center mt-4">
+                <div class="text-muted">
+                    <small>Menampilkan {{ $skemas->count() }} hasil</small>
+                </div>
+            </div> --}}
+        @endif
     </div>
 </div>
+@endsection
+
+@section('styles')
+<style>
+.pagination-wrapper .pagination {
+    margin: 0;
+}
+
+.pagination-wrapper .pagination .page-item .page-link {
+    color: #0d6efd;
+    border: 1px solid #dee2e6;
+    padding: 0.375rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 0.375rem;
+}
+
+.pagination-wrapper .pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.pagination-wrapper .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+.pagination-wrapper .pagination .page-item:hover .page-link {
+    color: #0a58ca;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.pagination-wrapper .pagination .page-item.active:hover .page-link {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    color: white;
+}
+</style>
 @endsection
