@@ -104,9 +104,23 @@
                                 </td>
                                 <td>{{ $pendaftaran->created_at->format('d/m/Y') }}</td>
                                 <td>
-                                    <a href="{{ route('mahasiswa.dokumen') }}" class="btn btn-sm btn-info">
+                                    <a href="{{ route('mahasiswa.pendaftaran.detail', $pendaftaran->id) }}" class="btn btn-sm btn-info me-1">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    @php
+                                        $isVerifiedByAsesor = $pendaftaran->verifications()
+                                            ->where('type', 'asesor_verification')
+                                            ->where('status', 'verified')
+                                            ->exists();
+                                        $hasPersetujuan = $pendaftaran->persetujuan_data;
+                                    @endphp
+                                    @if($isVerifiedByAsesor && !$hasPersetujuan)
+                                        <a href="{{ route('mahasiswa.persetujuan', $pendaftaran->id) }}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-file-signature"></i> Persetujuan
+                                        </a>
+                                    @elseif($hasPersetujuan)
+                                        <span class="badge badge-success">Persetujuan Dikirim</span>
+                                    @endif
                                 </td>
                             </tr>
                             @empty

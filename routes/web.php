@@ -188,6 +188,11 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     // Verifikasi Asesmen (integrated into asesmen page)
     Route::post('/asesmen/{id}/verified', [AsesorController::class, 'verifyAsesmen'])->name('asesmen.verified');
     Route::post('/asesmen/{id}/rejected', [AsesorController::class, 'rejectAsesmen'])->name('asesmen.rejected');
+    
+    // Persetujuan Asesmen
+    Route::get('/persetujuan', [AsesorController::class, 'persetujuanAsesmen'])->name('persetujuan');
+    Route::get('/persetujuan/{id}/detail', [AsesorController::class, 'detailPersetujuan'])->name('persetujuan.detail');
+    Route::post('/persetujuan/{id}/konfirmasi', [AsesorController::class, 'konfirmasiPersetujuan'])->name('persetujuan.konfirmasi');
 });
 
 // Mahasiswa routes
@@ -215,4 +220,8 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     // Riwayat Pendaftaran
     Route::get('/riwayat-pendaftaran', [MahasiswaController::class, 'riwayatPendaftaran'])->name('riwayat-pendaftaran');
     Route::get('/pendaftaran/{id}/detail', [MahasiswaController::class, 'detailPendaftaran'])->name('pendaftaran.detail');
+    
+    // Persetujuan Asesmen
+    Route::get('/pendaftaran/{id}/persetujuan', [MahasiswaController::class, 'persetujuanAsesmen'])->name('persetujuan');
+    Route::post('/persetujuan', [MahasiswaController::class, 'storePersetujuan'])->name('persetujuan.store');
 });

@@ -679,4 +679,52 @@ class AsesorController extends Controller
             'message' => 'Status penugasan berhasil diupdate'
         ]);
     }
+
+    public function persetujuanAsesmen()
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->whereNotNull('persetujuan_data')
+            ->where('status', 'persetujuan_submitted')
+            ->latest()
+            ->paginate(10);
+
+        return view('asesor.persetujuan-asesmen', compact('pendaftaran'));
+    }
+
+    public function detailPersetujuan($id)
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->where('id', $id)
+            ->whereNotNull('persetujuan_data')
+            ->firstOrFail();
+
+        $persetujuanData = json_decode($pendaftaran->persetujuan_data, true);
+
+        return view('asesor.detail-persetujuan', compact('pendaftaran', 'persetujuanData'));
+    }
+
+    public function konfirmasiPersetujuan(Request $request, $id)
+    {
+        $request->validate([
+            'asesor_signature' => 'required|string',
+            'tanggal_asesor' => 'required|date',
+        ]);
+
+        $pendaftaran = Pendaftaran::where('id', $id)
+            ->whereNotNull('persetujuan_data')
+            ->firstOrFail();
+
+        $persetujuanData = json_decode($pendaftaran->persetujuan_data, true);
+        $persetujuanData['asesor_signature'] = $request->asesor_signature;
+        $persetujuanData['tanggal_asesor'] = $request->tanggal_asesor;
+        $persetujuanData['confirmed_at'] = now();
+
+        $pendaftaran->update([
+            'persetujuan_data' => json_encode($persetujuanData),
+            'status' => 'persetujuan_confirmed'
+        ]);
+
+        return redirect()->route('asesor.persetujuan')
+            ->with('success', 'Persetujuan asesmen berhasil dikonfirmasi');
+    }
 }

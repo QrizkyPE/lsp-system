@@ -24,7 +24,7 @@ class MahasiswaController extends Controller
         $approvedPendaftaran = Pendaftaran::where('user_id', $user->id)->where('status', 'approved')->count();
         $sertifikat = Pendaftaran::where('user_id', $user->id)->where('hasil_asesmen', 'kompeten')->count();
         $pendingPendaftaran = Pendaftaran::where('user_id', $user->id)->where('status', 'pending')->count();
-        $recentPendaftaran = Pendaftaran::with('skemaSertifikasi')
+        $recentPendaftaran = Pendaftaran::with(['skemaSertifikasi', 'verifications'])
             ->where('user_id', $user->id)
             ->latest()
             ->limit(5)
@@ -42,7 +42,7 @@ class MahasiswaController extends Controller
     public function pendaftaran()
     {
         $user = Auth::user();
-        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji'])
+        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji', 'verifications'])
             ->where('user_id', $user->id)
             ->latest()
             ->paginate(10);
@@ -688,5 +688,84 @@ class MahasiswaController extends Controller
             'elemenJudul',
             'kriteriaUnjukKerjaJudul'
         ));
+    }
+
+    public function persetujuanAsesmen($id)
+    {
+        $user = Auth::user();
+        
+        $pendaftaran = Pendaftaran::with([
+            'user', 
+            'skemaSertifikasi', 
+            'jadwalUji.tuk',
+            'verifications' => function($query) {
+                $query->with('verifier');
+            }
+        ])
+        ->where('id', $id)
+        ->where('user_id', $user->id)
+        ->firstOrFail();
+
+        // Check if pendaftaran is verified by asesor
+        $asesorVerification = $pendaftaran->verifications()
+            ->where('type', 'asesor_verification')
+            ->where('status', 'verified')
+            ->first();
+
+        if (!$asesorVerification) {
+            return redirect()->route('mahasiswa.dashboard')
+                ->with('error', 'Pendaftaran belum diverifikasi oleh asesor');
+        }
+
+        // Get asesor who verified
+        $asesor = $asesorVerification->verifier;
+
+        return view('mahasiswa.persetujuan-asesmen', compact('pendaftaran', 'asesor'));
+    }
+
+    public function storePersetujuan(Request $request)
+    {
+        $request->validate([
+            'pendaftaran_id' => 'required|exists:pendaftaran,id',
+            'bukti' => 'required|array',
+            'tanggal_asesmen' => 'required|date',
+            'waktu_asesmen' => 'required',
+            'tuk_asesmen' => 'required|string',
+            'asesi_signature' => 'required|string',
+            'tanggal_asesi' => 'required|date',
+        ]);
+
+        $user = Auth::user();
+        
+        // Check if pendaftaran belongs to user
+        $pendaftaran = Pendaftaran::where('id', $request->pendaftaran_id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        // Check if already submitted
+        if ($pendaftaran->persetujuan_data) {
+            return redirect()->route('mahasiswa.dashboard')
+                ->with('error', 'Persetujuan sudah pernah dikirim');
+        }
+
+        // Prepare data
+        $persetujuanData = [
+            'bukti' => $request->bukti,
+            'tanggal_asesmen' => $request->tanggal_asesmen,
+            'waktu_asesmen' => $request->waktu_asesmen,
+            'tuk_asesmen' => $request->tuk_asesmen,
+            'asesi_signature' => $request->asesi_signature,
+            'tanggal_asesi' => $request->tanggal_asesi,
+            'submitted_at' => now(),
+        ];
+
+        // Update pendaftaran
+        $pendaftaran->update([
+            'persetujuan_data' => json_encode($persetujuanData),
+            'status' => 'persetujuan_submitted'
+        ]);
+
+        return redirect()->route('mahasiswa.dashboard')
+            ->with('success', 'Persetujuan asesmen berhasil dikirim. Menunggu konfirmasi asesor.');
     }
 }

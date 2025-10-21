@@ -125,6 +125,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.persetujuan*') ? 'active' : '' }}" href="{{ route('asesor.persetujuan') }}">
+                                    <i class="fas fa-file-signature me-2"></i>Persetujuan Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>

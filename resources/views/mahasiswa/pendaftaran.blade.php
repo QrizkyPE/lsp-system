@@ -104,6 +104,23 @@
                                                                     data-bs-target="#detailModal{{ $p->id }}">
                                                                 <i class="fas fa-eye"></i>
                                                             </button>
+                                                            @php
+                                                                $isVerifiedByAsesor = $p->verifications()
+                                                                    ->where('type', 'asesor_verification')
+                                                                    ->where('status', 'verified')
+                                                                    ->exists();
+                                                                $hasPersetujuan = $p->persetujuan_data;
+                                                            @endphp
+                                                            @if($isVerifiedByAsesor && !$hasPersetujuan)
+                                                                <a href="{{ route('mahasiswa.persetujuan', $p->id) }}" 
+                                                                   class="btn btn-sm btn-success" 
+                                                                   data-bs-toggle="tooltip" 
+                                                                   title="Persetujuan Asesmen">
+                                                                    <i class="fas fa-file-signature"></i>
+                                                                </a>
+                                                            @elseif($hasPersetujuan)
+                                                                <span class="badge bg-success">Persetujuan Dikirim</span>
+                                                            @endif
                                                             @if($p->status == 'rejected' && $p->alasan_penolakan)
                                                                 <button type="button" class="btn btn-sm btn-outline-warning" 
                                                                         data-bs-toggle="tooltip" 
