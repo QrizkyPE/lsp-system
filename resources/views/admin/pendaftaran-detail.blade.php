@@ -4,6 +4,9 @@
 @section('page-title', 'Detail Pendaftaran')
 
 @section('content')
+@php
+    $profilData = is_string($pendaftaran->profil_data) ? json_decode($pendaftaran->profil_data, true) : ($pendaftaran->profil_data ?? []);
+@endphp
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -48,6 +51,9 @@
                                                     @case('completed')
                                                         <span class="badge bg-primary">Selesai</span>
                                                         @break
+                                                    @case('in_progress')
+                                                        <span class="badge bg-info">Sedang Berlangsung</span>
+                                                        @break
                                                     @default
                                                         <span class="badge bg-secondary">{{ ucfirst($pendaftaran->status) }}</span>
                                                 @endswitch
@@ -70,16 +76,16 @@
                                     <table class="table table-sm">
                                         <tr>
                                             <td><strong>Nama:</strong></td>
-                                            <td>{{ $pendaftaran->user->nama_lengkap ?? '-' }}</td>
+                                            <td>{{ $profilData['nama_lengkap'] ?? $pendaftaran->user->nama_lengkap ?? '-' }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>Email:</strong></td>
                                             <td>{{ $pendaftaran->user->email ?? '-' }}</td>
                                         </tr>
-                                        {{-- <tr>
+                                        <tr>
                                             <td><strong>No. KTP:</strong></td>
-                                            <td>{{ $pendaftaran->user->no_ktp ?? '-' }}</td>
-                                        </tr> --}}
+                                            <td>{{ $profilData['no_ktp'] ?? '-' }}</td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -88,9 +94,6 @@
 
                     <!-- Data Profil (Step 2) -->
                     @if($pendaftaran->profil_data)
-                        @php
-                            $profilData = is_string($pendaftaran->profil_data) ? json_decode($pendaftaran->profil_data, true) : $pendaftaran->profil_data;
-                        @endphp
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Data Profil Peserta (Step 2)</h5>
