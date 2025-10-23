@@ -145,11 +145,24 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <h6><strong>Tanda tangan Asesor:</strong></h6>
-                                <div class="text-center p-3 border bg-light">
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Tanda tangan asesor akan dimasukkan setelah mahasiswa mengirim persetujuan
-                                    </p>
+                                <div class="text-center p-3 border">
+                                    @if(isset($asesmenData['signature_data']))
+                                        <img src="{{ $asesmenData['signature_data'] }}" alt="Tanda Tangan Asesor" 
+                                             style="max-width: 300px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                        @if(isset($asesmenData['verified_at']))
+                                            <div class="mt-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    Diverifikasi pada: {{ \Carbon\Carbon::parse($asesmenData['verified_at'])->format('d F Y, H:i') }}
+                                                </small>
+                                            </div>
+                                        @endif
+                                    @else
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Tanda tangan asesor belum tersedia
+                                        </p>
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-md-6">
