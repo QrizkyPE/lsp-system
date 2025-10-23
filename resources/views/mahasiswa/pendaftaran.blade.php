@@ -110,8 +110,21 @@
                                                                     ->where('status', 'verified')
                                                                     ->exists();
                                                                 $hasPersetujuan = $p->persetujuan_data;
+                                                                
+                                                                // Check if asesor has filled complete asesmen data
+                                                                $hasCompleteAsesorData = false;
+                                                                if ($p->asesmen_data) {
+                                                                    $asesmenData = is_string($p->asesmen_data) ? 
+                                                                        json_decode($p->asesmen_data, true) : 
+                                                                        $p->asesmen_data;
+                                                                    
+                                                                    if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+                                                                        isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+                                                                        $hasCompleteAsesorData = true;
+                                                                    }
+                                                                }
                                                             @endphp
-                                                            @if($isVerifiedByAsesor && !$hasPersetujuan)
+                                                            @if($isVerifiedByAsesor && $hasCompleteAsesorData && !$hasPersetujuan)
                                                                 <a href="{{ route('mahasiswa.persetujuan', $p->id) }}" 
                                                                    class="btn btn-sm btn-success" 
                                                                    data-bs-toggle="tooltip" 
@@ -120,6 +133,8 @@
                                                                 </a>
                                                             @elseif($hasPersetujuan)
                                                                 <span class="badge bg-success">Persetujuan Dikirim</span>
+                                                            @elseif($isVerifiedByAsesor && !$hasCompleteAsesorData)
+                                                                <span class="badge bg-warning" data-bs-toggle="tooltip" title="Menunggu data asesor lengkap">Menunggu Data Asesor</span>
                                                             @endif
                                                             @if($p->status == 'rejected' && $p->alasan_penolakan)
                                                                 <button type="button" class="btn btn-sm btn-outline-warning" 

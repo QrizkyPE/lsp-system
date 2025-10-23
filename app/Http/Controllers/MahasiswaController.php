@@ -717,20 +717,36 @@ class MahasiswaController extends Controller
                 ->with('error', 'Pendaftaran belum diverifikasi oleh asesor');
         }
 
+        // Check if asesor has filled complete asesmen data
+        $asesmenData = null;
+        if ($pendaftaran->asesmen_data) {
+            $asesmenData = is_string($pendaftaran->asesmen_data) ? 
+                json_decode($pendaftaran->asesmen_data, true) : 
+                $pendaftaran->asesmen_data;
+        }
+
+        // Check if asesor has provided complete data
+        $hasCompleteAsesorData = false;
+        if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+            isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+            $hasCompleteAsesorData = true;
+        }
+
+        if (!$hasCompleteAsesorData) {
+            return redirect()->route('mahasiswa.dashboard')
+                ->with('error', 'Asesor belum mengisi data asesmen lengkap. Silakan tunggu asesor menyelesaikan data asesmen.');
+        }
+
         // Get asesor who verified
         $asesor = $asesorVerification->verifier;
 
-        return view('mahasiswa.persetujuan-asesmen', compact('pendaftaran', 'asesor'));
+        return view('mahasiswa.persetujuan-asesmen', compact('pendaftaran', 'asesor', 'asesmenData'));
     }
 
     public function storePersetujuan(Request $request)
     {
         $request->validate([
             'pendaftaran_id' => 'required|exists:pendaftaran,id',
-            'bukti' => 'required|array',
-            'tanggal_asesmen' => 'required|date',
-            'waktu_asesmen' => 'required',
-            'tuk_asesmen' => 'required|string',
             'asesi_signature' => 'required|string',
             'tanggal_asesi' => 'required|date',
         ]);
@@ -748,12 +764,20 @@ class MahasiswaController extends Controller
                 ->with('error', 'Persetujuan sudah pernah dikirim');
         }
 
-        // Prepare data
+        // Get asesor data from asesmen_data
+        $asesmenData = null;
+        if ($pendaftaran->asesmen_data) {
+            $asesmenData = is_string($pendaftaran->asesmen_data) ? 
+                json_decode($pendaftaran->asesmen_data, true) : 
+                $pendaftaran->asesmen_data;
+        }
+
+        // Prepare data with asesor data + mahasiswa signature
         $persetujuanData = [
-            'bukti' => $request->bukti,
-            'tanggal_asesmen' => $request->tanggal_asesmen,
-            'waktu_asesmen' => $request->waktu_asesmen,
-            'tuk_asesmen' => $request->tuk_asesmen,
+            'bukti' => $asesmenData['bukti'] ?? [],
+            'tanggal_asesmen' => $asesmenData['tanggal_asesmen'] ?? '',
+            'waktu_asesmen' => $asesmenData['waktu_asesmen'] ?? '',
+            'tuk_asesmen' => $asesmenData['tuk_asesmen'] ?? '',
             'asesi_signature' => $request->asesi_signature,
             'tanggal_asesi' => $request->tanggal_asesi,
             'submitted_at' => now(),

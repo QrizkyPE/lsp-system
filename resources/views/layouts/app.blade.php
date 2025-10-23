@@ -103,6 +103,11 @@
                                     <i class="fas fa-signature me-2"></i>Personalisasi
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.persetujuan-asesmen*') ? 'active' : '' }}" href="{{ route('admin.persetujuan-asesmen') }}">
+                                    <i class="fas fa-clipboard-check me-2"></i>Persetujuan Asesmen
+                                </a>
+                            </li>
                         @elseif(auth()->user()->role === 'asesor')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.dashboard') ? 'active' : '' }}" href="{{ route('asesor.dashboard') }}">
@@ -122,11 +127,6 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.asesmen') ? 'active' : '' }}" href="{{ route('asesor.asesmen') }}">
                                     <i class="fas fa-clipboard-check me-2"></i>Asesmen
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('asesor.persetujuan*') ? 'active' : '' }}" href="{{ route('asesor.persetujuan') }}">
-                                    <i class="fas fa-file-signature me-2"></i>Persetujuan Asesmen
                                 </a>
                             </li>
                             <li class="nav-item">

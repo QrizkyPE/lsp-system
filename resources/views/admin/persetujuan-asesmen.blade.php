@@ -20,7 +20,7 @@
                                         <th>No. Pendaftaran</th>
                                         <th>Nama Mahasiswa</th>
                                         <th>Skema Sertifikasi</th>
-                                        <th>Tanggal Pengajuan</th>
+                                        <th>Tanggal Verifikasi</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -31,12 +31,12 @@
                                         <td>{{ $p->no_pendaftaran }}</td>
                                         <td>{{ $p->user->nama_lengkap }}</td>
                                         <td>{{ $p->skemaSertifikasi->nama_skema }}</td>
-                                        <td>{{ $p->created_at->format('d/m/Y H:i') }}</td>
+                                        <td>{{ $p->tanggal_asesmen ? \Carbon\Carbon::parse($p->tanggal_asesmen)->format('d/m/Y H:i') : '-' }}</td>
                                         <td>
-                                            <span class="badge bg-warning">Menunggu Konfirmasi</span>
+                                            <span class="badge bg-info">Menunggu Persetujuan</span>
                                         </td>
                                         <td>
-                                            <a href="{{ route('asesor.persetujuan.detail', $p->id) }}" 
+                                            <a href="{{ route('admin.persetujuan-asesmen.detail', $p->id) }}" 
                                                class="btn btn-sm btn-primary">
                                                 <i class="fas fa-eye me-1"></i>Detail
                                             </a>
@@ -53,9 +53,9 @@
                         </div>
                     @else
                         <div class="text-center py-5">
-                            <i class="fas fa-file-signature fa-3x text-muted mb-3"></i>
+                            <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Belum ada persetujuan asesmen</h5>
-                            <p class="text-muted">Mahasiswa belum mengirim persetujuan asesmen</p>
+                            <p class="text-muted">Tidak ada asesmen yang menunggu persetujuan admin</p>
                         </div>
                     @endif
                 </div>

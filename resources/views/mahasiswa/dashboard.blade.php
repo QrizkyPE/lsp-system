@@ -113,13 +113,28 @@
                                             ->where('status', 'verified')
                                             ->exists();
                                         $hasPersetujuan = $pendaftaran->persetujuan_data;
+                                        
+                                        // Check if asesor has filled complete asesmen data
+                                        $hasCompleteAsesorData = false;
+                                        if ($pendaftaran->asesmen_data) {
+                                            $asesmenData = is_string($pendaftaran->asesmen_data) ? 
+                                                json_decode($pendaftaran->asesmen_data, true) : 
+                                                $pendaftaran->asesmen_data;
+                                            
+                                            if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+                                                isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+                                                $hasCompleteAsesorData = true;
+                                            }
+                                        }
                                     @endphp
-                                    @if($isVerifiedByAsesor && !$hasPersetujuan)
+                                    @if($isVerifiedByAsesor && $hasCompleteAsesorData && !$hasPersetujuan)
                                         <a href="{{ route('mahasiswa.persetujuan', $pendaftaran->id) }}" class="btn btn-sm btn-success">
                                             <i class="fas fa-file-signature"></i> Persetujuan
                                         </a>
                                     @elseif($hasPersetujuan)
                                         <span class="badge badge-success">Persetujuan Dikirim</span>
+                                    @elseif($isVerifiedByAsesor && !$hasCompleteAsesorData)
+                                        <span class="badge badge-warning">Menunggu Data Asesor</span>
                                     @endif
                                 </td>
                             </tr>

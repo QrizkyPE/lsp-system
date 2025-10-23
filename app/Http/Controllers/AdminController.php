@@ -1026,4 +1026,70 @@ class AdminController extends Controller
             'message' => 'Tanda tangan tidak ditemukan'
         ]);
     }
+
+    // Persetujuan Asesmen
+    public function persetujuanAsesmen()
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->where('status', 'in_progress')
+            ->whereNotNull('asesmen_data')
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.persetujuan-asesmen', compact('pendaftaran'));
+    }
+
+    public function detailPersetujuanAsesmen($id)
+    {
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+            ->where('id', $id)
+            ->where('status', 'in_progress')
+            ->whereNotNull('asesmen_data')
+            ->firstOrFail();
+
+        $asesmenData = is_string($pendaftaran->asesmen_data) ? 
+            json_decode($pendaftaran->asesmen_data, true) : 
+            $pendaftaran->asesmen_data;
+
+        return view('admin.detail-persetujuan-asesmen', compact('pendaftaran', 'asesmenData'));
+    }
+
+    public function konfirmasiPersetujuanAsesmen(Request $request, $id)
+    {
+        $request->validate([
+            'admin_signature' => 'required|string',
+            'tanggal_admin' => 'required|date',
+            'tanggal_asesmen' => 'required|date',
+            'waktu_asesmen' => 'required|string',
+            'tuk_asesmen' => 'required|string',
+        ]);
+
+        $pendaftaran = Pendaftaran::findOrFail($id);
+        
+        // Get existing asesmen data
+        $asesmenData = null;
+        if ($pendaftaran->asesmen_data) {
+            $asesmenData = is_string($pendaftaran->asesmen_data) ? 
+                json_decode($pendaftaran->asesmen_data, true) : 
+                $pendaftaran->asesmen_data;
+        }
+        
+        // Update asesmen data with admin input (preserve existing bukti from asesor)
+        $asesmenData['tanggal_asesmen'] = $request->tanggal_asesmen;
+        $asesmenData['waktu_asesmen'] = $request->waktu_asesmen;
+        $asesmenData['tuk_asesmen'] = $request->tuk_asesmen;
+        $asesmenData['admin_signature'] = $request->admin_signature;
+        $asesmenData['tanggal_admin'] = $request->tanggal_admin;
+        $asesmenData['confirmed_at'] = now();
+        
+        // Update pendaftaran
+        $pendaftaran->update([
+            'asesmen_data' => json_encode($asesmenData),
+            'status' => 'completed',
+            'tanggal_selesai' => now()
+        ]);
+
+        return redirect()->route('admin.persetujuan-asesmen')
+            ->with('success', 'Persetujuan asesmen berhasil dikonfirmasi');
+    }
 }

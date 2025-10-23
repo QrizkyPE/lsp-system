@@ -67,67 +67,43 @@
                             </div>
                         </div>
 
-                        <!-- Bukti yang dikumpulkan -->
+                        <!-- Bukti yang dikumpulkan (Read-only dari asesor) -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6><strong>Bukti yang dikumpulkan:</strong></h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Verifikasi Portofolio" id="bukti1">
-                                            <label class="form-check-label" for="bukti1">Hasil Verifikasi Portofolio</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Reviu Produk" id="bukti2">
-                                            <label class="form-check-label" for="bukti2">Hasil Reviu Produk</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Observasi Langsung" id="bukti3">
-                                            <label class="form-check-label" for="bukti3">Hasil Observasi Langsung</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Kegiatan Terstruktur" id="bukti4">
-                                            <label class="form-check-label" for="bukti4">Hasil Kegiatan Terstruktur</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Lisan" id="bukti5">
-                                            <label class="form-check-label" for="bukti5">Hasil Pertanyaan Lisan</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Tertulis" id="bukti6">
-                                            <label class="form-check-label" for="bukti6">Hasil Pertanyaan Tertulis</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Wawancara" id="bukti7">
-                                            <label class="form-check-label" for="bukti7">Hasil Pertanyaan Wawancara</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="bukti[]" value="Lainnya" id="bukti8">
-                                            <label class="form-check-label" for="bukti8">Lainnya</label>
-                                        </div>
-                                    </div>
+                                <div class="alert alert-info">
+                                    <strong>Data yang telah diisi oleh Asesor:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        @if(isset($asesmenData['bukti']) && is_array($asesmenData['bukti']))
+                                            @foreach($asesmenData['bukti'] as $bukti)
+                                                <li>{{ $bukti }}</li>
+                                            @endforeach
+                                        @else
+                                            <li>Belum ada data bukti dari asesor</li>
+                                        @endif
+                                    </ul>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pelaksanaan asesmen -->
+                        <!-- Pelaksanaan asesmen (Read-only dari asesor) -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6><strong>Pelaksanaan asesmen disepakati pada:</strong></h6>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Hari/ Tanggal:</label>
-                                        <input type="date" class="form-control" name="tanggal_asesmen" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Waktu:</label>
-                                        <input type="time" class="form-control" name="waktu_asesmen" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">TUK:</label>
-                                        <input type="text" class="form-control" name="tuk_asesmen" value="{{ $pendaftaran->jadwalUji->tuk->nama_tuk ?? '' }}" readonly>
+                                <div class="alert alert-info">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <strong>Hari/ Tanggal:</strong><br>
+                                            <span class="text-primary">{{ $asesmenData['tanggal_asesmen'] ?? 'Belum diisi asesor' }}</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Waktu:</strong><br>
+                                            <span class="text-primary">{{ $asesmenData['waktu_asesmen'] ?? 'Belum diisi asesor' }}</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>TUK:</strong><br>
+                                            <span class="text-primary">{{ $asesmenData['tuk_asesmen'] ?? 'Belum diisi asesor' }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -169,17 +145,15 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <h6><strong>Tanda tangan Asesor:</strong></h6>
-                                <div class="text-center p-3 border">
-                                    <p class="text-muted">Tanda tangan asesor akan dimasukkan oleh asesor setelah pengajuan persetujuan oleh mahasiswa/asesi</p>
-                                    <input type="hidden" name="asesor_signature" value="">
-                                </div>
-                                <div class="mt-2">
-                                    <label class="form-label">Tanggal:</label>
-                                    <input type="date" class="form-control" name="tanggal_asesor" readonly>
+                                <div class="text-center p-3 border bg-light">
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Tanda tangan asesor akan dimasukkan setelah mahasiswa mengirim persetujuan
+                                    </p>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <h6><strong>Tanda tangan Asesi:</strong></h6>
+                                <h6><strong>Tanda tangan Asesi (Mahasiswa):</strong></h6>
                                 <div class="signature-section">
                                     <canvas id="signatureCanvas" width="400" height="200" style="border: 1px solid #ddd; cursor: crosshair;"></canvas>
                                     <div class="mt-2">
@@ -380,23 +354,8 @@ function updateSubmitButton() {
     }
 }
 
-// Set default checkboxes based on judul
+// Set current date for asesi
 document.addEventListener('DOMContentLoaded', function() {
-    const judul = '{{ $pendaftaran->skemaSertifikasi->nama_skema ?? "" }}';
-    
-    if (judul === 'PENGEMBANG WEB (WEB DEVELOPER)') {
-        document.getElementById('bukti4').checked = true; // Hasil Kegiatan Terstruktur
-        document.getElementById('bukti6').checked = true; // Hasil Pertanyaan Tertulis
-    } else if (judul === 'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)') {
-        document.getElementById('bukti3').checked = true; // Hasil Observasi Langsung
-        document.getElementById('bukti5').checked = true; // Hasil Pertanyaan Lisan
-        document.getElementById('bukti6').checked = true; // Hasil Pertanyaan Tertulis
-    } else if (judul === 'Junior Web Programmer') {
-        document.getElementById('bukti3').checked = true; // Hasil Observasi Langsung
-        document.getElementById('bukti6').checked = true; // Hasil Pertanyaan Tertulis
-    }
-    
-    // Set current date for asesi
     const today = new Date().toISOString().split('T')[0];
     document.querySelector('input[name="tanggal_asesi"]').value = today;
 });

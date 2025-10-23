@@ -121,6 +121,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/personalization', [AdminController::class, 'personalization'])->name('personalization');
     Route::post('/personalization', [AdminController::class, 'storePersonalization'])->name('personalization.store');
     Route::get('/personalization/get-signature', [AdminController::class, 'getSignature'])->name('personalization.get-signature');
+    
+    // Persetujuan Asesmen
+    Route::get('/persetujuan-asesmen', [AdminController::class, 'persetujuanAsesmen'])->name('persetujuan-asesmen');
+    Route::get('/persetujuan-asesmen/{id}/detail', [AdminController::class, 'detailPersetujuanAsesmen'])->name('persetujuan-asesmen.detail');
+    Route::post('/persetujuan-asesmen/{id}/konfirmasi', [AdminController::class, 'konfirmasiPersetujuanAsesmen'])->name('persetujuan-asesmen.konfirmasi');
 });
 
 // Asesor routes
@@ -190,9 +195,6 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::post('/asesmen/{id}/rejected', [AsesorController::class, 'rejectAsesmen'])->name('asesmen.rejected');
     
     // Persetujuan Asesmen
-    Route::get('/persetujuan', [AsesorController::class, 'persetujuanAsesmen'])->name('persetujuan');
-    Route::get('/persetujuan/{id}/detail', [AsesorController::class, 'detailPersetujuan'])->name('persetujuan.detail');
-    Route::post('/persetujuan/{id}/konfirmasi', [AsesorController::class, 'konfirmasiPersetujuan'])->name('persetujuan.konfirmasi');
 });
 
 // Mahasiswa routes

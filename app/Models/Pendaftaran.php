@@ -23,7 +23,7 @@ class Pendaftaran extends Model
         'tanggal_selesai',
         'hasil_asesmen',
         'catatan_asesmen',
-        'profil_data', 'sertifikasi_data', 'asesmen_data'
+        'profil_data', 'sertifikasi_data', 'asesmen_data', 'persetujuan_data'
     ];
 
     protected $casts = [

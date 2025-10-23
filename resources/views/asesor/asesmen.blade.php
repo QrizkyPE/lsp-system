@@ -350,7 +350,16 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Asesmen - {{ $p->no_pendaftaran }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="d-flex align-items-center">
+                    @if($p->status === 'in_progress')
+                        <span class="badge bg-warning me-2">Sedang Berlangsung</span>
+                    @elseif($p->status === 'completed')
+                        <span class="badge bg-success me-2">Selesai</span>
+                    @else
+                        <span class="badge bg-secondary me-2">Belum Diverifikasi</span>
+                    @endif
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
@@ -809,9 +818,15 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-success" onclick="openVerificationModal({{ $p->id }})">
-                    <i class="fas fa-check"></i> Verifikasi Asesmen
-                </button>
+                @if($p->status === 'in_progress' || $p->status === 'completed')
+                    <button type="button" class="btn btn-success" disabled>
+                        <i class="fas fa-check"></i> Sudah Diverifikasi
+                    </button>
+                @else
+                    <button type="button" class="btn btn-success" onclick="openVerificationModal({{ $p->id }})">
+                        <i class="fas fa-check"></i> Verifikasi Asesmen
+                    </button>
+                @endif
             </div>
         </div>
     </div>
@@ -833,7 +848,66 @@
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Konfirmasi Verifikasi</strong><br>
-                    Tanda tangan asesor akan digunakan untuk memverifikasi asesmen mandiri ini.
+                    Silakan pilih bukti yang dikumpulkan dan berikan tanda tangan untuk memverifikasi asesmen mandiri ini.
+                </div>
+                
+                <!-- Bukti yang dikumpulkan -->
+                <div class="mb-4">
+                    <h6><strong>Bukti yang dikumpulkan:</strong></h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Verifikasi Portofolio" id="portofolio{{ $p->id }}">
+                                <label class="form-check-label" for="portofolio{{ $p->id }}">
+                                    Hasil Verifikasi Portofolio
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Reviu Produk" id="reviu{{ $p->id }}">
+                                <label class="form-check-label" for="reviu{{ $p->id }}">
+                                    Hasil Reviu Produk
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Observasi Langsung" id="observasi{{ $p->id }}">
+                                <label class="form-check-label" for="observasi{{ $p->id }}">
+                                    Hasil Observasi Langsung
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Kegiatan Terstruktur" id="kegiatan{{ $p->id }}">
+                                <label class="form-check-label" for="kegiatan{{ $p->id }}">
+                                    Hasil Kegiatan Terstruktur
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Lisan" id="lisan{{ $p->id }}">
+                                <label class="form-check-label" for="lisan{{ $p->id }}">
+                                    Hasil Pertanyaan Lisan
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Tertulis" id="tertulis{{ $p->id }}">
+                                <label class="form-check-label" for="tertulis{{ $p->id }}">
+                                    Hasil Pertanyaan Tertulis
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Hasil Pertanyaan Wawancara" id="wawancara{{ $p->id }}">
+                                <label class="form-check-label" for="wawancara{{ $p->id }}">
+                                    Hasil Pertanyaan Wawancara
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bukti[]" value="Lainnya" id="lainnya{{ $p->id }}">
+                                <label class="form-check-label" for="lainnya{{ $p->id }}">
+                                    Lainnya
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="text-center">
@@ -852,7 +926,7 @@
                     <p class="text-muted">
                         <small>
                             <i class="fas fa-exclamation-triangle me-1"></i>
-                            Pastikan tanda tangan sudah benar sebelum melanjutkan.
+                            Pastikan bukti yang dikumpulkan sudah dipilih dan tanda tangan sudah benar sebelum melanjutkan.
                         </small>
                     </p>
                 </div>
@@ -978,6 +1052,15 @@ function verifyAsesmenWithSignature(id) {
         return;
     }
     
+    // Get bukti data from form
+    const buktiCheckboxes = document.querySelectorAll(`input[name="bukti[]"]:checked`);
+    const bukti = Array.from(buktiCheckboxes).map(cb => cb.value);
+    
+    if (bukti.length === 0) {
+        alert('Silakan pilih minimal satu bukti yang dikumpulkan!');
+        return;
+    }
+    
     // Direct verification without confirmation
     {
         // Get CSRF token safely
@@ -991,7 +1074,8 @@ function verifyAsesmenWithSignature(id) {
                 'X-CSRF-TOKEN': token
             },
             body: JSON.stringify({
-                signature_data: signatureData[id]
+                signature_data: signatureData[id],
+                bukti: bukti
             })
         })
         .then(response => response.json())
@@ -1043,6 +1127,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to open verification modal
 function openVerificationModal(id) {
+    // Check if button is disabled (already verified)
+    const button = document.querySelector(`button[onclick="openVerificationModal(${id})"]`);
+    if (button && button.disabled) {
+        alert('Asesmen ini sudah diverifikasi dan tidak dapat diverifikasi ulang!');
+        return;
+    }
+    
     const modalElement = document.getElementById(`verifikasiModal${id}`);
     
     if (modalElement) {
