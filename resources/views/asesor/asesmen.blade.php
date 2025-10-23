@@ -355,6 +355,10 @@
                         <span class="badge bg-warning me-2">Sedang Berlangsung</span>
                     @elseif($p->status === 'completed')
                         <span class="badge bg-success me-2">Selesai</span>
+                    @elseif($p->status === 'approved')
+                        <span class="badge bg-primary me-2">Siap Diverifikasi</span>
+                    @elseif($p->status === 'pending')
+                        <span class="badge bg-secondary me-2">Menunggu Persetujuan Admin</span>
                     @else
                         <span class="badge bg-secondary me-2">Belum Diverifikasi</span>
                     @endif
@@ -362,10 +366,32 @@
                 </div>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-info-circle me-2"></i>Informasi Asesmen</h6>
-                    <p class="mb-0">Halaman ini akan menampilkan data asesmen mandiri yang perlu diverifikasi oleh asesor.</p>
-                </div>
+                @if($p->status === 'approved')
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Asesmen Siap Diverifikasi</h6>
+                        <p class="mb-0">Pendaftaran telah disetujui admin. Anda dapat melakukan verifikasi asesmen mandiri.</p>
+                    </div>
+                @elseif($p->status === 'pending')
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-clock me-2"></i>Menunggu Persetujuan Admin</h6>
+                        <p class="mb-0">Pendaftaran belum disetujui admin. Verifikasi asesmen akan tersedia setelah admin menyetujui pendaftaran.</p>
+                    </div>
+                @elseif($p->status === 'in_progress')
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Asesmen Sedang Berlangsung</h6>
+                        <p class="mb-0">Asesmen telah diverifikasi dan sedang dalam proses persetujuan admin.</p>
+                    </div>
+                @elseif($p->status === 'completed')
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Asesmen Selesai</h6>
+                        <p class="mb-0">Asesmen telah selesai dan disetujui admin.</p>
+                    </div>
+                @else
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Informasi Asesmen</h6>
+                        <p class="mb-0">Halaman ini akan menampilkan data asesmen mandiri yang perlu diverifikasi oleh asesor.</p>
+                    </div>
+                @endif
                 
                 <!-- Asesmen Data Display -->
                 @if($p->asesmen_data)
@@ -441,6 +467,9 @@
                                 <h6>Hasil Asesmen Mandiri</h6>
                                 @php
                                     $asesmenData = is_string($p->asesmen_data) ? json_decode($p->asesmen_data, true) : $p->asesmen_data;
+                                    // Reset global counter for each pendaftaran
+                                    static $globalKriteriaCounter = 0;
+                                    $globalKriteriaCounter = 0;
                                 @endphp
                                 
                                 @if(isset($p->unitKompetensiJudul) && $p->unitKompetensiJudul->count() > 0)
@@ -488,7 +517,7 @@
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            @foreach($kriteriaForElemen as $kriteria)
+                                                                            @foreach($kriteriaForElemen as $index => $kriteria)
                                                                                 @php
                                                                                     $kriteriaKey = $kriteria->nomor_kriteria;
                                                                                     $status = null;
@@ -496,10 +525,12 @@
                                                                                     
                                                                                     // Map kriteriaKey to asesmenData key based on sequential order
                                                                                     // Since asesmenData uses keys "1", "2", "3", etc., we need to map based on order
-                                                                                    static $kriteriaCounter = 0;
-                                                                                    $kriteriaCounter++;
-                                                                                    $mappedKey = (string)$kriteriaCounter;
+                                                                                    // Use a global counter that resets for each pendaftaran
+                                                                                    static $globalKriteriaCounter = 0;
+                                                                                    $globalKriteriaCounter++;
+                                                                                    $mappedKey = (string)$globalKriteriaCounter;
                                                                                     
+                                                                                    // Debug: Check if asesmenData exists and has the mapped key
                                                                                     if(isset($asesmenData[$mappedKey])) {
                                                                                         // Handle both boolean and string formats
                                                                                         $kompeten = $asesmenData[$mappedKey]['kompeten'] ?? false;
@@ -513,6 +544,9 @@
                                                                                             $status = 'belum_kompeten';
                                                                                             $detail = 'Mahasiswa menilai diri belum kompeten';
                                                                                         }
+                                                                                    } else {
+                                                                                        // Debug: Log when data is not found
+                                                                                        // This will help identify if the issue is with data structure
                                                                                     }
                                                                                 @endphp
                                                                                 <tr>
@@ -822,9 +856,13 @@
                     <button type="button" class="btn btn-success" disabled>
                         <i class="fas fa-check"></i> Sudah Diverifikasi
                     </button>
-                @else
+                @elseif($p->status === 'approved')
                     <button type="button" class="btn btn-success" onclick="openVerificationModal({{ $p->id }})">
                         <i class="fas fa-check"></i> Verifikasi Asesmen
+                    </button>
+                @else
+                    <button type="button" class="btn btn-secondary" disabled>
+                        <i class="fas fa-clock"></i> Menunggu Persetujuan Admin
                     </button>
                 @endif
             </div>

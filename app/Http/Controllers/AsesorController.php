@@ -405,13 +405,13 @@ class AsesorController extends Controller
     public function asesmen()
     {
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
-            ->whereIn('status', ['pending', 'approved', 'in_progress'])
+            ->whereIn('status', ['approved', 'in_progress'])
             ->whereNotNull('asesmen_data')
             ->latest()
             ->paginate(10);
 
         // Calculate summary statistics
-        $totalAsesmen = Pendaftaran::whereNotNull('asesmen_data')->count();
+        $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress'])->whereNotNull('asesmen_data')->count();
         $pendingAsesmen = Pendaftaran::where('status', 'approved')->whereNotNull('asesmen_data')->count();
         $verifiedAsesmen = Pendaftaran::where('status', 'in_progress')->whereNotNull('asesmen_data')->count();
         $rejectedAsesmen = Pendaftaran::where('status', 'rejected')->whereNotNull('asesmen_data')->count();
@@ -462,18 +462,37 @@ class AsesorController extends Controller
             ], 400);
         }
         
-        // Prepare asesmen data
-        $asesmenData = [
+        // Get existing asesmen data (from mahasiswa)
+        $existingAsesmenData = null;
+        if ($pendaftaran->asesmen_data) {
+            $existingAsesmenData = is_string($pendaftaran->asesmen_data) ? 
+                json_decode($pendaftaran->asesmen_data, true) : 
+                $pendaftaran->asesmen_data;
+        }
+        
+        // Prepare verification data (from asesor)
+        $verificationData = [
             'bukti' => $bukti,
             'signature_data' => $signatureData,
             'verified_at' => now()
         ];
         
+        // Merge existing asesmen data with verification data (preserve original data)
+        if ($existingAsesmenData) {
+            // Preserve original asesmen data and add verification data
+            $mergedAsesmenData = $existingAsesmenData;
+            $mergedAsesmenData['bukti'] = $verificationData['bukti'];
+            $mergedAsesmenData['signature_data'] = $verificationData['signature_data'];
+            $mergedAsesmenData['verified_at'] = $verificationData['verified_at'];
+        } else {
+            $mergedAsesmenData = $verificationData;
+        }
+        
         // Update pendaftaran status and asesmen data
         $updateData = [
             'status' => 'in_progress',
             'tanggal_asesmen' => now(),
-            'asesmen_data' => json_encode($asesmenData)
+            'asesmen_data' => json_encode($mergedAsesmenData)
         ];
         
         $pendaftaran->update($updateData);
