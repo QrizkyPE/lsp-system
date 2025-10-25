@@ -147,6 +147,11 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/verifications', [AsesorController::class, 'verifications'])->name('verifications');
     Route::post('/verifications/{id}/verify', [AsesorController::class, 'verifyPendaftaran'])->name('verifications.verify');
     
+    // Observasi Checklist
+    Route::resource('observasi', App\Http\Controllers\ObservasiController::class);
+    Route::get('/observasi/get-elemen-kriteria/{pendaftaranId}', [App\Http\Controllers\ObservasiController::class, 'getElemenKriteria']);
+    Route::get('/observasi/get-unit-kompetensi/{pendaftaranId}', [App\Http\Controllers\ObservasiController::class, 'getUnitKompetensi']);
+    
         // Unit Kompetensi
         Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
         Route::post('/unit-kompetensi', [AsesorController::class, 'storeUnitKompetensi']);
@@ -226,4 +231,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     // Persetujuan Asesmen
     Route::get('/pendaftaran/{id}/persetujuan', [MahasiswaController::class, 'persetujuanAsesmen'])->name('persetujuan');
     Route::post('/persetujuan', [MahasiswaController::class, 'storePersetujuan'])->name('persetujuan.store');
+    
+    // Observasi Checklist
+    Route::get('/observasi-checklist', [MahasiswaController::class, 'observasiChecklist'])->name('observasi-checklist');
+    Route::get('/observasi-checklist/{id}', [MahasiswaController::class, 'showObservasiChecklist'])->name('observasi-checklist.show');
+    Route::post('/observasi-checklist/{id}/signature', [MahasiswaController::class, 'updateObservasiChecklist'])->name('observasi-checklist.signature');
 });
