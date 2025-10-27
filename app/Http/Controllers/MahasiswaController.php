@@ -15,6 +15,7 @@ use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
 use App\Models\PendaftaranVerification;
 use App\Models\ObservasiChecklist;
+use App\Models\PenyesuaianChecklist;
 
 class MahasiswaController extends Controller
 {
@@ -853,5 +854,66 @@ class MahasiswaController extends Controller
 
         return redirect()->route('mahasiswa.observasi-checklist')
             ->with('success', 'Observasi checklist berhasil ditandatangani.');
+    }
+
+    /**
+     * Display penyesuaian checklist index for mahasiswa
+     */
+    public function penyesuaianChecklist()
+    {
+        $user = Auth::user();
+        
+        // Get penyesuaian checklists for this mahasiswa
+        $penyesuaianChecklists = PenyesuaianChecklist::with(['asesor', 'pendaftaran.skemaSertifikasi'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('mahasiswa.penyesuaian-checklist', compact('penyesuaianChecklists'));
+    }
+
+    /**
+     * Show specific penyesuaian checklist
+     */
+    public function showPenyesuaianChecklist($id)
+    {
+        $user = Auth::user();
+        
+        $penyesuaianChecklist = PenyesuaianChecklist::with(['asesor', 'pendaftaran.skemaSertifikasi'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+
+        return view('mahasiswa.penyesuaian-checklist-show', compact('penyesuaianChecklist'));
+    }
+
+    /**
+     * Update penyesuaian checklist with mahasiswa signature
+     */
+    public function updatePenyesuaianChecklist(Request $request, $id)
+    {
+        $user = Auth::user();
+        
+        $penyesuaianChecklist = PenyesuaianChecklist::with(['pendaftaran'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+
+        $request->validate([
+            'mahasiswa_signature' => 'required|string',
+            'tanggal_mahasiswa' => 'required|date'
+        ]);
+
+        $penyesuaianChecklist->update([
+            'mahasiswa_signature' => $request->mahasiswa_signature,
+            'tanggal_mahasiswa' => $request->tanggal_mahasiswa
+        ]);
+
+        return redirect()->route('mahasiswa.penyesuaian-checklist')
+            ->with('success', 'Penyesuaian checklist berhasil ditandatangani.');
     }
 }

@@ -135,6 +135,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.penyesuaian*') ? 'active' : '' }}" href="{{ route('asesor.penyesuaian.index') }}">
+                                    <i class="fas fa-adjust me-2"></i>Penyesuaian
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>
@@ -188,6 +193,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.observasi-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.observasi-checklist') }}">
                                     <i class="fas fa-clipboard-list me-2"></i>Observasi Checklist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.penyesuaian-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.penyesuaian-checklist') }}">
+                                    <i class="fas fa-adjust me-2"></i>Penyesuaian Checklist
                                 </a>
                             </li>
                         @endif
