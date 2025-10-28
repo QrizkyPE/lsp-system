@@ -291,15 +291,15 @@
                                 <table class="table table-bordered">
                                     <tr>
                                         <td width="20%"><strong>Acuan Pembanding Asesmen:</strong></td>
-                                        <td>{{ $penyesuaianChecklist->acuan_pembanding ?? '-' }}</td>
+                                        <td><span class="text-muted">( Tuliskan nama acuan pembanding )</span></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Metode Asesmen:</strong></td>
-                                        <td>{{ $penyesuaianChecklist->metode_asesmen ?? '-' }}</td>
+                                        <td><span class="text-muted">( Tuliskan nama metode asesmen )</span></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Instrumen Asesmen:</strong></td>
-                                        <td>{{ $penyesuaianChecklist->instrumen_asesmen ?? '-' }}</td>
+                                        <td><span class="text-muted">( Tuliskan nama formulir instrumen asesmen )</span></td>
                                     </tr>
                                 </table>
                             </div>
