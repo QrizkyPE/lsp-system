@@ -16,6 +16,7 @@ use App\Models\KriteriaUnjukKerjaJudul;
 use App\Models\PendaftaranVerification;
 use App\Models\ObservasiChecklist;
 use App\Models\PenyesuaianChecklist;
+use App\Models\RekamanAsesmenKompetensi;
 
 class MahasiswaController extends Controller
 {
@@ -915,5 +916,77 @@ class MahasiswaController extends Controller
 
         return redirect()->route('mahasiswa.penyesuaian-checklist')
             ->with('success', 'Penyesuaian checklist berhasil ditandatangani.');
+    }
+
+    /**
+     * Display a listing of rekaman asesmen kompetensi for mahasiswa
+     */
+    public function rekamanAsesmen()
+    {
+        $user = Auth::user();
+        $rekamanAsesmen = RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.skemaSertifikasi'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('mahasiswa.rekaman-asesmen', compact('rekamanAsesmen'));
+    }
+
+    /**
+     * Display the specified rekaman asesmen kompetensi for mahasiswa
+     */
+    public function showRekamanAsesmen($id)
+    {
+        $user = Auth::user();
+        $rekamanAsesmen = RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.skemaSertifikasi'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+
+        return view('mahasiswa.rekaman-asesmen-show', compact('rekamanAsesmen'));
+    }
+
+    /**
+     * Show the form for signing rekaman asesmen kompetensi
+     */
+    public function rekamanAsesmenSignature($id)
+    {
+        $user = Auth::user();
+        $rekamanAsesmen = RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.skemaSertifikasi'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+
+        return view('mahasiswa.rekaman-asesmen-signature', compact('rekamanAsesmen'));
+    }
+
+    /**
+     * Update rekaman asesmen kompetensi with mahasiswa signature
+     */
+    public function updateRekamanAsesmen(Request $request, $id)
+    {
+        $user = Auth::user();
+        $rekamanAsesmen = RekamanAsesmenKompetensi::with(['pendaftaran'])
+            ->whereHas('pendaftaran', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+
+        $request->validate([
+            'mahasiswa_signature' => 'required|string',
+            'tanggal_mahasiswa' => 'required|date'
+        ]);
+
+        $rekamanAsesmen->update([
+            'mahasiswa_signature' => $request->mahasiswa_signature,
+            'tanggal_mahasiswa' => $request->tanggal_mahasiswa
+        ]);
+
+        return redirect()->route('mahasiswa.rekaman-asesmen')
+            ->with('success', 'Rekaman asesmen kompetensi berhasil ditandatangani.');
     }
 }

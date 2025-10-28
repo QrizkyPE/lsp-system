@@ -155,6 +155,10 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     // Penyesuaian Checklist
     Route::resource('penyesuaian', App\Http\Controllers\PenyesuaianController::class);
     
+    // Rekaman Asesmen Kompetensi
+    Route::resource('rekaman-asesmen', App\Http\Controllers\RekamanAsesmenController::class);
+    Route::get('/rekaman-asesmen/get-unit-kompetensi/{pendaftaranId}', [App\Http\Controllers\RekamanAsesmenController::class, 'getUnitKompetensi']);
+    
         // Unit Kompetensi
         Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
         Route::post('/unit-kompetensi', [AsesorController::class, 'storeUnitKompetensi']);
@@ -244,4 +248,10 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/penyesuaian-checklist', [MahasiswaController::class, 'penyesuaianChecklist'])->name('penyesuaian-checklist');
     Route::get('/penyesuaian-checklist/{id}', [MahasiswaController::class, 'showPenyesuaianChecklist'])->name('penyesuaian-checklist.show');
     Route::post('/penyesuaian-checklist/{id}/signature', [MahasiswaController::class, 'updatePenyesuaianChecklist'])->name('penyesuaian-checklist.signature');
+    
+    // Rekaman Asesmen Kompetensi
+    Route::get('/rekaman-asesmen', [MahasiswaController::class, 'rekamanAsesmen'])->name('rekaman-asesmen');
+    Route::get('/rekaman-asesmen/{id}', [MahasiswaController::class, 'showRekamanAsesmen'])->name('rekaman-asesmen.show');
+    Route::get('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'rekamanAsesmenSignature'])->name('rekaman-asesmen.signature');
+    Route::post('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'updateRekamanAsesmen'])->name('rekaman-asesmen.signature');
 });

@@ -140,6 +140,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.rekaman-asesmen*') ? 'active' : '' }}" href="{{ route('asesor.rekaman-asesmen.index') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Rekaman Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>
@@ -198,6 +203,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.penyesuaian-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.penyesuaian-checklist') }}">
                                     <i class="fas fa-adjust me-2"></i>Penyesuaian Checklist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.rekaman-asesmen*') ? 'active' : '' }}" href="{{ route('mahasiswa.rekaman-asesmen') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Rekaman Asesmen
                                 </a>
                             </li>
                         @endif
