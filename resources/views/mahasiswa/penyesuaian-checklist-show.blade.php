@@ -221,7 +221,51 @@
                                                         @if(isset($penyesuaianChecklist->modifikasi_data[$i]) && is_array($penyesuaianChecklist->modifikasi_data[$i]))
                                                             <ul class="list-unstyled mb-0">
                                                                 @foreach($penyesuaianChecklist->modifikasi_data[$i] as $keterangan)
-                                                                    <li><i class="fas fa-check text-success me-1"></i>{{ $keterangan }}</li>
+                                                                    @php
+                                                                        $keteranganText = $keterangan;
+                                                                        // Mapping untuk mengkonversi key menjadi teks yang sesuai
+                                                                        $keteranganMapping = [
+                                                                            'dukungan_pembaca' => 'Memerlukan dukungan pembaca, penerjemah, pelayan, penulis untuk merekam jawaban asesi.',
+                                                                            'asesmen_verbal' => 'Melakukan asesmen verbal (gunakan pertanyaan lisan/pertanyaan wawancara) dengan dilengkapi gambar diagram dan bentuk-bentuk visual.',
+                                                                            'hasil_produksi' => 'Menggunakan Hasil produksi',
+                                                                            'ceklis_observasi' => 'Menggunakan Ceklis observasi/demonstrasi.',
+                                                                            'instruksi_terstruktur' => 'Menggunakan daftar instruksi terstruktur.',
+                                                                            'pertanyaan_lisan_visual' => 'Menggunakan pertanyaan lisan dengan dilengkapi gambar diagram dan bentuk-bentuk visual.',
+                                                                            'pertanyaan_wawancara_visual' => 'Menggunakan pertanyaan wawancara dengan dilengkapi gambar diagram dan bentuk-bentuk visual.',
+                                                                            'ceklis_observasi_demo' => 'Ceklis observasi/demonstrasi Demonstrasi.',
+                                                                            'pertanyaan_lisan' => 'Pertanyaan lisan',
+                                                                            'pertanyaan_tertulis' => 'Pertanyaan tertulis.',
+                                                                            'pertanyaan_wawancara' => 'Pertanyaan wawancara.',
+                                                                            'daftar_instruksi_terstruktur' => 'Daftar instruksi terstruktur.',
+                                                                            'ceklis_verifikasi_portofolio' => 'Ceklis verifikasi portofolio.',
+                                                                            'dukungan_operator_komputer' => 'Menggunakan dukungan operator komputer.',
+                                                                            'juru_tulis' => 'Menggunakan juru tulis.',
+                                                                            'kamera_perekam' => 'Menggunakan kamera perekam video/audio.',
+                                                                            'waktu_lebih_panjang' => 'Memperbolehkan periode waktu yang lebih panjang untuk menyelesaikan tugas pekerjaan dalam asesmen.',
+                                                                            'waktu_lebih_pendek' => 'Melakukan tugas pekerjaan dalam asesmen dengan waktu lebih pendek.',
+                                                                            'instruksi_spesifik' => 'Menggunakan instruksi-instruksi spesifik pada proyek yang dapat dilakukan pada berbagai tingkatan.',
+                                                                            'pertanyaan_lisan_braille' => 'Menggunakan pertanyaan lisan.',
+                                                                            'pertanyaan_wawancara_braille' => 'Menggunakan pertanyaan wawancara.',
+                                                                            'pertanyaan_lisan_lingkungan' => 'Pertanyaan lisan.',
+                                                                            'pertanyaan_tulis_lingkungan' => 'Pertanyaan tulis.',
+                                                                            'pertanyaan_wawancara_lingkungan' => 'Pertanyaan wawancara.',
+                                                                            'ceklis_verifikasi_portofolio_lingkungan' => 'Ceklis Verifikasi portofolio.',
+                                                                            'ceklis_reviu_produk' => 'Ceklis reviu produk.',
+                                                                            'daftar_instruksi_terstruktur_lingkungan' => 'Daftar instruksi terstruktur.',
+                                                                            'studi_kasus_usia' => 'Menggunakan studi kasus/daftar instruksi terstruktur',
+                                                                            'instrumen_huruf_normal' => 'Menggunakan instrumen asesmen dengan huruf normal jangan terlalu kecil.',
+                                                                            'asesor_jenis_kelamin_sama' => 'Menggunakan asesor dengan jenis kelamin yang sama dengan asesi.',
+                                                                            'instrumen_sama_jenis_kelamin' => 'Menggunakan instrumen asesmen yang sama walaupun berbeda jenis kelamin (tidak boleh memberi tanda tambahan pada instrumen asesmen yang digunakan dengan tujuan untuk membedakan jenis kelamin).',
+                                                                            'studi_kasus_budaya' => 'Menggunakan studi kasus daftar instruksi terstruktur',
+                                                                            'asesor_tanpa_pertimbangan_budaya' => 'Menggunakan asesor tanpa pertimbangan budaya/tradisi/agama.',
+                                                                            'instrumen_sama_budaya' => 'Menggunakan instrumen asesmen yang sama walaupun berbeda budaya/tradisi/agama.'
+                                                                        ];
+                                                                        
+                                                                        if (isset($keteranganMapping[$keterangan])) {
+                                                                            $keteranganText = $keteranganMapping[$keterangan];
+                                                                        }
+                                                                    @endphp
+                                                                    <li><i class="fas fa-check text-success me-1"></i>{{ $keteranganText }}</li>
                                                                 @endforeach
                                                             </ul>
                                                         @else
