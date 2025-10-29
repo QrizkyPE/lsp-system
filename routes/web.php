@@ -159,6 +159,10 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::resource('rekaman-asesmen', App\Http\Controllers\RekamanAsesmenController::class);
     Route::get('/rekaman-asesmen/get-unit-kompetensi/{pendaftaranId}', [App\Http\Controllers\RekamanAsesmenController::class, 'getUnitKompetensi']);
     
+    // Umpan Balik Asesmen (view-only for asesor)
+    Route::get('/umpan-balik', [App\Http\Controllers\AsesorUmpanBalikController::class, 'index'])->name('umpan-balik.index');
+    Route::get('/umpan-balik/{id}', [App\Http\Controllers\AsesorUmpanBalikController::class, 'show'])->name('umpan-balik.show');
+    
         // Unit Kompetensi
         Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
         Route::post('/unit-kompetensi', [AsesorController::class, 'storeUnitKompetensi']);
@@ -254,4 +258,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/rekaman-asesmen/{id}', [MahasiswaController::class, 'showRekamanAsesmen'])->name('rekaman-asesmen.show');
     Route::get('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'rekamanAsesmenSignature'])->name('rekaman-asesmen.signature');
     Route::post('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'updateRekamanAsesmen'])->name('rekaman-asesmen.signature');
+    
+    // Umpan Balik Asesmen
+    Route::resource('umpan-balik', App\Http\Controllers\UmpanBalikController::class);
 });

@@ -145,6 +145,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.umpan-balik*') ? 'active' : '' }}" href="{{ route('asesor.umpan-balik.index') }}">
+                                    <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>
@@ -208,6 +213,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.rekaman-asesmen*') ? 'active' : '' }}" href="{{ route('mahasiswa.rekaman-asesmen') }}">
                                     <i class="fas fa-file-alt me-2"></i>Rekaman Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.umpan-balik*') ? 'active' : '' }}" href="{{ route('mahasiswa.umpan-balik.index') }}">
+                                    <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
                                 </a>
                             </li>
                         @endif
