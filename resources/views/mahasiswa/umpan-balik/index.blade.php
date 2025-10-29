@@ -43,7 +43,12 @@
                                     @foreach($umpanBalik as $index => $umpan)
                                         <tr>
                                             <td class="text-center">{{ $umpanBalik->firstItem() + $index }}</td>
-                                            <td>{{ $umpan->judul }}</td>
+                                            <td>
+                                                {{ $umpan->judul }}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-lock me-1"></i>Terkirim - Tidak dapat diedit
+                                                </small>
+                                            </td>
                                             <td>
                                                 @switch($umpan->tuk)
                                                     @case('sewaktu')
@@ -62,25 +67,10 @@
                                                 {{ $umpan->tanggal_mulai->format('d/m/Y') }} - {{ $umpan->tanggal_selesai->format('d/m/Y') }}
                                             </td>
                                             <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="{{ route('mahasiswa.umpan-balik.show', $umpan->id) }}" 
-                                                       class="btn btn-info btn-sm" title="Detail">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{{ route('mahasiswa.umpan-balik.edit', $umpan->id) }}" 
-                                                       class="btn btn-warning btn-sm" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <form action="{{ route('mahasiswa.umpan-balik.destroy', $umpan->id) }}" 
-                                                          method="POST" class="d-inline"
-                                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus umpan balik ini?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                                <a href="{{ route('mahasiswa.umpan-balik.show', $umpan->id) }}" 
+                                                   class="btn btn-info btn-sm" title="Detail">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -15,11 +16,11 @@
                             <i class="fas fa-arrow-left me-1"></i>
                             Kembali
                         </a>
-                        <a href="{{ route('mahasiswa.umpan-balik.edit', $umpanBalik->id) }}" class="btn btn-warning">
-                            <i class="fas fa-edit me-1"></i>
-                            Edit
-                        </a>
                     </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Informasi:</strong> Umpan balik ini telah dikirim dan tidak dapat diedit atau dihapus.
                 </div>
                 <div class="card-body">
                     <!-- Header -->

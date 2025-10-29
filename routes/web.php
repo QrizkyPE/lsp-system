@@ -259,6 +259,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'rekamanAsesmenSignature'])->name('rekaman-asesmen.signature');
     Route::post('/rekaman-asesmen/{id}/signature', [MahasiswaController::class, 'updateRekamanAsesmen'])->name('rekaman-asesmen.signature');
     
-    // Umpan Balik Asesmen
-    Route::resource('umpan-balik', App\Http\Controllers\UmpanBalikController::class);
+    // Umpan Balik Asesmen (read-only after creation)
+    Route::get('/umpan-balik', [App\Http\Controllers\UmpanBalikController::class, 'index'])->name('umpan-balik.index');
+    Route::get('/umpan-balik/create', [App\Http\Controllers\UmpanBalikController::class, 'create'])->name('umpan-balik.create');
+    Route::post('/umpan-balik', [App\Http\Controllers\UmpanBalikController::class, 'store'])->name('umpan-balik.store');
+    Route::get('/umpan-balik/{id}', [App\Http\Controllers\UmpanBalikController::class, 'show'])->name('umpan-balik.show');
 });
