@@ -43,7 +43,7 @@
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <tr>
-                                            <td width="20%"><strong>Skema Sertifikasi (KKNI/Okupasi/Klaster):</strong></td>
+                                            <td width="20%"><strong>Skema Sertifikasi (<s>KKNI</s>/Okupasi/<s>Klaster</s>):</strong></td></td>
                                             <td>
                                                 <select name="rekaman_asesmen_id" id="rekaman_asesmen_id" class="form-select" required {{ $rekamanAsesmen->count() == 0 ? 'disabled' : '' }}>
                                                     <option value="">Pilih Rekaman Asesmen</option>

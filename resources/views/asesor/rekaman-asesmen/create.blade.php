@@ -268,7 +268,7 @@
                                         <tr>
                                             <td width="20%"><strong>No. Reg Asesor:</strong></td>
                                             <td>
-                                                <input type="text" name="no_reg_asesor" class="form-control" placeholder="Masukkan nomor registrasi asesor" {{ $pendaftaran->count() == 0 ? 'disabled' : '' }}>
+                                                <input type="text" name="no_reg_asesor" class="form-control" value="{{ $asesor->no_reg ?? '' }}" readonly style="background-color: #f8f9fa;">
                                             </td>
                                         </tr>
                                     </table>

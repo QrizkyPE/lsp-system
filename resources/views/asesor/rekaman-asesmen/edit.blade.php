@@ -298,7 +298,7 @@
                                         <tr>
                                             <td width="20%"><strong>No. Reg Asesor:</strong></td>
                                             <td>
-                                                <input type="text" name="no_reg_asesor" class="form-control" placeholder="Masukkan nomor registrasi asesor" value="{{ $rekamanAsesmen->no_reg_asesor }}">
+                                                <input type="text" name="no_reg_asesor" class="form-control" value="{{ $asesor->no_reg ?? $rekamanAsesmen->no_reg_asesor }}" readonly style="background-color: #f8f9fa;">
                                             </td>
                                         </tr>
                                     </table>

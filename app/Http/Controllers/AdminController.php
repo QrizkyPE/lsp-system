@@ -447,7 +447,7 @@ class AdminController extends Controller
             DB::commit();
 
             return redirect()->route('admin.asesor')
-                ->with('success', 'Asesor dan akun user terkait berhasil dihapus');
+                ->with('success', 'Akun Asesor berhasil dihapus');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('admin.asesor')

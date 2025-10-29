@@ -33,7 +33,9 @@ class RekamanAsesmenController extends Controller
             ->whereNotNull('persetujuan_data')
             ->get();
 
-        return view('asesor.rekaman-asesmen.create', compact('pendaftaran'));
+        $asesor = Auth::user()->asesor;
+
+        return view('asesor.rekaman-asesmen.create', compact('pendaftaran', 'asesor'));
     }
 
     /**
@@ -107,7 +109,9 @@ class RekamanAsesmenController extends Controller
             ->whereNotNull('persetujuan_data')
             ->get();
 
-        return view('asesor.rekaman-asesmen.edit', compact('rekamanAsesmen', 'pendaftaran'));
+        $asesor = Auth::user()->asesor;
+
+        return view('asesor.rekaman-asesmen.edit', compact('rekamanAsesmen', 'pendaftaran', 'asesor'));
     }
 
     /**

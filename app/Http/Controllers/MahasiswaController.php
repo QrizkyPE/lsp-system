@@ -618,7 +618,7 @@ class MahasiswaController extends Controller
             'skemaSertifikasi', 
             'jadwalUji.tuk',
             'verifications' => function($query) {
-                $query->with('verifier');
+                $query->with(['verifier.asesor']);
             }
         ])
         ->where('id', $id)

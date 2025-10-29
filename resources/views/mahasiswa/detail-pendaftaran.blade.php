@@ -465,6 +465,9 @@
                                                 @endswitch
                                             </p>
                                             <p><strong>Tanggal:</strong> {{ $verification->verification_date ? \Carbon\Carbon::parse($verification->verification_date)->format('d/m/Y H:i') : '-' }}</p>
+                                            @if($verification->type === 'asesor_verification' && $verification->verifier && $verification->verifier->asesor && $verification->verifier->asesor->no_reg)
+                                                <p><strong>No. Reg.:</strong> {{ $verification->verifier->asesor->no_reg }}</p>
+                                            @endif
                                             @if($verification->notes)
                                                 <p><strong>Catatan:</strong> {{ $verification->notes }}</p>
                                             @endif

@@ -36,7 +36,7 @@
                             <div class="table-responsive">
                                 <table class="table table-bordered">
                                     <tr>
-                                        <td width="20%"><strong>Skema Sertifikasi (KKNI/Okupasi/Klaster):</strong></td>
+                                        <td width="20%"><strong>Skema Sertifikasi (<s>KKNI</s>/Okupasi/<s>Klaster</s>):</strong></td></td>
                                         <td>{{ $rekamanAsesmen->judul }}</td>
                                     </tr>
                                     <tr>
