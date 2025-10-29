@@ -413,6 +413,7 @@ class AdminController extends Controller
             'nip' => 'required|string',
             'jabatan' => 'required|string',
             'instansi' => 'required|string',
+            'no_reg' => 'nullable|string',
             'no_sertifikat_asesor' => 'required|string',
             'tanggal_sertifikat' => 'required|date',
             'tanggal_expired' => 'required|date',
@@ -428,11 +429,30 @@ class AdminController extends Controller
 
     public function deleteAsesor($id)
     {
-        $asesor = Asesor::findOrFail($id);
-        $asesor->delete();
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('admin.asesor')
-            ->with('success', 'Asesor berhasil dihapus');
+            $asesor = Asesor::with('user')->findOrFail($id);
+
+            // Hapus user terkait terlebih dahulu agar tidak meninggalkan akun yatim
+            if ($asesor->user) {
+                $asesor->user->delete();
+            }
+
+            // Jika belum terhapus oleh cascade, hapus record asesor
+            if ($asesor->exists) {
+                $asesor->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.asesor')
+                ->with('success', 'Asesor dan akun user terkait berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.asesor')
+                ->with('error', 'Gagal menghapus asesor: ' . $e->getMessage());
+        }
     }
 
     // Create Asesor Account
@@ -456,6 +476,7 @@ class AdminController extends Controller
             'nip' => 'required|string|max:255|unique:asesor,nip',
             'jabatan' => 'required|string|max:255',
             'instansi' => 'required|string|max:255',
+            'no_reg' => 'nullable|string|max:255',
             'no_sertifikat_asesor' => 'required|string|max:255|unique:asesor,no_sertifikat_asesor',
             'tanggal_sertifikat' => 'required|date',
             'tanggal_expired' => 'required|date|after:tanggal_sertifikat',
@@ -486,6 +507,7 @@ class AdminController extends Controller
                 'nip' => $request->nip,
                 'jabatan' => $request->jabatan,
                 'instansi' => $request->instansi,
+                'no_reg' => $request->no_reg,
                 'no_sertifikat_asesor' => $request->no_sertifikat_asesor,
                 'tanggal_sertifikat' => $request->tanggal_sertifikat,
                 'tanggal_expired' => $request->tanggal_expired,

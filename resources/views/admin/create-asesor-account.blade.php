@@ -135,6 +135,17 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
+                                        <label for="no_reg" class="form-label">No. Reg.</label>
+                                        <input type="text" class="form-control @error('no_reg') is-invalid @enderror" 
+                                               id="no_reg" name="no_reg" value="{{ old('no_reg') }}">
+                                        @error('no_reg')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
                                         <label for="no_sertifikat_asesor" class="form-label">No. Sertifikat Asesor <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control @error('no_sertifikat_asesor') is-invalid @enderror" 
                                                id="no_sertifikat_asesor" name="no_sertifikat_asesor" value="{{ old('no_sertifikat_asesor') }}" required>

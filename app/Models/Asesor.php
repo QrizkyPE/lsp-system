@@ -16,6 +16,7 @@ class Asesor extends Model
         'nip',
         'jabatan',
         'instansi',
+        'no_reg',
         'no_sertifikat_asesor',
         'tanggal_sertifikat',
         'tanggal_expired',
