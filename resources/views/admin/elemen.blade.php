@@ -43,7 +43,7 @@
                                 <th>Kode Unit</th>
                                 <th>Kode Elemen</th>
                                 <th>Nama Elemen</th>
-                                <th>Kriteria</th>
+                                {{-- <th>Kriteria</th> --}}
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -55,9 +55,9 @@
                                 <td>{{ $item->kode_unit }}</td>
                                 <td>{{ $item->kode_elemen }}</td>
                                 <td>{{ $item->nama_elemen }}</td>
-                                <td>
+                                {{-- <td>
                                     <span class="badge bg-info">{{ $item->kriteriaUnjukKerja->count() }} kriteria</span>
-                                </td>
+                                </td> --}}
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
