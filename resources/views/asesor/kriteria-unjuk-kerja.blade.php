@@ -15,9 +15,23 @@
             </button>
         </div>
 
-        <!-- Search Box -->
+        <!-- Filter and Search Box -->
         <div class="row mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <form method="GET" action="{{ route('asesor.kriteria-unjuk-kerja') }}" id="filterForm">
+                    <label for="filter_judul" class="form-label"><strong>Filter Judul Sertifikasi:</strong></label>
+                    <select name="filter_judul" id="filter_judul" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Judul Sertifikasi</option>
+                        @foreach($judulOptions as $judul)
+                            <option value="{{ $judul }}" {{ $filterJudul == $judul ? 'selected' : '' }}>
+                                {{ $judul }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-8">
+                <label for="searchKriteria" class="form-label"><strong>Pencarian:</strong></label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control" id="searchKriteria" placeholder="Cari berdasarkan judul sertifikasi, kode unit, atau deskripsi kriteria...">

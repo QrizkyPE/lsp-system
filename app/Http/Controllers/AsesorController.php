@@ -54,23 +54,32 @@ class AsesorController extends Controller
     }
 
     // Unit Kompetensi
-    public function unitKompetensi()
+    public function unitKompetensi(Request $request)
     {
         $units = UnitKompetensi::with('skemaSertifikasi')->latest()->paginate(10);
         $skemas = SkemaSertifikasi::all();
         
-        // Data untuk tab Unit Kompetensi per Judul
-        $unitsJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id')->get();
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial'
-        ];
+        // Get filter from request
+        $filterJudul = $request->get('filter_judul');
         
-        return view('asesor.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions'));
+        // Data untuk tab Unit Kompetensi per Judul
+        $unitsJudulQuery = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id');
+        
+        // Apply filter if exists
+        if ($filterJudul) {
+            $unitsJudulQuery->where('judul_sertifikasi', $filterJudul);
+        }
+        
+        $unitsJudul = $unitsJudulQuery->get();
+        
+        // Get unique judul sertifikasi from database
+        $judulOptions = UnitKompetensiJudul::select('judul_sertifikasi')
+            ->distinct()
+            ->orderBy('judul_sertifikasi')
+            ->pluck('judul_sertifikasi')
+            ->toArray();
+        
+        return view('asesor.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions', 'filterJudul'));
     }
 
     public function storeUnitKompetensi(Request $request)
@@ -116,26 +125,38 @@ class AsesorController extends Controller
     }
 
     // Elemen
-    public function elemen()
+    public function elemen(Request $request)
     {
         $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
         $units = UnitKompetensi::with('skemaSertifikasi')->get();
         
+        // Get filter from request
+        $filterJudul = $request->get('filter_judul');
+        
         // Data untuk tab Elemen per Judul
-        $elemenJudul = ElemenJudul::with('kriteriaUnjukKerja')->orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->get();
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial'
-        ];
+        $elemenJudulQuery = ElemenJudul::with('kriteriaUnjukKerja')
+            ->orderBy('judul_sertifikasi')
+            ->orderBy('kode_unit')
+            ->orderBy('kode_elemen');
+        
+        // Apply filter if exists
+        if ($filterJudul) {
+            $elemenJudulQuery->where('judul_sertifikasi', $filterJudul);
+        }
+        
+        $elemenJudul = $elemenJudulQuery->get();
+        
+        // Get unique judul sertifikasi from database
+        $judulOptions = ElemenJudul::select('judul_sertifikasi')
+            ->distinct()
+            ->orderBy('judul_sertifikasi')
+            ->pluck('judul_sertifikasi')
+            ->toArray();
         
         // Data unit kompetensi per judul untuk dropdown kode unit
         $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
         
-        return view('asesor.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions', 'unitKompetensiJudul'));
+        return view('asesor.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions', 'unitKompetensiJudul', 'filterJudul'));
     }
 
     public function storeElemen(Request $request)
@@ -222,26 +243,38 @@ class AsesorController extends Controller
     }
 
     // Kriteria Unjuk Kerja
-    public function kriteriaUnjukKerja()
+    public function kriteriaUnjukKerja(Request $request)
     {
         $kriteria = KriteriaUnjukKerja::with('elemen.unitKompetensi.skemaSertifikasi')->latest()->paginate(10);
         $elemen = Elemen::with('unitKompetensi.skemaSertifikasi')->get();
         
+        // Get filter from request
+        $filterJudul = $request->get('filter_judul');
+        
         // Data untuk tab Kriteria per Judul
-        $kriteriaJudul = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->orderBy('nomor_kriteria')->get();
-        $judulOptions = [
-            'PENGEMBANG WEB (WEB DEVELOPER)',
-            'TEKNISI PERPAJAKAN (PAJAK PENGHASILAN ORANG PRIBADI)',
-            'System Analyst',
-            'Junior Web Programmer',
-            'Database Administrator',
-            'Analis Senior Hubungan Industrial'
-        ];
+        $kriteriaJudulQuery = KriteriaUnjukKerjaJudul::orderBy('judul_sertifikasi')
+            ->orderBy('kode_unit')
+            ->orderBy('kode_elemen')
+            ->orderBy('nomor_kriteria');
+        
+        // Apply filter if exists
+        if ($filterJudul) {
+            $kriteriaJudulQuery->where('judul_sertifikasi', $filterJudul);
+        }
+        
+        $kriteriaJudul = $kriteriaJudulQuery->get();
+        
+        // Get unique judul sertifikasi from database
+        $judulOptions = KriteriaUnjukKerjaJudul::select('judul_sertifikasi')
+            ->distinct()
+            ->orderBy('judul_sertifikasi')
+            ->pluck('judul_sertifikasi')
+            ->toArray();
         
         // Data unit kompetensi per judul untuk dropdown kode unit
         $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
         
-        return view('asesor.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul'));
+        return view('asesor.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul', 'filterJudul'));
     }
 
     public function storeKriteriaUnjukKerja(Request $request)
