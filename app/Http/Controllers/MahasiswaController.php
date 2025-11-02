@@ -793,7 +793,7 @@ class MahasiswaController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.dashboard')
-            ->with('success', 'Persetujuan asesmen berhasil dikirim. Menunggu konfirmasi asesor.');
+            ->with('success', 'Persetujuan asesmen dan kerahasiaanberhasil dikirim.');
     }
 
     /**
