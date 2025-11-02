@@ -415,7 +415,7 @@
                                                             <ul class="mb-0 mt-2">
                                                                 <li>Gambar tanda tangan Anda pada canvas di sebelah kiri</li>
                                                                 <li>Pastikan tanggal sudah benar</li>
-                                                                <li>Klik "Konfirmasi Tanda Tangan" untuk menyimpan</li>
+                                                                <li>Klik "Konfirmasi Tanda Tangan" untuk konfirmasi</li>
                                                             </ul>
                                                         </div>
                                                     </div>
