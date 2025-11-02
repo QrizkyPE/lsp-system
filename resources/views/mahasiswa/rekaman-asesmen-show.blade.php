@@ -21,6 +21,17 @@
                                 Tandatangani
                             </a>
                         @endif
+                        @php
+                            $existingBanding = \App\Models\BandingAsesmen::where('rekaman_asesmen_id', $rekamanAsesmen->id)
+                                ->where('user_id', Auth::id())
+                                ->first();
+                        @endphp
+                        @if(!$existingBanding)
+                            <a href="{{ route('mahasiswa.banding-asesmen.create', $rekamanAsesmen->id) }}" class="btn btn-warning">
+                                <i class="fas fa-gavel me-1"></i>
+                                Ajukan Banding
+                            </a>
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">

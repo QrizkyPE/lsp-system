@@ -28,9 +28,13 @@ class RekamanAsesmenController extends Controller
      */
     public function create()
     {
+        // Get pendaftaran IDs that already have rekaman asesmen
+        $existingPendaftaranIds = RekamanAsesmenKompetensi::pluck('pendaftaran_id')->unique()->filter();
+
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
             ->whereNotNull('persetujuan_data')
+            ->whereNotIn('id', $existingPendaftaranIds)
             ->get();
 
         $asesor = Auth::user()->asesor;

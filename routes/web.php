@@ -163,6 +163,10 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/umpan-balik', [App\Http\Controllers\AsesorUmpanBalikController::class, 'index'])->name('umpan-balik.index');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\AsesorUmpanBalikController::class, 'show'])->name('umpan-balik.show');
     
+    // Banding Asesmen (view-only for asesor)
+    Route::get('/banding-asesmen', [App\Http\Controllers\AsesorBandingAsesmenController::class, 'index'])->name('banding-asesmen.index');
+    Route::get('/banding-asesmen/{id}', [App\Http\Controllers\AsesorBandingAsesmenController::class, 'show'])->name('banding-asesmen.show');
+    
     // Soal Upload
     Route::get('/soal-upload', [App\Http\Controllers\SoalUploadController::class, 'index'])->name('soal-upload.index');
     Route::get('/soal-upload/create/{jadwalId}', [App\Http\Controllers\SoalUploadController::class, 'create'])->name('soal-upload.create');
@@ -271,6 +275,13 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/umpan-balik/create', [App\Http\Controllers\UmpanBalikController::class, 'create'])->name('umpan-balik.create');
     Route::post('/umpan-balik', [App\Http\Controllers\UmpanBalikController::class, 'store'])->name('umpan-balik.store');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\UmpanBalikController::class, 'show'])->name('umpan-balik.show');
+    
+    // Banding Asesmen
+    Route::get('/banding-asesmen', [App\Http\Controllers\Mahasiswa\BandingAsesmenController::class, 'index'])->name('banding-asesmen.index');
+    Route::get('/banding-asesmen/select-rekaman', [App\Http\Controllers\Mahasiswa\BandingAsesmenController::class, 'selectRekaman'])->name('banding-asesmen.select-rekaman');
+    Route::get('/banding-asesmen/create/{rekamanAsesmenId}', [App\Http\Controllers\Mahasiswa\BandingAsesmenController::class, 'create'])->name('banding-asesmen.create');
+    Route::post('/banding-asesmen/{rekamanAsesmenId}', [App\Http\Controllers\Mahasiswa\BandingAsesmenController::class, 'store'])->name('banding-asesmen.store');
+    Route::get('/banding-asesmen/{id}', [App\Http\Controllers\Mahasiswa\BandingAsesmenController::class, 'show'])->name('banding-asesmen.show');
     
     // Soal
     Route::get('/soal', [App\Http\Controllers\MahasiswaSoalController::class, 'index'])->name('soal.index');
