@@ -223,6 +223,11 @@
                                                     <button type="button" class="btn btn-sm btn-outline-info" onclick="viewPenugasan({{ $p->id }})" title="Lihat Detail">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
+                                                    @if($p->status === 'accepted' && isset($p->has_soal) && !$p->has_soal)
+                                                        <a href="{{ route('asesor.soal-upload.create', $p->jadwalUji->id) }}" class="btn btn-sm btn-warning" title="Upload Soal">
+                                                            <i class="fas fa-exclamation-triangle"></i> Upload Soal
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </td>

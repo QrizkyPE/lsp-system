@@ -411,7 +411,9 @@ function loadUnitKompetensi(pendaftaranId) {
             data.forEach((unit, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${unit.judul_unit}</strong></td>
+                    <td><strong>${unit.judul_unit}</strong>
+                        <input type="hidden" name="unit_kompetensi_data[${index}][judul_unit]" value="${unit.judul_unit}">
+                    </td>
                     <td class="text-center">
                         <input type="checkbox" name="unit_kompetensi_data[${index}][observasi_demonstrasi]" class="form-check-input">
                     </td>

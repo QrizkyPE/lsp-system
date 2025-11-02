@@ -946,6 +946,30 @@ class MahasiswaController extends Controller
             })
             ->findOrFail($id);
 
+        // Get unit kompetensi from database to get actual names
+        $unitKompetensiList = \App\Models\UnitKompetensiJudul::where('judul_sertifikasi', $rekamanAsesmen->pendaftaran->skemaSertifikasi->nama_skema)
+            ->get()
+            ->keyBy(function($unit) {
+                return $unit->judul_unit;
+            });
+
+        // Merge stored data with database data to ensure correct unit names
+        if ($rekamanAsesmen->unit_kompetensi_data) {
+            $unitData = collect($rekamanAsesmen->unit_kompetensi_data)->map(function($unit, $index) use ($unitKompetensiList) {
+                // If judul_unit is missing or incorrect, get from database by index
+                if (empty($unit['judul_unit']) || !$unitKompetensiList->has($unit['judul_unit'])) {
+                    $unitFromDb = $unitKompetensiList->values()->get($index);
+                    if ($unitFromDb) {
+                        $unit['judul_unit'] = $unitFromDb->judul_unit;
+                    } else {
+                        $unit['judul_unit'] = 'Unit ' . ($index + 1);
+                    }
+                }
+                return $unit;
+            })->toArray();
+            $rekamanAsesmen->unit_kompetensi_data = $unitData;
+        }
+
         return view('mahasiswa.rekaman-asesmen-show', compact('rekamanAsesmen'));
     }
 

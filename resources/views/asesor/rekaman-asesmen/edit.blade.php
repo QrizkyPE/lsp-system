@@ -134,7 +134,9 @@
                                                 @if($rekamanAsesmen->unit_kompetensi_data)
                                                     @foreach($rekamanAsesmen->unit_kompetensi_data as $index => $unitData)
                                                         <tr>
-                                                            <td><strong>{{ $unitData['judul_unit'] ?? 'Unit ' . ($index + 1) }}</strong></td>
+                                                            <td><strong>{{ $unitData['judul_unit'] ?? 'Unit ' . ($index + 1) }}</strong>
+                                                                <input type="hidden" name="unit_kompetensi_data[{{ $index }}][judul_unit]" value="{{ $unitData['judul_unit'] ?? 'Unit ' . ($index + 1) }}">
+                                                            </td>
                                                             <td class="text-center">
                                                                 <input type="checkbox" name="unit_kompetensi_data[{{ $index }}][observasi_demonstrasi]" class="form-check-input" {{ isset($unitData['observasi_demonstrasi']) && $unitData['observasi_demonstrasi'] ? 'checked' : '' }}>
                                                             </td>

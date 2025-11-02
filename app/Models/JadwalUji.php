@@ -50,4 +50,9 @@ class JadwalUji extends Model
     {
         return $this->hasMany(Pendaftaran::class);
     }
+
+    public function soalUploads(): HasMany
+    {
+        return $this->hasMany(SoalUpload::class);
+    }
 }

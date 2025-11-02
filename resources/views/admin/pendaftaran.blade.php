@@ -454,71 +454,74 @@ function loadSignatureFromPersonalization() {
 }
 
 function approvePendaftaran() {
-    if (!currentPendaftaranId || !signatureData) {
-        alert('Data tidak valid untuk persetujuan');
+    if (!currentPendaftaranId) {
+        console.error('Pendaftaran ID tidak valid');
         return;
     }
     
-    if (confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')) {
-        // Get admin signature from personalization
-        fetch('/admin/personalization/get-signature')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(signatureData => {
-                const signature = signatureData.signature || null;
-                
-                // Debug info
-                console.log('Signature loaded:', signature ? 'YES' : 'NO');
-                console.log('Signature length:', signature ? signature.length : 0);
-                
-                // Send approval request with signature
-                const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                if (!csrfToken) {
-                    throw new Error('CSRF token not found');
-                }
-                
-                fetch(`/admin/pendaftaran/${currentPendaftaranId}/approved`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken.getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        signature_data: signature
-                    })
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        // Close modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('approvalModal'));
-                        modal.hide();
-                        location.reload();
-                    } else {
-                        alert('Gagal menyetujui pendaftaran');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal menyetujui pendaftaran: ' + error.message);
+    // Disable button to prevent double click
+    const confirmBtn = document.getElementById('confirmApprovalBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+    
+    // Get admin signature from personalization
+    fetch('/admin/personalization/get-signature')
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
                 });
-            })
-            .catch(error => {
-                console.error('Error loading signature:', error);
-                alert('Gagal memuat tanda tangan admin: ' + error.message);
+            }
+            return response.json();
+        })
+        .then(signatureData => {
+            const signature = signatureData.signature || null;
+            
+            // Send approval request with signature
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                throw new Error('CSRF token not found');
+            }
+            
+            return fetch(`/admin/pendaftaran/${currentPendaftaranId}/approved`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    signature_data: signature
+                })
             });
-    }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Gagal menyetujui pendaftaran');
+                }).catch(() => {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('approvalModal'));
+            if (modal) {
+                modal.hide();
+            }
+            // Reload page to show updated status
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Re-enable button
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>Setujui Pendaftaran';
+            // Show error in modal or reload page
+            alert('Gagal menyetujui pendaftaran. Silakan coba lagi.');
+        });
 }
 
 // Event listener for confirm button
@@ -562,66 +565,7 @@ document.getElementById('statusFilter').addEventListener('change', function() {
     }
 });
 
-// AJAX functions for approval and rejection
-function approvePendaftaran(id) {
-    if (confirm('Apakah Anda yakin ingin menyetujui pendaftaran ini?')) {
-        // Get admin signature from personalization
-        fetch('/admin/personalization/get-signature')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(signatureData => {
-                const signature = signatureData.signature || null;
-                
-                // Debug info
-                console.log('Signature loaded:', signature ? 'YES' : 'NO');
-                console.log('Signature length:', signature ? signature.length : 0);
-                
-                // Send approval request with signature
-                const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                if (!csrfToken) {
-                    throw new Error('CSRF token not found');
-                }
-                
-                fetch(`/admin/pendaftaran/${id}/approved`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken.getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        signature_data: signature
-                    })
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Gagal menyetujui pendaftaran');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal menyetujui pendaftaran: ' + error.message);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading signature:', error);
-                alert('Gagal memuat tanda tangan admin: ' + error.message);
-            });
-    }
-}
+// Note: approvePendaftaran() function is defined above and used with modal
 
 function rejectPendaftaran(id) {
     if (confirm('Apakah Anda yakin ingin menolak pendaftaran ini?')) {

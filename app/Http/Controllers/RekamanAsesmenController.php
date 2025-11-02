@@ -95,6 +95,30 @@ class RekamanAsesmenController extends Controller
             ->where('asesor_id', Auth::id())
             ->findOrFail($id);
 
+        // Get unit kompetensi from database to get actual names
+        $unitKompetensiList = UnitKompetensiJudul::where('judul_sertifikasi', $rekamanAsesmen->pendaftaran->skemaSertifikasi->nama_skema)
+            ->get()
+            ->keyBy(function($unit) {
+                return $unit->judul_unit;
+            });
+
+        // Merge stored data with database data to ensure correct unit names
+        if ($rekamanAsesmen->unit_kompetensi_data) {
+            $unitData = collect($rekamanAsesmen->unit_kompetensi_data)->map(function($unit, $index) use ($unitKompetensiList) {
+                // If judul_unit is missing or incorrect, get from database by index
+                if (empty($unit['judul_unit']) || !$unitKompetensiList->has($unit['judul_unit'])) {
+                    $unitFromDb = $unitKompetensiList->values()->get($index);
+                    if ($unitFromDb) {
+                        $unit['judul_unit'] = $unitFromDb->judul_unit;
+                    } else {
+                        $unit['judul_unit'] = 'Unit ' . ($index + 1);
+                    }
+                }
+                return $unit;
+            })->toArray();
+            $rekamanAsesmen->unit_kompetensi_data = $unitData;
+        }
+
         return view('asesor.rekaman-asesmen.show', compact('rekamanAsesmen'));
     }
 
@@ -103,7 +127,40 @@ class RekamanAsesmenController extends Controller
      */
     public function edit($id)
     {
-        $rekamanAsesmen = RekamanAsesmenKompetensi::where('asesor_id', Auth::id())->findOrFail($id);
+        $rekamanAsesmen = RekamanAsesmenKompetensi::with(['pendaftaran.skemaSertifikasi'])
+            ->where('asesor_id', Auth::id())
+            ->findOrFail($id);
+        
+        // Prevent editing if already signed by mahasiswa
+        if ($rekamanAsesmen->mahasiswa_signature) {
+            return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
+                ->with('error', 'Rekaman asesmen tidak dapat diedit karena sudah ditandatangani oleh mahasiswa.');
+        }
+            
+        // Get unit kompetensi from database to get actual names
+        $unitKompetensiList = UnitKompetensiJudul::where('judul_sertifikasi', $rekamanAsesmen->pendaftaran->skemaSertifikasi->nama_skema)
+            ->get()
+            ->keyBy(function($unit) {
+                return $unit->judul_unit;
+            });
+
+        // Merge stored data with database data to ensure correct unit names
+        if ($rekamanAsesmen->unit_kompetensi_data) {
+            $unitData = collect($rekamanAsesmen->unit_kompetensi_data)->map(function($unit, $index) use ($unitKompetensiList) {
+                // If judul_unit is missing or incorrect, get from database by index
+                if (empty($unit['judul_unit']) || !$unitKompetensiList->has($unit['judul_unit'])) {
+                    $unitFromDb = $unitKompetensiList->values()->get($index);
+                    if ($unitFromDb) {
+                        $unit['judul_unit'] = $unitFromDb->judul_unit;
+                    } else {
+                        $unit['judul_unit'] = 'Unit ' . ($index + 1);
+                    }
+                }
+                return $unit;
+            })->toArray();
+            $rekamanAsesmen->unit_kompetensi_data = $unitData;
+        }
+
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
             ->whereNotNull('persetujuan_data')
@@ -120,6 +177,12 @@ class RekamanAsesmenController extends Controller
     public function update(Request $request, $id)
     {
         $rekamanAsesmen = RekamanAsesmenKompetensi::where('asesor_id', Auth::id())->findOrFail($id);
+        
+        // Prevent updating if already signed by mahasiswa
+        if ($rekamanAsesmen->mahasiswa_signature) {
+            return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
+                ->with('error', 'Rekaman asesmen tidak dapat diubah karena sudah ditandatangani oleh mahasiswa.');
+        }
 
         $request->validate([
             'pendaftaran_id' => 'required|exists:pendaftaran,id',

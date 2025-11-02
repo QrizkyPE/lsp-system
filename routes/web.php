@@ -163,6 +163,13 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/umpan-balik', [App\Http\Controllers\AsesorUmpanBalikController::class, 'index'])->name('umpan-balik.index');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\AsesorUmpanBalikController::class, 'show'])->name('umpan-balik.show');
     
+    // Soal Upload
+    Route::get('/soal-upload', [App\Http\Controllers\SoalUploadController::class, 'index'])->name('soal-upload.index');
+    Route::get('/soal-upload/create/{jadwalId}', [App\Http\Controllers\SoalUploadController::class, 'create'])->name('soal-upload.create');
+    Route::post('/soal-upload/{jadwalId}', [App\Http\Controllers\SoalUploadController::class, 'store'])->name('soal-upload.store');
+    Route::get('/soal-upload/{id}', [App\Http\Controllers\SoalUploadController::class, 'show'])->name('soal-upload.show');
+    Route::delete('/soal-upload/{id}', [App\Http\Controllers\SoalUploadController::class, 'destroy'])->name('soal-upload.destroy');
+    
         // Unit Kompetensi
         Route::get('/unit-kompetensi', [AsesorController::class, 'unitKompetensi'])->name('unit-kompetensi');
         Route::post('/unit-kompetensi', [AsesorController::class, 'storeUnitKompetensi']);
@@ -264,4 +271,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/umpan-balik/create', [App\Http\Controllers\UmpanBalikController::class, 'create'])->name('umpan-balik.create');
     Route::post('/umpan-balik', [App\Http\Controllers\UmpanBalikController::class, 'store'])->name('umpan-balik.store');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\UmpanBalikController::class, 'show'])->name('umpan-balik.show');
+    
+    // Soal
+    Route::get('/soal', [App\Http\Controllers\MahasiswaSoalController::class, 'index'])->name('soal.index');
+    Route::get('/soal/{id}', [App\Http\Controllers\MahasiswaSoalController::class, 'show'])->name('soal.show');
+    Route::post('/soal/{id}/upload', [App\Http\Controllers\MahasiswaSoalController::class, 'upload'])->name('soal.upload');
 });

@@ -150,6 +150,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.soal-upload*') ? 'active' : '' }}" href="{{ route('asesor.soal-upload.index') }}">
+                                    <i class="fas fa-file-upload me-2"></i>Upload Soal
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
                                     <i class="fas fa-list me-2"></i>Unit Kompetensi
                                 </a>
@@ -218,6 +223,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.umpan-balik*') ? 'active' : '' }}" href="{{ route('mahasiswa.umpan-balik.index') }}">
                                     <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.soal*') ? 'active' : '' }}" href="{{ route('mahasiswa.soal.index') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Soal
                                 </a>
                             </li>
                         @endif

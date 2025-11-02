@@ -15,10 +15,12 @@
                             <i class="fas fa-arrow-left me-1"></i>
                             Kembali
                         </a>
-                        <a href="{{ route('asesor.rekaman-asesmen.edit', $rekamanAsesmen->id) }}" class="btn btn-warning">
-                            <i class="fas fa-edit me-1"></i>
-                            Edit
-                        </a>
+                        @if(!$rekamanAsesmen->mahasiswa_signature)
+                            <a href="{{ route('asesor.rekaman-asesmen.edit', $rekamanAsesmen->id) }}" class="btn btn-warning">
+                                <i class="fas fa-edit me-1"></i>
+                                Edit
+                            </a>
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">

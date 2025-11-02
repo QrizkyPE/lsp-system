@@ -349,6 +349,18 @@ class AsesorController extends Controller
             ->latest()
             ->paginate(10);
 
+        // Check soal upload status for accepted penugasan
+        $penugasan->getCollection()->transform(function ($p) use ($asesor) {
+            if ($p->status === 'accepted' && $p->jadwalUji) {
+                $p->has_soal = \App\Models\SoalUpload::where('jadwal_uji_id', $p->jadwalUji->id)
+                    ->where('asesor_id', $asesor->id)
+                    ->exists();
+            } else {
+                $p->has_soal = null;
+            }
+            return $p;
+        });
+
         // Calculate summary statistics
         $totalPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->count();
         $pendingPenugasan = \App\Models\Penugasan::where('asesor_id', $asesor->id)->where('status', 'pending')->count();
