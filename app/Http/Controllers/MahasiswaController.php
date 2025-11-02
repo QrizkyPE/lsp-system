@@ -406,7 +406,7 @@ class MahasiswaController extends Controller
         session()->forget('pendaftaran_data');
 
         return redirect()->route('mahasiswa.pendaftaran')
-            ->with('success', 'Pendaftaran berhasil diajukan. Data permohonan sertifikasi akan dikirim ke Admin dan Asesmen Mandiri akan dikirim ke Asesor untuk verifikasi.');
+            ->with('success', 'Pendaftaran berhasil diajukan.');
     }
 
     public function storePendaftaranStep3(Request $request)

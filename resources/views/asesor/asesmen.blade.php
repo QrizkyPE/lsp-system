@@ -889,6 +889,8 @@
                     Silakan pilih bukti yang dikumpulkan dan berikan tanda tangan untuk memverifikasi asesmen mandiri ini.
                 </div>
                 
+                
+                
                 <!-- Bukti yang dikumpulkan -->
                 <div class="mb-4">
                     <h6><strong>Bukti yang dikumpulkan:</strong></h6>
@@ -947,7 +949,14 @@
                         </div>
                     </div>
                 </div>
-                
+                <!-- Persetujuan asesmen dan kerahasiaan -->
+                <div class="mb-4">
+                    <h6><strong>Persetujuan asesmen dan kerahasiaan</strong></h6>
+                    <div class="alert alert-primary">
+                        <strong>Asesor:</strong><br>
+                        Menyatakan tidak akan membuka hasil pekerjaan yang saya peroleh karena penugasan saya sebagai Asesor dalam pekerjaan Asesmen kepada siapapun atau organisasi apapun selain kepada pihak yang berwenang sehubungan dengan kewajiban saya sebagai Asesor yang ditugaskan oleh LSP.
+                    </div>
+                </div>
                 <div class="text-center">
                     <h6 class="mb-3">Tanda Tangan Asesor</h6>
                     <div id="signaturePreview{{ $p->id }}" class="signature-preview">
