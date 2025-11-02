@@ -186,7 +186,8 @@
                                         <tr>
                                             <td><strong>Tindak lanjut yang dibutuhkan:</strong></td>
                                             <td>
-                                                <textarea name="tindak_lanjut" class="form-control" rows="3" placeholder="Masukkan pekerjaan tambahan dan asesmen yang diperlukan untuk mencapai kompetensi" {{ $pendaftaran->count() == 0 ? 'disabled' : '' }}></textarea>
+                                                <textarea name="tindak_lanjut" id="tindak_lanjut" class="form-control" rows="3" placeholder="Masukkan pekerjaan tambahan dan asesmen yang diperlukan untuk mencapai kompetensi" {{ $pendaftaran->count() == 0 ? 'disabled' : '' }} disabled></textarea>
+                                                <small class="text-muted">Field ini diisi jika rekomendasi hasil asesmen Belum kompeten</small>
                                             </td>
                                         </tr>
                                         <tr>
@@ -319,6 +320,32 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    
+    // Handle rekomendasi hasil change to enable/disable tindak lanjut
+    const rekomendasiKompeten = document.getElementById('kompeten');
+    const rekomendasiBelumKompeten = document.getElementById('belum_kompeten');
+    const tindakLanjutTextarea = document.getElementById('tindak_lanjut');
+    
+    function toggleTindakLanjut() {
+        if (rekomendasiBelumKompeten.checked) {
+            tindakLanjutTextarea.disabled = false;
+            tindakLanjutTextarea.required = false; // Optional field
+        } else {
+            tindakLanjutTextarea.disabled = true;
+            // Clear value when changing to kompeten
+            if (rekomendasiKompeten && rekomendasiKompeten.checked) {
+                tindakLanjutTextarea.value = '';
+            }
+            tindakLanjutTextarea.required = false;
+        }
+    }
+    
+    if (rekomendasiKompeten) {
+        rekomendasiKompeten.addEventListener('change', toggleTindakLanjut);
+    }
+    if (rekomendasiBelumKompeten) {
+        rekomendasiBelumKompeten.addEventListener('change', toggleTindakLanjut);
+    }
     
     // Load signature from personalization
     loadSignatureFromPersonalization();
