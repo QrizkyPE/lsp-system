@@ -94,6 +94,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.persetujuan-asesmen*') ? 'active' : '' }}" href="{{ route('admin.persetujuan-asesmen') }}">
+                                    <i class="fas fa-clipboard-check me-2"></i>Persetujuan Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}" href="{{ route('admin.laporan') }}">
                                     <i class="fas fa-chart-bar me-2"></i>Laporan
                                 </a>
@@ -103,11 +108,7 @@
                                     <i class="fas fa-signature me-2"></i>Personalisasi
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.persetujuan-asesmen*') ? 'active' : '' }}" href="{{ route('admin.persetujuan-asesmen') }}">
-                                    <i class="fas fa-clipboard-check me-2"></i>Persetujuan Asesmen
-                                </a>
-                            </li>
+                            
                         @elseif(auth()->user()->role === 'asesor')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.dashboard') ? 'active' : '' }}" href="{{ route('asesor.dashboard') }}">
@@ -117,6 +118,21 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.penugasan') ? 'active' : '' }}" href="{{ route('asesor.penugasan') }}">
                                     <i class="fas fa-user-check me-2"></i>Penugasan
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
+                                    <i class="fas fa-list me-2"></i>Unit Kompetensi
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.elemen') ? 'active' : '' }}" href="{{ route('asesor.elemen') }}">
+                                    <i class="fas fa-tasks me-2"></i>Elemen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.kriteria-unjuk-kerja') ? 'active' : '' }}" href="{{ route('asesor.kriteria-unjuk-kerja') }}">
+                                    <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -140,6 +156,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.soal-upload*') ? 'active' : '' }}" href="{{ route('asesor.soal-upload.index') }}">
+                                    <i class="fas fa-file-upload me-2"></i>Upload Soal
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.rekaman-asesmen*') ? 'active' : '' }}" href="{{ route('asesor.rekaman-asesmen.index') }}">
                                     <i class="fas fa-file-alt me-2"></i>Rekaman Asesmen
                                 </a>
@@ -149,26 +170,8 @@
                                     <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('asesor.soal-upload*') ? 'active' : '' }}" href="{{ route('asesor.soal-upload.index') }}">
-                                    <i class="fas fa-file-upload me-2"></i>Upload Soal
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('asesor.unit-kompetensi') ? 'active' : '' }}" href="{{ route('asesor.unit-kompetensi') }}">
-                                    <i class="fas fa-list me-2"></i>Unit Kompetensi
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('asesor.elemen') ? 'active' : '' }}" href="{{ route('asesor.elemen') }}">
-                                    <i class="fas fa-tasks me-2"></i>Elemen
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('asesor.kriteria-unjuk-kerja') ? 'active' : '' }}" href="{{ route('asesor.kriteria-unjuk-kerja') }}">
-                                    <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
-                                </a>
-                            </li>
+                            
+                            
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.personalization') ? 'active' : '' }}" href="{{ route('asesor.personalization') }}">
                                     <i class="fas fa-signature me-2"></i>Personalisasi
@@ -195,16 +198,7 @@
                                     <i class="fas fa-calendar me-2"></i>Jadwal
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('mahasiswa.dokumen') ? 'active' : '' }}" href="{{ route('mahasiswa.dokumen') }}">
-                                    <i class="fas fa-file-alt me-2"></i>Dokumen
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('mahasiswa.hasil') ? 'active' : '' }}" href="{{ route('mahasiswa.hasil') }}">
-                                    <i class="fas fa-chart-line me-2"></i>Hasil
-                                </a>
-                            </li>
+                            
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.observasi-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.observasi-checklist') }}">
                                     <i class="fas fa-clipboard-list me-2"></i>Observasi Checklist
@@ -213,6 +207,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.penyesuaian-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.penyesuaian-checklist') }}">
                                     <i class="fas fa-adjust me-2"></i>Penyesuaian Checklist
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.soal*') ? 'active' : '' }}" href="{{ route('mahasiswa.soal.index') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Soal
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -225,9 +224,15 @@
                                     <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
                                 </a>
                             </li>
+                            
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('mahasiswa.soal*') ? 'active' : '' }}" href="{{ route('mahasiswa.soal.index') }}">
-                                    <i class="fas fa-file-alt me-2"></i>Soal
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.dokumen') ? 'active' : '' }}" href="{{ route('mahasiswa.dokumen') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Dokumen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('mahasiswa.hasil') ? 'active' : '' }}" href="{{ route('mahasiswa.hasil') }}">
+                                    <i class="fas fa-chart-line me-2"></i>Hasil
                                 </a>
                             </li>
                         @endif
