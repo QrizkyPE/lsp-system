@@ -95,7 +95,7 @@
 
                     <!-- Tanda Tangan -->
                     <div class="row mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <h6><strong>Tanda tangan Asesor:</strong></h6>
                             <div class="text-center p-3 border">
                                 @if(isset($asesmenData['signature_data']))
@@ -113,22 +113,6 @@
                                     </small>
                                 </div>
                             @endif
-                        </div>
-                        <div class="col-md-6">
-                            <h6><strong>Tanda tangan Admin:</strong></h6>
-                            <div class="signature-section">
-                                <canvas id="signatureCanvas" width="400" height="200" style="border: 1px solid #ddd; cursor: crosshair;"></canvas>
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearSignature()">
-                                        <i class="fas fa-eraser me-1"></i>Hapus
-                                    </button>
-                                </div>
-                                <input type="hidden" name="admin_signature" id="adminSignature">
-                            </div>
-                            <div class="mt-2">
-                                <label class="form-label">Tanggal:</label>
-                                <input type="date" class="form-control" name="tanggal_admin" id="tanggalAdmin" required>
-                            </div>
                         </div>
                     </div>
 
@@ -149,7 +133,7 @@
                                         <div class="mb-3">
                                             <label for="tanggal_asesmen" class="form-label"><strong>Hari/ Tanggal Asesmen</strong></label>
                                             <input type="date" class="form-control" id="tanggal_asesmen" name="tanggal_asesmen" 
-                                                   value="{{ $asesmenData['tanggal_asesmen'] ?? '' }}" required>
+                                                   value="{{ $asesmenData['tanggal_asesmen'] ?? date('Y-m-d') }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -176,8 +160,6 @@
                             </div>
                         </div>
                         
-                        <input type="hidden" name="admin_signature" id="adminSignatureHidden">
-                        <input type="hidden" name="tanggal_admin" id="tanggalAdminHidden">
                         <input type="hidden" name="tanggal_asesmen" id="tanggalAsesmenHidden">
                         <input type="hidden" name="waktu_asesmen" id="waktuAsesmenHidden">
                         <input type="hidden" name="tuk_asesmen" id="tukAsesmenHidden">
@@ -186,7 +168,7 @@
                             <a href="{{ route('admin.persetujuan-asesmen') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Kembali
                             </a>
-                            <button type="button" class="btn btn-success" onclick="loadSignatureAndConfirm()">
+                            <button type="button" class="btn btn-success" onclick="confirmPersetujuan()">
                                 <i class="fas fa-check me-2"></i>Konfirmasi Persetujuan
                             </button>
                         </div>
@@ -200,21 +182,6 @@
 
 @section('styles')
 <style>
-.signature-preview {
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-}
-
-#signatureCanvas {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-}
-
 /* Time input styling */
 input[type="time"] {
     -webkit-appearance: none;
@@ -266,118 +233,23 @@ input[type="time"]:not(:valid) {
 
 @section('scripts')
 <script>
-let canvas, ctx;
-let isDrawing = false;
-
-// Initialize signature canvas
+// Initialize time picker
 document.addEventListener('DOMContentLoaded', function() {
-    canvas = document.getElementById('signatureCanvas');
-    ctx = canvas.getContext('2d');
-    
-    // Set canvas background
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Set current date
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('tanggalAdmin').value = today;
-    
-    // Initialize time picker
     initializeTimePicker();
     
-    // Load signature from personalization
-    loadSignatureFromPersonalization();
-    
-    // Event listeners
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
-    
-    // Touch events for mobile
-    canvas.addEventListener('touchstart', handleTouch);
-    canvas.addEventListener('touchmove', handleTouch);
-    canvas.addEventListener('touchend', stopDrawing);
+    // Set default tanggal asesmen to today if not already set
+    const tanggalAsesmenInput = document.getElementById('tanggal_asesmen');
+    if (tanggalAsesmenInput && !tanggalAsesmenInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        tanggalAsesmenInput.value = today;
+    }
 });
-
-function startDrawing(e) {
-    isDrawing = true;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    updateSignatureData();
-}
-
-function draw(e) {
-    if (!isDrawing) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
-    
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    
-    updateSignatureData();
-}
-
-function stopDrawing() {
-    if (isDrawing) {
-        isDrawing = false;
-        ctx.beginPath();
-    }
-}
-
-function handleTouch(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
-                                     e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
-}
-
-function clearSignature() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    document.getElementById('adminSignature').value = '';
-    updateSubmitButton();
-}
-
-function updateSignatureData() {
-    const dataURL = canvas.toDataURL();
-    document.getElementById('adminSignature').value = dataURL;
-    updateSubmitButton();
-}
-
-function updateSubmitButton() {
-    const signature = document.getElementById('adminSignature').value;
-    const submitBtn = document.querySelector('button[onclick="loadSignatureAndConfirm()"]');
-    
-    if (signature) {
-        submitBtn.disabled = false;
-    } else {
-        submitBtn.disabled = true;
-    }
-}
 
 function initializeTimePicker() {
     const timeInput = document.getElementById('waktu_asesmen');
     
     // Check if browser supports time input
-    if (timeInput.type === 'time') {
+    if (timeInput && timeInput.type === 'time') {
         // Add click event to input group text for better UX
         const inputGroupText = timeInput.parentElement.querySelector('.input-group-text');
         if (inputGroupText) {
@@ -400,54 +272,11 @@ function initializeTimePicker() {
     }
 }
 
-function loadSignatureFromPersonalization() {
-    fetch('/admin/personalization/get-signature', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.signature) {
-            // Load signature into canvas
-            const img = new Image();
-            img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                updateSignatureData();
-            };
-            img.src = data.signature;
-        }
-    })
-    .catch(error => {
-        console.error('Error loading signature:', error);
-    });
-}
-
-function loadSignatureAndConfirm() {
-    // Get signature and date
-    const signature = document.getElementById('adminSignature').value;
-    const tanggal = document.getElementById('tanggalAdmin').value;
-    
+function confirmPersetujuan() {
     // Get asesmen data
     const tanggalAsesmen = document.getElementById('tanggal_asesmen').value;
     const waktuAsesmen = document.getElementById('waktu_asesmen').value;
     const tukAsesmen = document.getElementById('tuk_asesmen').value;
-    
-    if (!signature) {
-        alert('Silakan berikan tanda tangan terlebih dahulu!');
-        return;
-    }
-    
-    if (!tanggal) {
-        alert('Silakan isi tanggal terlebih dahulu!');
-        return;
-    }
     
     if (!tanggalAsesmen) {
         alert('Silakan isi tanggal asesmen terlebih dahulu!');
@@ -465,8 +294,6 @@ function loadSignatureAndConfirm() {
     }
     
     // Set hidden inputs
-    document.getElementById('adminSignatureHidden').value = signature;
-    document.getElementById('tanggalAdminHidden').value = tanggal;
     document.getElementById('tanggalAsesmenHidden').value = tanggalAsesmen;
     document.getElementById('waktuAsesmenHidden').value = waktuAsesmen;
     document.getElementById('tukAsesmenHidden').value = tukAsesmen;

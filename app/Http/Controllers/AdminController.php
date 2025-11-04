@@ -1165,8 +1165,6 @@ class AdminController extends Controller
     public function konfirmasiPersetujuanAsesmen(Request $request, $id)
     {
         $request->validate([
-            'admin_signature' => 'required|string',
-            'tanggal_admin' => 'required|date',
             'tanggal_asesmen' => 'required|date',
             'waktu_asesmen' => 'required|string',
             'tuk_asesmen' => 'required|string',
@@ -1186,8 +1184,6 @@ class AdminController extends Controller
         $asesmenData['tanggal_asesmen'] = $request->tanggal_asesmen;
         $asesmenData['waktu_asesmen'] = $request->waktu_asesmen;
         $asesmenData['tuk_asesmen'] = $request->tuk_asesmen;
-        $asesmenData['admin_signature'] = $request->admin_signature;
-        $asesmenData['tanggal_admin'] = $request->tanggal_admin;
         $asesmenData['confirmed_at'] = now();
         
         // Update pendaftaran

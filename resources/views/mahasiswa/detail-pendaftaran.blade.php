@@ -25,6 +25,9 @@
                                 <div class="col-md-3">
                                     <strong>Status:</strong>
                                     @switch($pendaftaran->status)
+                                        @case('draft')
+                                            <span class="badge bg-secondary">Draft</span>
+                                            @break
                                         @case('pending')
                                             <span class="badge bg-warning">Menunggu Persetujuan</span>
                                             @break
@@ -37,8 +40,14 @@
                                         @case('in_progress')
                                             <span class="badge bg-info">Sedang Berlangsung</span>
                                             @break
+                                        @case('persetujuan_submitted')
+                                            <span class="badge bg-info">Persetujuan Dikirim</span>
+                                            @break
+                                        @case('persetujuan_confirmed')
+                                            <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
+                                            @break
                                         @case('completed')
-                                            <span class="badge bg-success">Selesai</span>
+                                            <span class="badge bg-primary">Selesai</span>
                                             @break
                                         @default
                                             <span class="badge bg-secondary">{{ $pendaftaran->status }}</span>

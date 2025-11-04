@@ -20,7 +20,7 @@ class PendaftaranVerification extends Model
     ];
 
     protected $casts = [
-        'verification_date' => 'date',
+        'verification_date' => 'datetime',
     ];
 
     public function pendaftaran(): BelongsTo

@@ -165,8 +165,11 @@
                                         </td>
                                         <td>
                                             @switch($p->status)
+                                                @case('draft')
+                                                    <span class="badge bg-secondary">Draft</span>
+                                                    @break
                                                 @case('pending')
-                                                    <span class="badge bg-warning">Pending</span>
+                                                    <span class="badge bg-warning">Menunggu Verifikasi</span>
                                                     @break
                                                 @case('approved')
                                                     <span class="badge bg-success">Disetujui</span>
@@ -175,10 +178,16 @@
                                                     <span class="badge bg-danger">Ditolak</span>
                                                     @break
                                                 @case('in_progress')
-                                                    <span class="badge bg-primary">Sedang Berlangsung</span>
+                                                    <span class="badge bg-info">Sedang Berlangsung</span>
+                                                    @break
+                                                @case('persetujuan_submitted')
+                                                    <span class="badge bg-info">Persetujuan Dikirim</span>
+                                                    @break
+                                                @case('persetujuan_confirmed')
+                                                    <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
                                                     @break
                                                 @case('completed')
-                                                    <span class="badge bg-success">Selesai</span>
+                                                    <span class="badge bg-primary">Selesai</span>
                                                     @break
                                                 @case('failed')
                                                     <span class="badge bg-danger">Gagal</span>
