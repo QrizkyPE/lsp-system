@@ -57,6 +57,7 @@
                                 <th>Kode Unit</th>
                                 <th>Judul Unit</th>
                                 <th>Standar Kompetensi Kerja</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -69,13 +70,20 @@
                                 <td>{{ $unit->judul_unit }}</td>
                                 <td>{{ $unit->standar_kompetensi_kerja }}</td>
                                 <td>
+                                    @if($unit->status)
+                                        <span class="badge bg-success">Aktif</span>
+                                    @else
+                                        <span class="badge bg-secondary">Tidak Aktif</span>
+                                    @endif
+                                </td>
+                                <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editUnitJudul({{ $unit->id }}, '{{ $unit->judul_sertifikasi }}', '{{ $unit->kode_unit }}', '{{ $unit->judul_unit }}', '{{ $unit->standar_kompetensi_kerja }}')">
+                                                onclick="editUnitJudul({{ $unit->id }}, '{{ addslashes($unit->judul_sertifikasi) }}', '{{ addslashes($unit->kode_unit) }}', '{{ addslashes($unit->judul_unit) }}', '{{ addslashes($unit->standar_kompetensi_kerja) }}', {{ $unit->status ? 'true' : 'false' }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" 
-                                                onclick="deleteUnitJudul({{ $unit->id }}, '{{ $unit->judul_unit }}')">
+                                                onclick="deleteUnitJudul({{ $unit->id }}, '{{ addslashes($unit->judul_unit) }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -83,7 +91,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data unit kompetensi</td>
+                                <td colspan="7" class="text-center">Tidak ada data unit kompetensi</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -148,6 +156,19 @@
                         @error('standar_kompetensi_kerja')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select @error('status') is-invalid @enderror" 
+                                id="status" name="status">
+                            <option value="1" {{ old('status', '1') == '1' ? 'selected' : '' }}>Aktif</option>
+                            <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                        </select>
+                        @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">Unit Kompetensi yang tidak aktif tidak akan muncul di halaman pendaftaran mahasiswa</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -248,6 +269,15 @@
                         <label for="edit_standar_kompetensi_kerja" class="form-label">Standar Kompetensi Kerja <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="edit_standar_kompetensi_kerja" name="standar_kompetensi_kerja" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="edit_status" class="form-label">Status</label>
+                        <select class="form-select" id="edit_status" name="status">
+                            <option value="1">Aktif</option>
+                            <option value="0">Tidak Aktif</option>
+                        </select>
+                        <small class="form-text text-muted">Unit Kompetensi yang tidak aktif tidak akan muncul di halaman pendaftaran mahasiswa</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -272,12 +302,13 @@ function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
     new bootstrap.Modal(document.getElementById('editUnitModal')).show();
 }
 
-function editUnitJudul(id, judul, kode, nama, standar) {
+function editUnitJudul(id, judul, kode, nama, standar, status) {
     document.getElementById('editUnitJudulForm').action = '{{ url("admin/unit-kompetensi-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
     document.getElementById('edit_kode_unit_judul').value = kode;
     document.getElementById('edit_judul_unit_judul').value = nama;
     document.getElementById('edit_standar_kompetensi_kerja').value = standar;
+    document.getElementById('edit_status').value = status ? '1' : '0';
     
     new bootstrap.Modal(document.getElementById('editUnitJudulModal')).show();
 }

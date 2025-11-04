@@ -15,12 +15,14 @@ class UnitKompetensiJudul extends Model
         'judul_sertifikasi',
         'kode_unit',
         'judul_unit',
-        'standar_kompetensi_kerja'
+        'standar_kompetensi_kerja',
+        'status'
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'status' => 'boolean',
     ];
 
     // Relationships

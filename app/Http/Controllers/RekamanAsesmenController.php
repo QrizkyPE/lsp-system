@@ -250,6 +250,7 @@ class RekamanAsesmenController extends Controller
         $pendaftaran = Pendaftaran::with(['skemaSertifikasi'])->findOrFail($pendaftaranId);
         
         $unitKompetensi = UnitKompetensiJudul::where('judul_sertifikasi', $pendaftaran->skemaSertifikasi->nama_skema)
+            ->where('status', true)
             ->get();
 
         return response()->json($unitKompetensi);

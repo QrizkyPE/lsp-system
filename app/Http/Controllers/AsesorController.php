@@ -626,9 +626,13 @@ class AsesorController extends Controller
             'kode_unit' => 'required|string',
             'judul_unit' => 'required|string',
             'standar_kompetensi_kerja' => 'required|string',
+            'status' => 'nullable|boolean',
         ]);
 
-        UnitKompetensiJudul::create($request->all());
+        $data = $request->all();
+        $data['status'] = $request->has('status') ? (bool)$request->status : true;
+
+        UnitKompetensiJudul::create($data);
 
         return redirect()->route('asesor.unit-kompetensi')
             ->with('success', 'Unit kompetensi berhasil ditambahkan');
@@ -641,10 +645,13 @@ class AsesorController extends Controller
             'kode_unit' => 'required|string',
             'judul_unit' => 'required|string',
             'standar_kompetensi_kerja' => 'required|string',
+            'status' => 'nullable|boolean',
         ]);
 
         $unit = UnitKompetensiJudul::findOrFail($id);
-        $unit->update($request->all());
+        $data = $request->all();
+        $data['status'] = $request->has('status') ? (bool)$request->status : true;
+        $unit->update($data);
 
         return redirect()->route('asesor.unit-kompetensi')
             ->with('success', 'Unit kompetensi berhasil diupdate');
