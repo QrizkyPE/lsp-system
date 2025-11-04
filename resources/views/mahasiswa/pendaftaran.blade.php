@@ -78,6 +78,9 @@
                                                     </td>
                                                     <td>
                                                         @switch($p->status)
+                                                            @case('draft')
+                                                                <span class="badge bg-secondary">Draft</span>
+                                                                @break
                                                             @case('pending')
                                                                 <span class="badge bg-warning">Menunggu Verifikasi</span>
                                                                 @break
@@ -99,6 +102,14 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group" role="group">
+                                                            @if($p->status == 'draft')
+                                                                <a href="{{ route('mahasiswa.pendaftaran.continue', $p->id) }}" 
+                                                                   class="btn btn-sm btn-primary" 
+                                                                   data-bs-toggle="tooltip" 
+                                                                   title="Lanjutkan Pendaftaran">
+                                                                    <i class="fas fa-edit me-1"></i>Lanjutkan
+                                                                </a>
+                                                            @endif
                                                             <button type="button" class="btn btn-sm btn-outline-info" 
                                                                     data-bs-toggle="modal" 
                                                                     data-bs-target="#detailModal{{ $p->id }}">
@@ -200,6 +211,9 @@
                                             @break
                                         @case('rejected')
                                             <span class="badge bg-danger">Ditolak</span>
+                                            @break
+                                        @case('draft')
+                                            <span class="badge bg-secondary">Draft</span>
                                             @break
                                         @case('completed')
                                             <span class="badge bg-primary">Selesai</span>

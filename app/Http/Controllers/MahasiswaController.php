@@ -55,6 +55,75 @@ class MahasiswaController extends Controller
         return view('mahasiswa.pendaftaran', compact('pendaftaran', 'skemas', 'jadwals'));
     }
 
+    public function continuePendaftaran($id)
+    {
+        $user = Auth::user();
+        $pendaftaran = Pendaftaran::where('id', $id)
+            ->where('user_id', $user->id)
+            ->where('status', 'draft')
+            ->firstOrFail();
+
+        // Determine which step to continue based on saved data
+        // Step 1: Pengajuan (always exists)
+        // Step 2: Profil data
+        // Step 3: Sertifikasi data
+        // Step 4: Asesmen data
+        $step = 1;
+        if ($pendaftaran->profil_data) {
+            $step = 2;
+        }
+        if ($pendaftaran->sertifikasi_data) {
+            $step = 3;
+        }
+        if ($pendaftaran->asesmen_data) {
+            $step = 4;
+        }
+        
+        // If all data exists, user should be at step 4 to review and submit
+
+        // Build session data from database
+        $pendaftaranData = [
+            'pendaftaran_id' => $pendaftaran->id,
+            'pengajuan' => [
+                'skema_sertifikasi_id' => $pendaftaran->skema_sertifikasi_id,
+                'jadwal_uji_id' => $pendaftaran->jadwal_uji_id,
+            ],
+            'step' => $step,
+        ];
+
+        // Load profil data if exists
+        if ($pendaftaran->profil_data) {
+            $pendaftaranData['profil'] = $pendaftaran->profil_data;
+        }
+
+        // Load sertifikasi data if exists
+        if ($pendaftaran->sertifikasi_data) {
+            $pendaftaranData['sertifikasi'] = $pendaftaran->sertifikasi_data;
+        }
+
+        // Store in session
+        session(['pendaftaran_data' => $pendaftaranData]);
+
+        // Redirect to appropriate step
+        switch ($step) {
+            case 1:
+                return redirect()->route('mahasiswa.pendaftaran.step1')
+                    ->with('info', 'Silakan lanjutkan pendaftaran Anda');
+            case 2:
+                return redirect()->route('mahasiswa.pendaftaran.step2')
+                    ->with('info', 'Silakan lanjutkan pendaftaran Anda');
+            case 3:
+                return redirect()->route('mahasiswa.pendaftaran.step3')
+                    ->with('info', 'Silakan lanjutkan pendaftaran Anda');
+            case 4:
+                return redirect()->route('mahasiswa.pendaftaran.step4')
+                    ->with('info', 'Silakan lanjutkan pendaftaran Anda');
+            default:
+                return redirect()->route('mahasiswa.pendaftaran.step1')
+                    ->with('info', 'Silakan lanjutkan pendaftaran Anda');
+        }
+    }
+
     public function pendaftaranStep1()
     {
         $skemas = SkemaSertifikasi::where('status', true)->get();
@@ -63,7 +132,20 @@ class MahasiswaController extends Controller
             ->where('kuota_terisi', '<', DB::raw('kuota_maksimal'))
             ->get();
         
-        return view('mahasiswa.pendaftaran-step1', compact('skemas', 'jadwalUji'));
+        // Load existing data if continuing draft
+        $existingData = [];
+        $pendaftaranData = session('pendaftaran_data');
+        if ($pendaftaranData && isset($pendaftaranData['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($pendaftaranData['pendaftaran_id']);
+            if ($pendaftaran) {
+                $existingData = [
+                    'skema_sertifikasi_id' => $pendaftaran->skema_sertifikasi_id,
+                    'jadwal_uji_id' => $pendaftaran->jadwal_uji_id,
+                ];
+            }
+        }
+        
+        return view('mahasiswa.pendaftaran-step1', compact('skemas', 'jadwalUji', 'existingData'));
     }
 
     public function storePendaftaranStep1(Request $request)
@@ -145,21 +227,43 @@ class MahasiswaController extends Controller
 
     public function pendaftaranStep2()
     {
+        $pendaftaranData = session('pendaftaran_data');
+        
+        // If no session data, try to load from database if pendaftaran_id exists
+        if (!$pendaftaranData) {
+            // Check if there's a draft pendaftaran for this user
+            $user = Auth::user();
+            $draftPendaftaran = Pendaftaran::where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->latest()
+                ->first();
+            
+            if ($draftPendaftaran) {
+                return redirect()->route('mahasiswa.pendaftaran.continue', $draftPendaftaran->id);
+            }
+            
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+
         // Check if step 1 data exists in session
-        if (!session('pendaftaran_data') || session('pendaftaran_data.step') != 1) {
+        if (!isset($pendaftaranData['pengajuan']) || !isset($pendaftaranData['pengajuan']['skema_sertifikasi_id'])) {
             return redirect()->route('mahasiswa.pendaftaran.step1')
                 ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
 
         // Load existing data if available
-        $pendaftaranData = session('pendaftaran_data');
         $existingData = [];
         
         if (isset($pendaftaranData['pendaftaran_id'])) {
             $pendaftaran = Pendaftaran::find($pendaftaranData['pendaftaran_id']);
             if ($pendaftaran && $pendaftaran->profil_data) {
                 $existingData = $pendaftaran->profil_data;
+            } elseif (isset($pendaftaranData['profil'])) {
+                $existingData = $pendaftaranData['profil'];
             }
+        } elseif (isset($pendaftaranData['profil'])) {
+            $existingData = $pendaftaranData['profil'];
         }
 
         return view('mahasiswa.pendaftaran-step2', compact('existingData'));
@@ -222,15 +326,39 @@ class MahasiswaController extends Controller
 
     public function pendaftaranStep3()
     {
-        // ensure step 2 done
         $data = session('pendaftaran_data');
-        if (!$data || ($data['step'] ?? 0) < 2) {
+        
+        // If no session data, try to load from database if pendaftaran_id exists
+        if (!$data) {
+            $user = Auth::user();
+            $draftPendaftaran = Pendaftaran::where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->latest()
+                ->first();
+            
+            if ($draftPendaftaran) {
+                return redirect()->route('mahasiswa.pendaftaran.continue', $draftPendaftaran->id);
+            }
+            
+            return redirect()->route('mahasiswa.pendaftaran.step2')
+                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        // Ensure step 2 done (check if profil data exists)
+        if (!isset($data['profil']) && !isset($data['pendaftaran_id'])) {
             return redirect()->route('mahasiswa.pendaftaran.step2')
                 ->with('error', 'Silakan lengkapi step sebelumnya.');
         }
 
         // Get skema sertifikasi from step 1
         $skemaSertifikasiId = $data['pengajuan']['skema_sertifikasi_id'] ?? null;
+        if (!$skemaSertifikasiId && isset($data['pendaftaran_id'])) {
+            $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+            if ($pendaftaran) {
+                $skemaSertifikasiId = $pendaftaran->skema_sertifikasi_id;
+            }
+        }
+        
         if (!$skemaSertifikasiId) {
             return redirect()->route('mahasiswa.pendaftaran.step1')
                 ->with('error', 'Data pengajuan tidak lengkap. Silakan mulai dari awal.');
@@ -251,7 +379,11 @@ class MahasiswaController extends Controller
             $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
             if ($pendaftaran && $pendaftaran->sertifikasi_data) {
                 $existingData = $pendaftaran->sertifikasi_data;
+            } elseif (isset($data['sertifikasi'])) {
+                $existingData = $data['sertifikasi'];
             }
+        } elseif (isset($data['sertifikasi'])) {
+            $existingData = $data['sertifikasi'];
         }
 
         // Provide options to the view

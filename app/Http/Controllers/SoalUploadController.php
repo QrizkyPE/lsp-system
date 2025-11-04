@@ -19,11 +19,17 @@ class SoalUploadController extends Controller
         }
 
         // Get all jadwals where asesor is assigned (include assigned, accepted, and completed statuses)
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'jadwalUji.soalUploads'])
+        // AND penugasan has at least one pendaftaran assigned
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'jadwalUji.soalUploads', 'pendaftaran'])
             ->where('asesor_id', $asesor->id)
             ->whereIn('status', ['assigned', 'accepted', 'completed'])
             ->latest()
             ->get();
+
+        // Filter penugasan that has at least one pendaftaran assigned
+        $penugasan = $penugasan->filter(function ($p) {
+            return $p->pendaftaran && $p->pendaftaran->count() > 0;
+        });
 
         // Get unique jadwals (filter out null jadwals)
         $jadwals = $penugasan->map(function ($p) {

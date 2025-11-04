@@ -229,6 +229,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/dashboard', [MahasiswaController::class, 'dashboard'])->name('dashboard');
     Route::get('/pendaftaran', [MahasiswaController::class, 'pendaftaran'])->name('pendaftaran');
     
+    // Continue draft pendaftaran
+    Route::get('/pendaftaran/{id}/continue', [MahasiswaController::class, 'continuePendaftaran'])->name('pendaftaran.continue');
+    
     // Multi-step pendaftaran
     Route::get('/pendaftaran/step1', [MahasiswaController::class, 'pendaftaranStep1'])->name('pendaftaran.step1');
     Route::post('/pendaftaran/step1', [MahasiswaController::class, 'storePendaftaranStep1'])->name('pendaftaran.step1.store');

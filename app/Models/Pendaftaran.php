@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Pendaftaran extends Model
 {
@@ -57,6 +58,11 @@ class Pendaftaran extends Model
     public function verifications(): HasMany
     {
         return $this->hasMany(PendaftaranVerification::class);
+    }
+
+    public function penugasan(): BelongsToMany
+    {
+        return $this->belongsToMany(Penugasan::class, 'penugasan_pendaftaran');
     }
 
     // Accessor untuk memastikan asesmen_data di-decode dengan benar

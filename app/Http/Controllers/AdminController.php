@@ -762,10 +762,17 @@ class AdminController extends Controller
     // Penugasan
     public function penugasan()
     {
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])->latest()->paginate(10);
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user', 'pendaftaran.user'])->latest()->paginate(10);
         $jadwals = JadwalUji::with('skemaSertifikasi')->get();
         $asesor = Asesor::with('user')->where('status', true)->get();
-        return view('admin.penugasan', compact('penugasan', 'jadwals', 'asesor'));
+        
+        // Get approved pendaftaran (only those with status 'approved')
+        $mahasiswa = Pendaftaran::with('user')
+            ->where('status', 'approved')
+            ->orderBy('no_pendaftaran')
+            ->get();
+        
+        return view('admin.penugasan', compact('penugasan', 'jadwals', 'asesor', 'mahasiswa'));
     }
 
     public function storePenugasan(Request $request)
@@ -775,10 +782,17 @@ class AdminController extends Controller
             'asesor_id' => 'required|exists:asesor,id',
             'jenis_penugasan' => 'required|in:asesor,mapa,ma,mkva',
             'keterangan' => 'nullable|string',
+            'pendaftaran_id' => 'nullable|array',
+            'pendaftaran_id.*' => 'exists:pendaftaran,id',
         ]);
 
         $request->merge(['tanggal_penugasan' => now()]);
-        Penugasan::create($request->all());
+        $penugasan = Penugasan::create($request->except('pendaftaran_id'));
+
+        // Attach pendaftaran if provided
+        if ($request->has('pendaftaran_id') && is_array($request->pendaftaran_id)) {
+            $penugasan->pendaftaran()->attach($request->pendaftaran_id);
+        }
 
         return redirect()->route('admin.penugasan')
             ->with('success', 'Penugasan berhasil ditambahkan');
@@ -791,10 +805,19 @@ class AdminController extends Controller
             'asesor_id' => 'required|exists:asesor,id',
             'jenis_penugasan' => 'required|in:asesor,mapa,ma,mkva',
             'keterangan' => 'nullable|string',
+            'pendaftaran_id' => 'nullable|array',
+            'pendaftaran_id.*' => 'exists:pendaftaran,id',
         ]);
 
         $penugasan = Penugasan::findOrFail($id);
-        $penugasan->update($request->all());
+        $penugasan->update($request->except('pendaftaran_id'));
+
+        // Sync pendaftaran
+        if ($request->has('pendaftaran_id') && is_array($request->pendaftaran_id)) {
+            $penugasan->pendaftaran()->sync($request->pendaftaran_id);
+        } else {
+            $penugasan->pendaftaran()->detach();
+        }
 
         return redirect()->route('admin.penugasan')
             ->with('success', 'Penugasan berhasil diupdate');
@@ -830,7 +853,8 @@ class AdminController extends Controller
 
     public function getPenugasan($id)
     {
-        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])->findOrFail($id);
+        $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user', 'pendaftaran'])->findOrFail($id);
+        $penugasan->pendaftaran_ids = $penugasan->pendaftaran->pluck('id')->toArray();
         return response()->json($penugasan);
     }
 

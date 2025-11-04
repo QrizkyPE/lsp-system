@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Penugasan extends Model
 {
@@ -32,5 +33,10 @@ class Penugasan extends Model
     public function asesor(): BelongsTo
     {
         return $this->belongsTo(Asesor::class);
+    }
+
+    public function pendaftaran(): BelongsToMany
+    {
+        return $this->belongsToMany(Pendaftaran::class, 'penugasan_pendaftaran');
     }
 }

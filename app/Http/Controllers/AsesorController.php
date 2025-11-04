@@ -452,17 +452,57 @@ class AsesorController extends Controller
 
     public function asesmen()
     {
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
-            ->whereIn('status', ['approved', 'in_progress'])
-            ->whereNotNull('asesmen_data')
-            ->latest()
-            ->paginate(10);
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return redirect()->route('login')->with('error', 'Anda bukan asesor');
+        }
 
-        // Calculate summary statistics
-        $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress'])->whereNotNull('asesmen_data')->count();
-        $pendingAsesmen = Pendaftaran::where('status', 'approved')->whereNotNull('asesmen_data')->count();
-        $verifiedAsesmen = Pendaftaran::where('status', 'in_progress')->whereNotNull('asesmen_data')->count();
-        $rejectedAsesmen = Pendaftaran::where('status', 'rejected')->whereNotNull('asesmen_data')->count();
+        // Get pendaftaran IDs that are assigned to this asesor through penugasan
+        $assignedPendaftaranIds = \App\Models\Penugasan::where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->with('pendaftaran')
+            ->get()
+            ->pluck('pendaftaran')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        // If no pendaftaran assigned, return empty result
+        if (empty($assignedPendaftaranIds)) {
+            $pendaftaran = Pendaftaran::whereRaw('1 = 0')->paginate(10);
+            $totalAsesmen = 0;
+            $pendingAsesmen = 0;
+            $verifiedAsesmen = 0;
+            $rejectedAsesmen = 0;
+        } else {
+            // Filter pendaftaran based on assignment
+            $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji', 'verifications'])
+                ->whereIn('status', ['approved', 'in_progress'])
+                ->whereNotNull('asesmen_data')
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->latest()
+                ->paginate(10);
+
+            // Calculate summary statistics (only for assigned pendaftaran)
+            $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress'])
+                ->whereNotNull('asesmen_data')
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->count();
+            $pendingAsesmen = Pendaftaran::where('status', 'approved')
+                ->whereNotNull('asesmen_data')
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->count();
+            $verifiedAsesmen = Pendaftaran::where('status', 'in_progress')
+                ->whereNotNull('asesmen_data')
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->count();
+            $rejectedAsesmen = Pendaftaran::where('status', 'rejected')
+                ->whereNotNull('asesmen_data')
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->count();
+        }
         
 
         // Ambil data elemen dan kriteria untuk setiap pendaftaran

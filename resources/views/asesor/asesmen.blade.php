@@ -165,12 +165,30 @@
                                                         </small>
                                                     </td>
                                                     <td>
+                                                        @php
+                                                            // Check if asesor has verified this pendaftaran
+                                                            $isVerifiedByAsesor = $p->verifications()
+                                                                ->where('type', 'asesor_verification')
+                                                                ->where('status', 'verified')
+                                                                ->exists();
+                                                        @endphp
                                                         @switch($p->status)
                                                             @case('pending')
                                                                 <span class="badge bg-warning">Menunggu Verifikasi</span>
                                                                 @break
                                                             @case('approved')
-                                                                <span class="badge bg-success">Disetujui</span>
+                                                                @if($isVerifiedByAsesor)
+                                                                    <span class="badge bg-info">Terverifikasi Asesor</span>
+                                                                @else
+                                                                    <span class="badge bg-success">Disetujui</span>
+                                                                @endif
+                                                                @break
+                                                            @case('in_progress')
+                                                                @if($isVerifiedByAsesor)
+                                                                    <span class="badge bg-success">Terverifikasi</span>
+                                                                @else
+                                                                    <span class="badge bg-info">Dalam Proses</span>
+                                                                @endif
                                                                 @break
                                                             @case('rejected')
                                                                 <span class="badge bg-danger">Ditolak</span>

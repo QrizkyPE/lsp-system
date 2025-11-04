@@ -70,6 +70,7 @@
                                     <th>Asesor</th>
                                     <th>Jadwal Uji</th>
                                     <th>Skema Sertifikasi</th>
+                                    <th>Mahasiswa</th>
                                     <th>Jenis Penugasan</th>
                                     <th>Status</th>
                                     <th>Tanggal Penugasan</th>
@@ -105,6 +106,22 @@
                                             <span class="badge bg-info">
                                                 {{ $p->jadwalUji->skemaSertifikasi->nama_skema ?? '-' }}
                                             </span>
+                                        </td>
+                                        <td>
+                                            @if($p->pendaftaran && $p->pendaftaran->count() > 0)
+                                                <div class="d-flex flex-column gap-1">
+                                                    @foreach($p->pendaftaran->take(3) as $pendaftaran)
+                                                        <small class="badge bg-info">
+                                                            {{ $pendaftaran->no_pendaftaran }} - {{ $pendaftaran->user->nama_lengkap ?? $pendaftaran->user->name }}
+                                                        </small>
+                                                    @endforeach
+                                                    @if($p->pendaftaran->count() > 3)
+                                                        <small class="text-muted">+{{ $p->pendaftaran->count() - 3 }} lainnya</small>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
                                         </td>
                                         <td>
                                             @switch($p->jenis_penugasan)
@@ -160,7 +177,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4">
+                                        <td colspan="10" class="text-center py-4">
                                             <div class="text-muted">
                                                 <i class="fas fa-inbox fa-2x mb-2"></i>
                                                 <p>Tidak ada penugasan yang ditemukan</p>
@@ -244,6 +261,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih mahasiswa yang sudah disetujui admin)</small></label>
+                        <select class="form-select" name="pendaftaran_id[]" id="pendaftaran_id" multiple size="5">
+                            @foreach($mahasiswa as $m)
+                                <option value="{{ $m->id }}">
+                                    {{ $m->no_pendaftaran }} - {{ $m->user->nama_lengkap ?? $m->user->name }} ({{ $m->skemaSertifikasi->nama_skema ?? '-' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa mahasiswa</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -315,6 +343,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="edit_pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih mahasiswa yang sudah disetujui admin)</small></label>
+                        <select class="form-select" name="pendaftaran_id[]" id="edit_pendaftaran_id" multiple size="5">
+                            @foreach($mahasiswa as $m)
+                                <option value="{{ $m->id }}">
+                                    {{ $m->no_pendaftaran }} - {{ $m->user->nama_lengkap ?? $m->user->name }} ({{ $m->skemaSertifikasi->nama_skema ?? '-' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa mahasiswa</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -371,6 +410,21 @@ function editPenugasan(id) {
             document.getElementById('edit_asesor_id').value = data.asesor_id;
             document.getElementById('edit_jenis_penugasan').value = data.jenis_penugasan;
             document.getElementById('edit_keterangan').value = data.keterangan || '';
+            
+            // Clear and set selected pendaftaran
+            const pendaftaranSelect = document.getElementById('edit_pendaftaran_id');
+            Array.from(pendaftaranSelect.options).forEach(option => {
+                option.selected = false;
+            });
+            
+            if (data.pendaftaran_ids && Array.isArray(data.pendaftaran_ids)) {
+                data.pendaftaran_ids.forEach(pendaftaranId => {
+                    const option = pendaftaranSelect.querySelector(`option[value="${pendaftaranId}"]`);
+                    if (option) {
+                        option.selected = true;
+                    }
+                });
+            }
             
             document.getElementById('editPenugasanForm').action = `/admin/penugasan/${id}`;
             
