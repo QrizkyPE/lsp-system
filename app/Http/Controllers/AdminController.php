@@ -802,11 +802,30 @@ class AdminController extends Controller
 
     public function deletePenugasan($id)
     {
-        $penugasan = Penugasan::findOrFail($id);
-        $penugasan->delete();
+        try {
+            $penugasan = Penugasan::findOrFail($id);
+            $penugasan->delete();
 
-        return redirect()->route('admin.penugasan')
-            ->with('success', 'Penugasan berhasil dihapus');
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Penugasan berhasil dihapus'
+                ]);
+            }
+
+            return redirect()->route('admin.penugasan')
+                ->with('success', 'Penugasan berhasil dihapus');
+        } catch (\Exception $e) {
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus penugasan: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->route('admin.penugasan')
+                ->with('error', 'Gagal menghapus penugasan: ' . $e->getMessage());
+        }
     }
 
     public function getPenugasan($id)

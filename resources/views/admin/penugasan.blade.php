@@ -387,19 +387,36 @@ function deletePenugasan(id) {
         fetch(`/admin/penugasan/${id}`, {
             method: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
         })
         .then(response => {
+            // Check if response is OK (status 200-299)
             if (response.ok) {
+                return response.json().catch(() => {
+                    // If response is not JSON (redirect), still consider it successful
+                    return { success: true };
+                });
+            } else {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Gagal menghapus penugasan');
+                }).catch(() => {
+                    throw new Error('Gagal menghapus penugasan');
+                });
+            }
+        })
+        .then(data => {
+            if (data.success) {
                 location.reload();
             } else {
-                alert('Gagal menghapus penugasan');
+                alert(data.message || 'Gagal menghapus penugasan');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Gagal menghapus penugasan');
+            alert(error.message || 'Gagal menghapus penugasan');
         });
     }
 }
