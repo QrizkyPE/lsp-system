@@ -975,7 +975,11 @@ class AdminController extends Controller
     // Laporan
     public function laporan()
     {
-        return view('admin.laporan');
+        $rekamanAsesmen = \App\Models\RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.laporan', compact('rekamanAsesmen'));
     }
 
     // Manage Users
