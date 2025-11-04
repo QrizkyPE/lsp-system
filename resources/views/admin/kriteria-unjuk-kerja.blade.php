@@ -58,6 +58,9 @@
                                 <th>Kode Elemen</th>
                                 <th>Nomor Kriteria</th>
                                 <th>Deskripsi Kriteria</th>
+                                <th>Jenis Bukti</th>
+                                <th>Metode Asesmen</th>
+                                <th>Perangkat Asesmen</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -70,10 +73,13 @@
                                 <td>{{ $item->kode_elemen }}</td>
                                 <td>{{ $item->nomor_kriteria }}</td>
                                 <td>{{ $item->deskripsi_kriteria }}</td>
+                                <td>{{ $item->jenis_bukti ?? '-' }}</td>
+                                <td>{{ $item->metode_asesmen ?? '-' }}</td>
+                                <td>{{ $item->perangkat_asesmen ?? '-' }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editKriteriaJudul({{ $item->id }}, '{{ $item->judul_sertifikasi }}', '{{ $item->kode_unit }}', '{{ $item->kode_elemen }}', '{{ $item->nomor_kriteria }}', '{{ $item->deskripsi_kriteria }}', '{{ $item->jenis_bukti }}', '{{ $item->metode_asesmen }}', '{{ $item->perangkat_asesmen }}')">
+                                                onclick="editKriteriaJudul({{ $item->id }}, '{{ addslashes($item->judul_sertifikasi) }}', '{{ addslashes($item->kode_unit) }}', '{{ addslashes($item->kode_elemen) }}', '{{ addslashes($item->nomor_kriteria) }}', '{{ addslashes($item->deskripsi_kriteria) }}', '{{ addslashes($item->jenis_bukti ?? '') }}', '{{ addslashes($item->metode_asesmen ?? '') }}', '{{ addslashes($item->perangkat_asesmen ?? '') }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <form action="{{ route('admin.kriteria-judul') }}/{{ $item->id }}" method="POST" 
@@ -90,7 +96,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data kriteria unjuk kerja</td>
+                                <td colspan="10" class="text-center">Tidak ada data kriteria unjuk kerja</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -147,8 +153,14 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="kode_elemen" class="form-label">Kode Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('kode_elemen') is-invalid @enderror" 
-                                   id="kode_elemen" name="kode_elemen" value="{{ old('kode_elemen') }}" required>
+                            <div class="position-relative">
+                                <input type="text" class="form-control @error('kode_elemen') is-invalid @enderror" 
+                                       id="kode_elemen" name="kode_elemen" value="{{ old('kode_elemen') }}" 
+                                       placeholder="Ketik kode elemen..." required autocomplete="off">
+                                <div id="kode_elemen_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                     style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                                </div>
+                            </div>
                             @error('kode_elemen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -167,8 +179,13 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="jenis_bukti_judul" class="form-label">Jenis Bukti</label>
-                            <input type="text" class="form-control @error('jenis_bukti') is-invalid @enderror" 
-                                   id="jenis_bukti_judul" name="jenis_bukti" value="{{ old('jenis_bukti') }}">
+                            <select class="form-select @error('jenis_bukti') is-invalid @enderror" 
+                                    id="jenis_bukti_judul" name="jenis_bukti">
+                                <option value="">Pilih Jenis Bukti</option>
+                                <option value="L" {{ old('jenis_bukti') == 'L' ? 'selected' : '' }}>L (Langsung)</option>
+                                <option value="TL" {{ old('jenis_bukti') == 'TL' ? 'selected' : '' }}>TL (Tidak Langsung)</option>
+                                <option value="T" {{ old('jenis_bukti') == 'T' ? 'selected' : '' }}>T (Tambahan)</option>
+                            </select>
                             @error('jenis_bukti')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -187,8 +204,18 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="metode_asesmen_judul" class="form-label">Metode Asesmen</label>
-                            <input type="text" class="form-control @error('metode_asesmen') is-invalid @enderror" 
-                                   id="metode_asesmen_judul" name="metode_asesmen" value="{{ old('metode_asesmen') }}">
+                            <select class="form-select @error('metode_asesmen') is-invalid @enderror" 
+                                    id="metode_asesmen_judul" name="metode_asesmen">
+                                <option value="">Pilih Metode Asesmen</option>
+                                <option value="CL" {{ old('metode_asesmen') == 'CL' ? 'selected' : '' }}>CL (Daftar Periksa)</option>
+                                <option value="DIT" {{ old('metode_asesmen') == 'DIT' ? 'selected' : '' }}>DIT (Daftar Instruksi Terstruktur)</option>
+                                <option value="DPL" {{ old('metode_asesmen') == 'DPL' ? 'selected' : '' }}>DPL (Daftar Pertanyaan Lisan)</option>
+                                <option value="DPT" {{ old('metode_asesmen') == 'DPT' ? 'selected' : '' }}>DPT (Daftar Pertanyaan Tertulis)</option>
+                                <option value="PW" {{ old('metode_asesmen') == 'PW' ? 'selected' : '' }}>PW (Pertanyaan Wawancara)</option>
+                                <option value="VP" {{ old('metode_asesmen') == 'VP' ? 'selected' : '' }}>VP (Verifikasi Portofolio)</option>
+                                <option value="CUP" {{ old('metode_asesmen') == 'CUP' ? 'selected' : '' }}>CUP (Ceklis Ulasan Produk)</option>
+                                <option value="PMO" {{ old('metode_asesmen') == 'PMO' ? 'selected' : '' }}>PMO (Pertanyaan mendukung observasi)</option>
+                            </select>
                             @error('metode_asesmen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -196,8 +223,16 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="perangkat_asesmen_judul" class="form-label">Perangkat Asesmen</label>
-                            <input type="text" class="form-control @error('perangkat_asesmen') is-invalid @enderror" 
-                                   id="perangkat_asesmen_judul" name="perangkat_asesmen" value="{{ old('perangkat_asesmen') }}">
+                            <select class="form-select @error('perangkat_asesmen') is-invalid @enderror" 
+                                    id="perangkat_asesmen_judul" name="perangkat_asesmen">
+                                <option value="">Pilih Perangkat Asesmen</option>
+                                <option value="CL - Observasi langsung" {{ old('perangkat_asesmen') == 'CL - Observasi langsung' ? 'selected' : '' }}>CL - Observasi langsung</option>
+                                <option value="DIT - Kegiatan terstruktur" {{ old('perangkat_asesmen') == 'DIT - Kegiatan terstruktur' ? 'selected' : '' }}>DIT - Kegiatan terstruktur</option>
+                                <option value="DPL, DPT, PW - Tanya jawab" {{ old('perangkat_asesmen') == 'DPL, DPT, PW - Tanya jawab' ? 'selected' : '' }}>DPL, DPT, PW - Tanya jawab</option>
+                                <option value="VP - Verifikasi portofolio" {{ old('perangkat_asesmen') == 'VP - Verifikasi portofolio' ? 'selected' : '' }}>VP - Verifikasi portofolio</option>
+                                <option value="CUP - Review produk" {{ old('perangkat_asesmen') == 'CUP - Review produk' ? 'selected' : '' }}>CUP - Review produk</option>
+                                <option value="PMO - Lainnya" {{ old('perangkat_asesmen') == 'PMO - Lainnya' ? 'selected' : '' }}>PMO - Lainnya</option>
+                            </select>
                             @error('perangkat_asesmen')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -307,7 +342,13 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="edit_kode_elemen" class="form-label">Kode Elemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_kode_elemen" name="kode_elemen" required>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="edit_kode_elemen" name="kode_elemen" 
+                                       placeholder="Ketik kode elemen..." required autocomplete="off">
+                                <div id="edit_kode_elemen_suggestions" class="position-absolute w-100 bg-white border border-top-0 rounded-bottom shadow" 
+                                     style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -319,7 +360,12 @@
 
                         <div class="col-md-6 mb-3">
                             <label for="edit_jenis_bukti_judul" class="form-label">Jenis Bukti</label>
-                            <input type="text" class="form-control" id="edit_jenis_bukti_judul" name="jenis_bukti">
+                            <select class="form-select" id="edit_jenis_bukti_judul" name="jenis_bukti">
+                                <option value="">Pilih Jenis Bukti</option>
+                                <option value="L">L (Langsung)</option>
+                                <option value="TL">TL (Tidak Langsung)</option>
+                                <option value="T">T (Tambahan)</option>
+                            </select>
                         </div>
                     </div>
 
@@ -331,12 +377,30 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="edit_metode_asesmen_judul" class="form-label">Metode Asesmen</label>
-                            <input type="text" class="form-control" id="edit_metode_asesmen_judul" name="metode_asesmen">
+                            <select class="form-select" id="edit_metode_asesmen_judul" name="metode_asesmen">
+                                <option value="">Pilih Metode Asesmen</option>
+                                <option value="CL">CL (Daftar Periksa)</option>
+                                <option value="DIT">DIT (Daftar Instruksi Terstruktur)</option>
+                                <option value="DPL">DPL (Daftar Pertanyaan Lisan)</option>
+                                <option value="DPT">DPT (Daftar Pertanyaan Tertulis)</option>
+                                <option value="PW">PW (Pertanyaan Wawancara)</option>
+                                <option value="VP">VP (Verifikasi Portofolio)</option>
+                                <option value="CUP">CUP (Ceklis Ulasan Produk)</option>
+                                <option value="PMO">PMO (Pertanyaan mendukung observasi)</option>
+                            </select>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label for="edit_perangkat_asesmen_judul" class="form-label">Perangkat Asesmen</label>
-                            <input type="text" class="form-control" id="edit_perangkat_asesmen_judul" name="perangkat_asesmen">
+                            <select class="form-select" id="edit_perangkat_asesmen_judul" name="perangkat_asesmen">
+                                <option value="">Pilih Perangkat Asesmen</option>
+                                <option value="CL - Observasi langsung">CL - Observasi langsung</option>
+                                <option value="DIT - Kegiatan terstruktur">DIT - Kegiatan terstruktur</option>
+                                <option value="DPL, DPT, PW - Tanya jawab">DPL, DPT, PW - Tanya jawab</option>
+                                <option value="VP - Verifikasi portofolio">VP - Verifikasi portofolio</option>
+                                <option value="CUP - Review produk">CUP - Review produk</option>
+                                <option value="PMO - Lainnya">PMO - Lainnya</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -407,8 +471,8 @@ document.getElementById('searchKriteria').addEventListener('keyup', function() {
         const cells = row.getElementsByTagName('td');
         let found = false;
         
-        // Search in judul sertifikasi (index 1), kode unit (index 2), and deskripsi kriteria (index 5)
-        for (let j = 1; j <= 5; j++) {
+        // Search in all columns except No (index 0) and Actions (index 9)
+        for (let j = 1; j < cells.length - 1; j++) {
             if (cells[j] && cells[j].textContent.toLowerCase().includes(searchTerm)) {
                 found = true;
                 break;
@@ -468,8 +532,81 @@ function setupAutocomplete(inputId, suggestionsId) {
     });
 }
 
+// Autocomplete functionality for kode elemen
+const elemenData = @json($elemenJudul);
+
+function setupElemenAutocomplete(inputId, suggestionsId, kodeUnitInputId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    const kodeUnitInput = kodeUnitInputId ? document.getElementById(kodeUnitInputId) : null;
+    
+    if (!input || !suggestions) return;
+    
+    input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        const selectedKodeUnit = kodeUnitInput ? kodeUnitInput.value.trim() : '';
+        suggestions.innerHTML = '';
+        
+        if (value.length < 2) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        // Filter elemen based on search value and optionally by kode_unit
+        let filtered = elemenData.filter(elemen => 
+            elemen.kode_elemen.toLowerCase().includes(value) || 
+            (elemen.nama_elemen && elemen.nama_elemen.toLowerCase().includes(value))
+        );
+        
+        // If kode_unit is selected, filter by it
+        if (selectedKodeUnit) {
+            filtered = filtered.filter(elemen => elemen.kode_unit === selectedKodeUnit);
+        }
+        
+        if (filtered.length > 0) {
+            filtered.forEach(elemen => {
+                const div = document.createElement('div');
+                div.className = 'p-2 border-bottom cursor-pointer';
+                div.style.cursor = 'pointer';
+                const displayText = elemen.nama_elemen 
+                    ? `<strong>${elemen.kode_elemen}</strong> - ${elemen.nama_elemen}` 
+                    : `<strong>${elemen.kode_elemen}</strong>`;
+                div.innerHTML = displayText;
+                div.addEventListener('click', function() {
+                    input.value = elemen.kode_elemen;
+                    suggestions.style.display = 'none';
+                });
+                suggestions.appendChild(div);
+            });
+            suggestions.style.display = 'block';
+        } else {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    // Update suggestions when kode_unit changes
+    if (kodeUnitInput) {
+        kodeUnitInput.addEventListener('input', function() {
+            if (input.value.length >= 2) {
+                input.dispatchEvent(new Event('input'));
+            }
+        });
+    }
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
 // Setup autocomplete for both create and edit modals
 setupAutocomplete('kode_unit', 'kode_unit_suggestions');
 setupAutocomplete('edit_kode_unit', 'edit_kode_unit_suggestions');
+
+// Setup elemen autocomplete for both create and edit modals
+setupElemenAutocomplete('kode_elemen', 'kode_elemen_suggestions', 'kode_unit');
+setupElemenAutocomplete('edit_kode_elemen', 'edit_kode_elemen_suggestions', 'edit_kode_unit');
 </script>
 @endsection

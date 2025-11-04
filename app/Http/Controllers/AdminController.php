@@ -332,7 +332,10 @@ class AdminController extends Controller
         // Data unit kompetensi per judul untuk dropdown kode unit
         $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
         
-        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul', 'filterJudul'));
+        // Data elemen per judul untuk autocomplete kode elemen
+        $elemenJudul = ElemenJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->get();
+        
+        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul', 'elemenJudul', 'filterJudul'));
     }
 
     public function storeKriteriaUnjukKerja(Request $request)
