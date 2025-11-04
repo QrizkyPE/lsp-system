@@ -15,7 +15,7 @@
                     @if($availableRekaman->count() > 0)
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            Pilih rekaman asesmen yang ingin Anda ajukan banding.
+                            Pilih rekaman asesmen yang ingin Anda ajukan banding. Hanya rekaman asesmen dengan rekomendasi hasil <strong>"Belum Kompeten"</strong> yang dapat diajukan banding.
                         </div>
 
                         <div class="table-responsive">
@@ -69,7 +69,8 @@
                             <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Tidak ada rekaman asesmen yang tersedia</h5>
                             <p class="text-muted">
-                                Semua rekaman asesmen Anda sudah memiliki banding yang diajukan, atau belum ada rekaman asesmen.
+                                Tidak ada rekaman asesmen dengan rekomendasi hasil <strong>"Belum Kompeten"</strong> yang tersedia untuk diajukan banding. 
+                                <br>Semua rekaman asesmen Anda sudah memiliki banding yang diajukan, atau rekaman asesmen Anda memiliki rekomendasi hasil "Kompeten".
                             </p>
                             <a href="{{ route('mahasiswa.rekaman-asesmen') }}" class="btn btn-primary mt-3">
                                 <i class="fas fa-arrow-left me-1"></i>Kembali ke Rekaman Asesmen

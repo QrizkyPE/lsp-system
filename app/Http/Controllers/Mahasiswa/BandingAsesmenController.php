@@ -30,11 +30,12 @@ class BandingAsesmenController extends Controller
     {
         $user = Auth::user();
 
-        // Get all rekaman asesmen for this user
+        // Get all rekaman asesmen for this user with rekomendasi "belum_kompeten" only
         $rekamanAsesmen = RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.skemaSertifikasi'])
             ->whereHas('pendaftaran', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+            ->where('rekomendasi_hasil', 'belum_kompeten')
             ->latest()
             ->get();
 
@@ -62,6 +63,7 @@ class BandingAsesmenController extends Controller
             ->whereHas('pendaftaran', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+            ->where('rekomendasi_hasil', 'belum_kompeten')
             ->findOrFail($rekamanAsesmenId);
 
         // Check if banding already exists for this rekaman asesmen
@@ -88,6 +90,7 @@ class BandingAsesmenController extends Controller
             ->whereHas('pendaftaran', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+            ->where('rekomendasi_hasil', 'belum_kompeten')
             ->findOrFail($rekamanAsesmenId);
 
         // Check if banding already exists
