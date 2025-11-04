@@ -861,7 +861,7 @@ class AdminController extends Controller
     // Pendaftaran
     public function pendaftaran()
     {
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji'])
+        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji', 'verifications'])
             ->latest()
             ->paginate(10);
 
