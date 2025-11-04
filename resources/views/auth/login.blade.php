@@ -59,7 +59,7 @@
                 <div class="login-card">
                     <div class="login-header">
                         <i class="fas fa-graduation-cap fa-3x mb-3"></i>
-                        <h3>LSP System</h3>
+                        <h3>LSP P1 UMDP</h3>
                         <p class="mb-0">Lembaga Sertifikasi Profesi</p>
                     </div>
                     <div class="login-body">

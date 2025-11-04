@@ -120,7 +120,7 @@
                              <div class="row">
                                  <div class="col-md-6 mb-3">
                                      <label for="nim" class="form-label">
-                                         <i class="fas fa-id-card me-2"></i>NIM <span class="text-danger">*</span>
+                                         <i class="fas fa-id-card me-2"></i>NPM <span class="text-danger">*</span>
                                      </label>
                                      <input type="text" class="form-control @error('nim') is-invalid @enderror" 
                                             id="nim" name="nim" value="{{ old('nim') }}" required>
@@ -133,8 +133,16 @@
                                      <label for="program_studi" class="form-label">
                                          <i class="fas fa-graduation-cap me-2"></i>Program Studi <span class="text-danger">*</span>
                                      </label>
-                                     <input type="text" class="form-control @error('program_studi') is-invalid @enderror" 
-                                            id="program_studi" name="program_studi" value="{{ old('program_studi') }}" required>
+                                     <select class="form-select @error('program_studi') is-invalid @enderror" 
+                                            id="program_studi" name="program_studi" required>
+                                         <option value="">Pilih Program Studi</option>
+                                         <option value="Informatika" {{ old('program_studi') == 'Informatika' ? 'selected' : '' }}>Informatika</option>
+                                         <option value="Sistem Informasi" {{ old('program_studi') == 'Sistem Informasi' ? 'selected' : '' }}>Sistem Informasi</option>
+                                         <option value="Teknik Elektro" {{ old('program_studi') == 'Teknik Elektro' ? 'selected' : '' }}>Teknik Elektro</option>
+                                         <option value="Akuntansi" {{ old('program_studi') == 'Akuntansi' ? 'selected' : '' }}>Akuntansi</option>
+                                         <option value="Manajemen" {{ old('program_studi') == 'Manajemen' ? 'selected' : '' }}>Manajemen</option>
+                                         <option value="Manajemen Informatika" {{ old('program_studi') == 'Manajemen Informatika' ? 'selected' : '' }}>Manajemen Informatika</option>
+                                     </select>
                                      @error('program_studi')
                                          <div class="invalid-feedback">{{ $message }}</div>
                                      @enderror
@@ -147,10 +155,11 @@
                                         <i class="fas fa-university me-2"></i>Fakultas <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control @error('fakultas') is-invalid @enderror" 
-                                           id="fakultas" name="fakultas" value="{{ old('fakultas') }}" required>
+                                           id="fakultas" name="fakultas" value="{{ old('fakultas') }}" readonly required>
                                     @error('fakultas')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <small class="text-muted">Fakultas akan terisi otomatis berdasarkan program studi yang dipilih</small>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
@@ -195,5 +204,40 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const programStudiSelect = document.getElementById('program_studi');
+            const fakultasInput = document.getElementById('fakultas');
+
+            // Mapping program studi ke fakultas
+            const programStudiToFakultas = {
+                'Informatika': 'Fakultas Ilmu Komputer dan Rekayasa',
+                'Sistem Informasi': 'Fakultas Ilmu Komputer dan Rekayasa',
+                'Teknik Elektro': 'Fakultas Ilmu Komputer dan Rekayasa',
+                'Akuntansi': 'Fakultas Ekonomi dan Bisnis',
+                'Manajemen': 'Fakultas Ekonomi dan Bisnis',
+                'Manajemen Informatika': 'Fakultas Ekonomi dan Bisnis'
+            };
+
+            // Event listener untuk perubahan program studi
+            programStudiSelect.addEventListener('change', function() {
+                const selectedProgramStudi = this.value;
+                
+                if (selectedProgramStudi && programStudiToFakultas[selectedProgramStudi]) {
+                    fakultasInput.value = programStudiToFakultas[selectedProgramStudi];
+                } else {
+                    fakultasInput.value = '';
+                }
+            });
+
+            // Set fakultas saat halaman dimuat jika ada old value
+            @if(old('program_studi'))
+                const oldProgramStudi = '{{ old('program_studi') }}';
+                if (oldProgramStudi && programStudiToFakultas[oldProgramStudi]) {
+                    fakultasInput.value = programStudiToFakultas[oldProgramStudi];
+                }
+            @endif
+        });
+    </script>
 </body>
 </html>
