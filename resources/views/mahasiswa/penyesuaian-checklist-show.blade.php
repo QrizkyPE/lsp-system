@@ -394,7 +394,7 @@
                                             
                                             <div class="row">
                                                 <div class="col-md-6">
-                                                    <label class="form-label"><strong>Canvas Tanda Tangan</strong></label>
+                                                    {{-- <label class="form-label"><strong>Canvas Tanda Tangan</strong></label> --}}
                                                     <div class="text-center">
                                                         <canvas id="mahasiswaSignature" width="400" height="200" style="border: 1px solid #ddd; border-radius: 4px; background: white; cursor: crosshair;"></canvas>
                                                         <div class="mt-2">

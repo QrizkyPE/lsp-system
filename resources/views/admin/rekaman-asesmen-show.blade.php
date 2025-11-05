@@ -11,16 +11,10 @@
                         Detail Rekaman Asesmen Kompetensi
                     </h3>
                     <div class="card-tools">
-                        <a href="{{ route('asesor.rekaman-asesmen.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.laporan') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i>
-                            Kembali
+                            Kembali ke Laporan
                         </a>
-                        @if(!$rekamanAsesmen->mahasiswa_signature || $rekamanAsesmen->rekomendasi_hasil == 'belum_kompeten')
-                            <a href="{{ route('asesor.rekaman-asesmen.edit', $rekamanAsesmen->id) }}" class="btn btn-warning">
-                                <i class="fas fa-edit me-1"></i>
-                                Edit
-                            </a>
-                        @endif
                     </div>
                 </div>
                 <div class="card-body">
@@ -38,7 +32,7 @@
                             <div class="table-responsive">
                                 <table class="table table-bordered">
                                     <tr>
-                                        <td width="20%"><strong>Skema Sertifikasi (<s>KKNI</s>/Okupasi/<s>Klaster</s>):</strong></td></td>
+                                        <td width="20%"><strong>Skema Sertifikasi (<s>KKNI</s>/Okupasi/<s>Klaster</s>):</strong></td>
                                         <td>{{ $rekamanAsesmen->judul }}</td>
                                     </tr>
                                     <tr>
@@ -52,17 +46,19 @@
                                     <tr>
                                         <td><strong>TUK:</strong></td>
                                         <td>
-                                            @switch($rekamanAsesmen->tuk)
-                                                @case('sewaktu')
+                                            @if($rekamanAsesmen->tuk)
+                                                @if($rekamanAsesmen->tuk == 'sewaktu')
                                                     Sewaktu
-                                                    @break
-                                                @case('tempat_kerja')
+                                                @elseif($rekamanAsesmen->tuk == 'tempat_kerja')
                                                     Tempat Kerja
-                                                    @break
-                                                @case('mandiri')
+                                                @elseif($rekamanAsesmen->tuk == 'mandiri')
                                                     Mandiri
-                                                    @break
-                                            @endswitch
+                                                @else
+                                                    {{ ucfirst($rekamanAsesmen->tuk) }}
+                                                @endif
+                                            @else
+                                                -
+                                            @endif
                                         </td>
                                     </tr>
                                     <tr>
@@ -76,8 +72,8 @@
                                     <tr>
                                         <td><strong>Tanggal Asesmen:</strong></td>
                                         <td>
-                                            <strong>Mulai:</strong> {{ $rekamanAsesmen->tanggal_mulai->format('d F Y') }} {{ $rekamanAsesmen->waktu_mulai }}<br>
-                                            <strong>Selesai:</strong> {{ $rekamanAsesmen->tanggal_selesai->format('d F Y') }} {{ $rekamanAsesmen->waktu_selesai }}
+                                            <strong>Mulai:</strong> {{ $rekamanAsesmen->tanggal_mulai ? \Carbon\Carbon::parse($rekamanAsesmen->tanggal_mulai)->format('d F Y') : '-' }} {{ $rekamanAsesmen->waktu_mulai ?? '' }}<br>
+                                            <strong>Selesai:</strong> {{ $rekamanAsesmen->tanggal_selesai ? \Carbon\Carbon::parse($rekamanAsesmen->tanggal_selesai)->format('d F Y') : '-' }} {{ $rekamanAsesmen->waktu_selesai ?? '' }}
                                         </td>
                                     </tr>
                                 </table>
@@ -241,7 +237,7 @@
                                             <td>
                                                 <div class="text-center">
                                                     @if($rekamanAsesmen->tanggal_mahasiswa)
-                                                        <p class="mb-0">{{ $rekamanAsesmen->tanggal_mahasiswa->format('d F Y') }}</p>
+                                                        <p class="mb-0">{{ \Carbon\Carbon::parse($rekamanAsesmen->tanggal_mahasiswa)->format('d F Y') }}</p>
                                                     @else
                                                         <p class="mb-0 text-muted">-</p>
                                                     @endif
@@ -268,7 +264,7 @@
                                             <td>
                                                 <div class="text-center">
                                                     @if($rekamanAsesmen->tanggal_asesor)
-                                                        <p class="mb-0">{{ $rekamanAsesmen->tanggal_asesor->format('d F Y') }}</p>
+                                                        <p class="mb-0">{{ \Carbon\Carbon::parse($rekamanAsesmen->tanggal_asesor)->format('d F Y') }}</p>
                                                     @else
                                                         <p class="mb-0 text-muted">-</p>
                                                     @endif
@@ -315,3 +311,4 @@
     </div>
 </div>
 @endsection
+

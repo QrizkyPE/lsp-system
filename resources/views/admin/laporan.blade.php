@@ -203,7 +203,7 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group" role="group">
-                                                            <a href="{{ route('asesor.rekaman-asesmen.show', $rekaman->id) }}" class="btn btn-sm btn-outline-info" target="_blank" title="Lihat Detail">
+                                                            <a href="{{ route('admin.laporan.rekaman-asesmen.show', $rekaman->id) }}" class="btn btn-sm btn-outline-info" target="_blank" title="Lihat Detail">
                                                                 <i class="fas fa-eye"></i> Detail
                                                             </a>
                                                         </div>

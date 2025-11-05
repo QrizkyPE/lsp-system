@@ -135,8 +135,8 @@ class RekamanAsesmenController extends Controller
             ->where('asesor_id', Auth::id())
             ->findOrFail($id);
         
-        // Prevent editing if already signed by mahasiswa
-        if ($rekamanAsesmen->mahasiswa_signature) {
+        // Allow editing if status is "belum_kompeten", otherwise prevent editing if already signed by mahasiswa
+        if ($rekamanAsesmen->mahasiswa_signature && $rekamanAsesmen->rekomendasi_hasil !== 'belum_kompeten') {
             return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
                 ->with('error', 'Rekaman asesmen tidak dapat diedit karena sudah ditandatangani oleh mahasiswa.');
         }
@@ -182,8 +182,8 @@ class RekamanAsesmenController extends Controller
     {
         $rekamanAsesmen = RekamanAsesmenKompetensi::where('asesor_id', Auth::id())->findOrFail($id);
         
-        // Prevent updating if already signed by mahasiswa
-        if ($rekamanAsesmen->mahasiswa_signature) {
+        // Allow editing if status is "belum_kompeten", otherwise prevent updating if already signed by mahasiswa
+        if ($rekamanAsesmen->mahasiswa_signature && $rekamanAsesmen->rekomendasi_hasil !== 'belum_kompeten') {
             return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
                 ->with('error', 'Rekaman asesmen tidak dapat diubah karena sudah ditandatangani oleh mahasiswa.');
         }
