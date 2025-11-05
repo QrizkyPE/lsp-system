@@ -9,7 +9,14 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header">
-                    <h4 class="mb-0">Daftar Persetujuan Asesmen</h4>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Daftar Persetujuan Asesmen</h4>
+                        @if(isset($pendingPersetujuanCount) && $pendingPersetujuanCount > 0)
+                            <span class="badge bg-danger fs-6">
+                                <i class="fas fa-clock me-1"></i>{{ $pendingPersetujuanCount }} Menunggu Persetujuan
+                            </span>
+                        @endif
+                    </div>
                 </div>
                 <div class="card-body">
                     @if($pendaftaran->count() > 0)

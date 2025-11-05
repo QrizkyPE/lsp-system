@@ -45,6 +45,26 @@
                     </h4>
                 </div>
                 <div class="card-body">
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <div class="alert alert-info">
                         <p class="mb-0">
                             Pilih Tujuan Asesmen yang anda ajukan berikut Daftar Unit Kompetensi sesuai kemasan pada skema sertifikasi untuk mendapatkan pengakuan sesuai dengan latar belakang pendidikan, pelatihan serta pengalaman kerja yang anda miliki.
@@ -219,7 +239,7 @@
                             <a href="{{ route('mahasiswa.pendaftaran.step2') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Kembali
                             </a>
-                            <button type="submit" class="btn btn-success" onclick="saveSignatureData()">
+                            <button type="submit" class="btn btn-success" id="submitBtn">
                                 Lanjut ke Asesmen Mandiri <i class="fas fa-arrow-right ms-2"></i>
                             </button>
                         </div>
@@ -545,6 +565,7 @@ function saveSignatureData() {
     document.getElementById('sertifikasiForm').appendChild(hiddenInput);
   }
   hiddenInput.value = signatureData;
+  return true; // Allow form submission
 }
 
 function updateNomorSkema(judul) {
@@ -561,6 +582,8 @@ function updateNomorSkema(judul) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const judul = document.getElementById('judul');
+  const form = document.getElementById('sertifikasiForm');
+  const submitBtn = document.getElementById('submitBtn');
 
   // Initialize signature canvas and set current date
   initSignatureCanvas();
@@ -568,11 +591,33 @@ document.addEventListener('DOMContentLoaded', () => {
   setPemohonName();
 
   // Render units, bukti, and nomor skema since judul is already selected
-  if (judul.value){
+  if (judul && judul.value){
     renderUnits(judul.value);
     renderBukti(judul.value);
     renderBuktiAdmin(judul.value);
     updateNomorSkema(judul.value);
+  }
+
+  // Handle form submission
+  if (form && submitBtn) {
+    form.addEventListener('submit', function(e) {
+      // Save signature before submitting
+      saveSignatureData();
+      
+      // Validate tujuan_asesmen
+      const tujuanAsesmen = document.getElementById('tujuan_asesmen');
+      if (!tujuanAsesmen || !tujuanAsesmen.value) {
+        e.preventDefault();
+        alert('Silakan pilih Tujuan Asesmen terlebih dahulu.');
+        if (tujuanAsesmen) {
+          tujuanAsesmen.focus();
+        }
+        return false;
+      }
+      
+      // Allow form to submit normally
+      return true;
+    });
   }
 });
 </script>

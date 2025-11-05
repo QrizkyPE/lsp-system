@@ -46,6 +46,46 @@
                                 </div>
                             @endif
 
+                            @php
+                                // Check if there are completed pendaftaran that need persetujuan
+                                $needsPersetujuan = false;
+                                foreach ($pendaftaran as $p) {
+                                    if ($p->status == 'completed') {
+                                        $hasPersetujuan = $p->persetujuan_data;
+                                        $isVerifiedByAsesor = $p->verifications()
+                                            ->where('type', 'asesor_verification')
+                                            ->where('status', 'verified')
+                                            ->exists();
+                                        
+                                        $hasCompleteAsesorData = false;
+                                        if ($p->asesmen_data) {
+                                            $asesmenData = is_string($p->asesmen_data) ? 
+                                                json_decode($p->asesmen_data, true) : 
+                                                $p->asesmen_data;
+                                            
+                                            if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+                                                isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+                                                $hasCompleteAsesorData = true;
+                                            }
+                                        }
+                                        
+                                        if ($isVerifiedByAsesor && $hasCompleteAsesorData && !$hasPersetujuan) {
+                                            $needsPersetujuan = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            @endphp
+
+                            @if($needsPersetujuan)
+                                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Perhatian!</strong> Anda memiliki pendaftaran yang perlu ditandatangani Persetujuan Asesmen. 
+                                    Silakan klik tombol <strong>"Tandatangani"</strong> pada pendaftaran yang bersangkutan.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+
                             @if($pendaftaran->count() > 0)
                                 <div class="table-responsive">
                                     <table class="table table-hover">
@@ -105,6 +145,37 @@
                                                             @default
                                                                 <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
                                                         @endswitch
+                                                        @if($p->status == 'completed')
+                                                            @php
+                                                                $hasPersetujuan = $p->persetujuan_data;
+                                                                $isVerifiedByAsesor = $p->verifications()
+                                                                    ->where('type', 'asesor_verification')
+                                                                    ->where('status', 'verified')
+                                                                    ->exists();
+                                                                
+                                                                // Check if asesor has filled complete asesmen data
+                                                                $hasCompleteAsesorData = false;
+                                                                if ($p->asesmen_data) {
+                                                                    $asesmenData = is_string($p->asesmen_data) ? 
+                                                                        json_decode($p->asesmen_data, true) : 
+                                                                        $p->asesmen_data;
+                                                                    
+                                                                    if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+                                                                        isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+                                                                        $hasCompleteAsesorData = true;
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            @if($isVerifiedByAsesor && $hasCompleteAsesorData && !$hasPersetujuan)
+                                                                <br><small class="text-danger d-block mt-1">
+                                                                    <i class="fas fa-exclamation-circle"></i> Perlu Tanda Tangan Persetujuan
+                                                                </small>
+                                                            @elseif($hasPersetujuan)
+                                                                <br><small class="text-success d-block mt-1">
+                                                                    <i class="fas fa-check-circle"></i> Persetujuan Tersimpan
+                                                                </small>
+                                                            @endif
+                                                        @endif
                                                     </td>
                                                     <td>
                                                         {{ $p->tanggal_pendaftaran ? \Carbon\Carbon::parse($p->tanggal_pendaftaran)->format('d/m/Y H:i') : '-' }}
@@ -148,13 +219,17 @@
                                                                 <a href="{{ route('mahasiswa.persetujuan', $p->id) }}" 
                                                                    class="btn btn-sm btn-success" 
                                                                    data-bs-toggle="tooltip" 
-                                                                   title="Persetujuan Asesmen">
-                                                                    <i class="fas fa-file-signature"></i>
+                                                                   title="Tandatangani Persetujuan Asesmen">
+                                                                    <i class="fas fa-file-signature me-1"></i>Tandatangani
                                                                 </a>
                                                             @elseif($hasPersetujuan)
-                                                                <span class="badge bg-success">Persetujuan Dikirim</span>
+                                                                <span class="badge bg-success" data-bs-toggle="tooltip" title="Persetujuan sudah ditandatangani">
+                                                                    <i class="fas fa-check-circle me-1"></i>Persetujuan Tersimpan
+                                                                </span>
                                                             @elseif($isVerifiedByAsesor && !$hasCompleteAsesorData)
-                                                                <span class="badge bg-warning" data-bs-toggle="tooltip" title="Menunggu data asesor lengkap">Menunggu Data Asesor</span>
+                                                                <span class="badge bg-warning" data-bs-toggle="tooltip" title="Menunggu data asesor lengkap">
+                                                                    <i class="fas fa-clock me-1"></i>Menunggu Data Asesor
+                                                                </span>
                                                             @endif
                                                             @if($p->status == 'rejected' && $p->alasan_penolakan)
                                                                 <button type="button" class="btn btn-sm btn-outline-warning" 
@@ -267,6 +342,42 @@
                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Alasan Penolakan:</h6>
                         <p class="mb-0">{{ $p->alasan_penolakan }}</p>
                     </div>
+                @endif
+
+                @if($p->status == 'completed')
+                    @php
+                        $hasPersetujuan = $p->persetujuan_data;
+                        $isVerifiedByAsesor = $p->verifications()
+                            ->where('type', 'asesor_verification')
+                            ->where('status', 'verified')
+                            ->exists();
+                        
+                        $hasCompleteAsesorData = false;
+                        if ($p->asesmen_data) {
+                            $asesmenData = is_string($p->asesmen_data) ? 
+                                json_decode($p->asesmen_data, true) : 
+                                $p->asesmen_data;
+                            
+                            if ($asesmenData && isset($asesmenData['bukti']) && isset($asesmenData['tanggal_asesmen']) && 
+                                isset($asesmenData['waktu_asesmen']) && isset($asesmenData['tuk_asesmen'])) {
+                                $hasCompleteAsesorData = true;
+                            }
+                        }
+                    @endphp
+                    @if($isVerifiedByAsesor && $hasCompleteAsesorData && !$hasPersetujuan)
+                        <div class="alert alert-warning mt-3">
+                            <h6><i class="fas fa-file-signature me-2"></i>Persetujuan Asesmen:</h6>
+                            <p class="mb-2">Pendaftaran Anda dengan status "Selesai" memerlukan tanda tangan Persetujuan Asesmen.</p>
+                            <a href="{{ route('mahasiswa.persetujuan', $p->id) }}" class="btn btn-sm btn-success">
+                                <i class="fas fa-file-signature me-1"></i>Tandatangani Persetujuan Asesmen
+                            </a>
+                        </div>
+                    @elseif($hasPersetujuan)
+                        <div class="alert alert-success mt-3">
+                            <h6><i class="fas fa-check-circle me-2"></i>Persetujuan Asesmen:</h6>
+                            <p class="mb-0">Persetujuan Asesmen sudah ditandatangani dan tersimpan.</p>
+                        </div>
+                    @endif
                 @endif
             </div>
             <div class="modal-footer">

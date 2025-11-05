@@ -379,12 +379,23 @@
             <div class="modal-header">
                 <h5 class="modal-title">Asesmen - {{ $p->no_pendaftaran }}</h5>
                 <div class="d-flex align-items-center">
-                    @if($p->status === 'in_progress')
+                    @php
+                        $isVerified = $p->verifications()
+                            ->where('type', 'asesor_verification')
+                            ->where('status', 'verified')
+                            ->exists();
+                        $hasPersetujuan = $p->persetujuan_data;
+                    @endphp
+                    @if($p->status === 'persetujuan_confirmed' || $p->status === 'persetujuan_submitted')
+                        <span class="badge bg-success me-2">Persetujuan Dikonfirmasi</span>
+                    @elseif($p->status === 'in_progress')
                         <span class="badge bg-warning me-2">Sedang Berlangsung</span>
                     @elseif($p->status === 'completed')
                         <span class="badge bg-success me-2">Selesai</span>
                     @elseif($p->status === 'approved')
                         <span class="badge bg-primary me-2">Siap Diverifikasi</span>
+                    @elseif($hasPersetujuan || $isVerified)
+                        <span class="badge bg-success me-2">Telah Diverifikasi</span>
                     @elseif($p->status === 'pending')
                         <span class="badge bg-secondary me-2">Menunggu Persetujuan Admin</span>
                     @else
@@ -394,12 +405,20 @@
                 </div>
             </div>
             <div class="modal-body">
-                @if($p->status === 'approved')
+                @php
+                    $hasPersetujuan = $p->persetujuan_data;
+                @endphp
+                @if($p->status === 'persetujuan_confirmed' || $p->status === 'persetujuan_submitted')
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Persetujuan Dikonfirmasi</h6>
+                        <p class="mb-0">Persetujuan asesmen telah dikirim dan ditandatangani oleh mahasiswa.</p>
+                    </div>
+                @elseif($p->status === 'approved')
                     <div class="alert alert-success">
                         <h6><i class="fas fa-check-circle me-2"></i>Asesmen Siap Diverifikasi</h6>
                         <p class="mb-0">Pendaftaran telah disetujui admin. Anda dapat melakukan verifikasi asesmen mandiri.</p>
                     </div>
-                @elseif($p->status === 'pending')
+                @elseif($p->status === 'pending' && !$hasPersetujuan)
                     <div class="alert alert-warning">
                         <h6><i class="fas fa-clock me-2"></i>Menunggu Persetujuan Admin</h6>
                         <p class="mb-0">Pendaftaran belum disetujui admin. Verifikasi asesmen akan tersedia setelah admin menyetujui pendaftaran.</p>
@@ -413,6 +432,11 @@
                     <div class="alert alert-success">
                         <h6><i class="fas fa-check-circle me-2"></i>Asesmen Selesai</h6>
                         <p class="mb-0">Asesmen telah selesai dan disetujui admin.</p>
+                    </div>
+                @elseif($hasPersetujuan)
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Persetujuan Telah Dikirim</h6>
+                        <p class="mb-0">Persetujuan asesmen telah ditandatangani oleh mahasiswa.</p>
                     </div>
                 @else
                     <div class="alert alert-info">
@@ -450,13 +474,25 @@
                                             <td>
                                                 @switch($p->status)
                                                     @case('pending')
-                                                        <span class="badge bg-warning">Pending</span>
+                                                        <span class="badge bg-warning">Menunggu Verifikasi</span>
                                                         @break
                                                     @case('approved')
-                                                        <span class="badge bg-success">Approved</span>
+                                                        <span class="badge bg-success">Disetujui</span>
                                                         @break
                                                     @case('rejected')
-                                                        <span class="badge bg-danger">Rejected</span>
+                                                        <span class="badge bg-danger">Ditolak</span>
+                                                        @break
+                                                    @case('in_progress')
+                                                        <span class="badge bg-info">Sedang Berlangsung</span>
+                                                        @break
+                                                    @case('persetujuan_submitted')
+                                                        <span class="badge bg-info">Persetujuan Dikirim</span>
+                                                        @break
+                                                    @case('persetujuan_confirmed')
+                                                        <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
+                                                        @break
+                                                    @case('completed')
+                                                        <span class="badge bg-primary">Selesai</span>
                                                         @break
                                                     @default
                                                         <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
@@ -674,14 +710,14 @@
                                         @endphp
                                         
                                         <div class="row mt-3">
-                                            <div class="col-md-4">
+                                            {{-- <div class="col-md-4">
                                                 <div class="card bg-light">
                                                     <div class="card-body text-center">
                                                         <h5 class="card-title text-primary">{{ $totalKriteria }}</h5>
                                                         <p class="card-text">Total Kriteria</p>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             <div class="col-md-4">
                                                 <div class="card bg-success text-white">
                                                     <div class="card-body text-center">
@@ -880,7 +916,14 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                @if($p->status === 'in_progress' || $p->status === 'completed')
+                @php
+                    $hasPersetujuan = $p->persetujuan_data;
+                @endphp
+                @if($p->status === 'persetujuan_confirmed' || $p->status === 'persetujuan_submitted' || $hasPersetujuan)
+                    <button type="button" class="btn btn-success" disabled>
+                        <i class="fas fa-check-circle"></i> Persetujuan Dikonfirmasi
+                    </button>
+                @elseif($p->status === 'in_progress' || $p->status === 'completed')
                     <button type="button" class="btn btn-success" disabled>
                         <i class="fas fa-check"></i> Sudah Diverifikasi
                     </button>

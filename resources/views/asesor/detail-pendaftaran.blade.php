@@ -313,14 +313,14 @@
                             @endphp
                             
                             <div class="row mb-3">
-                                <div class="col-md-3">
+                                {{-- <div class="col-md-3">
                                     <div class="card bg-light">
                                         <div class="card-body text-center">
                                             <h4 class="text-primary">{{ $totalKriteria }}</h4>
                                             <small>Total Kriteria</small>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
                                 <div class="col-md-3">
                                     <div class="card bg-success text-white">
                                         <div class="card-body text-center">
@@ -337,7 +337,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                {{-- <div class="col-md-3">
                                     <div class="card bg-warning text-white">
                                         <div class="card-body text-center">
                                             <h4>{{ $totalKriteria - $kompetenCount - $belumKompetenCount }}</h4>
@@ -345,7 +345,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             
                             <!-- Tabel Hasil Asesmen Mandiri (Structured View) -->
                             @if(isset($unitKompetensiJudul) && $unitKompetensiJudul->count() > 0)

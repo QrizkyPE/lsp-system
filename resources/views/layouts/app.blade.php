@@ -96,6 +96,9 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('admin.persetujuan-asesmen*') ? 'active' : '' }}" href="{{ route('admin.persetujuan-asesmen') }}">
                                     <i class="fas fa-clipboard-check me-2"></i>Persetujuan Asesmen
+                                    @if(isset($pendingPersetujuanCount) && $pendingPersetujuanCount > 0)
+                                        <span class="badge bg-danger rounded-pill ms-2">{{ $pendingPersetujuanCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="nav-item">
