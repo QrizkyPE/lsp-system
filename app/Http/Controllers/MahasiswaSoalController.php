@@ -23,7 +23,7 @@ class MahasiswaSoalController extends Controller
         ])
             ->where('user_id', $user->id)
             ->whereNotNull('jadwal_uji_id')
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->latest()
             ->get();
 
@@ -49,7 +49,7 @@ class MahasiswaSoalController extends Controller
         // Check if user has access to this soal through their pendaftaran
         $pendaftaran = Pendaftaran::where('user_id', $user->id)
             ->where('jadwal_uji_id', $soalUpload->jadwal_uji_id)
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->first();
 
         if (!$pendaftaran) {
@@ -82,7 +82,7 @@ class MahasiswaSoalController extends Controller
         // Check if user has access to this soal
         $pendaftaran = Pendaftaran::where('user_id', $user->id)
             ->where('jadwal_uji_id', $soalUpload->jadwal_uji_id)
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->first();
 
         if (!$pendaftaran) {
