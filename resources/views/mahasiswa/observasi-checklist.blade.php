@@ -11,9 +11,16 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h4>Daftar Observasi Checklist</h4>
-                <div class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Observasi checklist yang dibuat oleh asesor untuk Anda
+                <div class="d-flex align-items-center gap-3">
+                    @if(isset($pendingObservasiCount) && $pendingObservasiCount > 0)
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ $pendingObservasiCount }} Belum Ditandatangani
+                        </span>
+                    @endif
+                    <div class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Observasi checklist yang dibuat oleh asesor untuk Anda
+                    </div>
                 </div>
             </div>
         </div>

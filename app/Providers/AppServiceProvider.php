@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pendaftaran;
+use App\Models\ObservasiChecklist;
+use App\Models\PenyesuaianChecklist;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,14 +30,45 @@ class AppServiceProvider extends ServiceProvider
 
         // Share pending persetujuan asesmen count to all views
         View::composer('layouts.app', function ($view) {
-            if (Auth::check() && Auth::user()->role === 'admin') {
-                $pendingPersetujuanCount = Pendaftaran::where('status', 'in_progress')
-                    ->whereNotNull('asesmen_data')
-                    ->count();
+            if (Auth::check()) {
+                $user = Auth::user();
                 
-                $view->with('pendingPersetujuanCount', $pendingPersetujuanCount);
+                if ($user->role === 'admin') {
+                    $pendingPersetujuanCount = Pendaftaran::where('status', 'in_progress')
+                        ->whereNotNull('asesmen_data')
+                        ->count();
+                    
+                    $view->with('pendingPersetujuanCount', $pendingPersetujuanCount);
+                } else {
+                    $view->with('pendingPersetujuanCount', 0);
+                }
+
+                // Share pending observasi checklist count for mahasiswa
+                if ($user->role === 'mahasiswa') {
+                    $pendingObservasiCount = ObservasiChecklist::whereHas('pendaftaran', function($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->whereNull('mahasiswa_signature')
+                        ->count();
+                    
+                    $view->with('pendingObservasiCount', $pendingObservasiCount);
+
+                    // Share pending penyesuaian checklist count for mahasiswa
+                    $pendingPenyesuaianCount = PenyesuaianChecklist::whereHas('pendaftaran', function($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->whereNull('mahasiswa_signature')
+                        ->count();
+                    
+                    $view->with('pendingPenyesuaianCount', $pendingPenyesuaianCount);
+                } else {
+                    $view->with('pendingObservasiCount', 0);
+                    $view->with('pendingPenyesuaianCount', 0);
+                }
             } else {
                 $view->with('pendingPersetujuanCount', 0);
+                $view->with('pendingObservasiCount', 0);
+                $view->with('pendingPenyesuaianCount', 0);
             }
         });
     }

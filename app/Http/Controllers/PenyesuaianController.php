@@ -28,7 +28,7 @@ class PenyesuaianController extends Controller
     public function create()
     {
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
             ->get();
 
@@ -90,7 +90,7 @@ class PenyesuaianController extends Controller
     {
         $penyesuaianChecklist = PenyesuaianChecklist::where('asesor_id', Auth::id())->findOrFail($id);
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
             ->get();
 

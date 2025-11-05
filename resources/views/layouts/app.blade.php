@@ -210,11 +210,17 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.observasi-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.observasi-checklist') }}">
                                     <i class="fas fa-clipboard-list me-2"></i>Observasi Checklist
+                                    @if(isset($pendingObservasiCount) && $pendingObservasiCount > 0)
+                                        <span class="badge bg-danger rounded-pill ms-2">{{ $pendingObservasiCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.penyesuaian-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.penyesuaian-checklist') }}">
                                     <i class="fas fa-adjust me-2"></i>Penyesuaian Checklist
+                                    @if(isset($pendingPenyesuaianCount) && $pendingPenyesuaianCount > 0)
+                                        <span class="badge bg-danger rounded-pill ms-2">{{ $pendingPenyesuaianCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -277,14 +283,14 @@
                     </div>
                 </div>
 
-                @if(session('success') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*'))
+                @if(session('success') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
-                @if(session('error') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*'))
+                @if(session('error') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
