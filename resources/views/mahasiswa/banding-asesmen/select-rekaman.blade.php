@@ -70,7 +70,7 @@
                             <h5 class="text-muted">Tidak ada rekaman asesmen yang tersedia</h5>
                             <p class="text-muted">
                                 Tidak ada rekaman asesmen dengan rekomendasi hasil <strong>"Belum Kompeten"</strong> yang tersedia untuk diajukan banding. 
-                                <br>Semua rekaman asesmen Anda sudah memiliki banding yang diajukan, atau rekaman asesmen Anda memiliki rekomendasi hasil "Kompeten".
+                                {{-- <br>Semua rekaman asesmen Anda sudah memiliki banding yang diajukan, atau rekaman asesmen Anda memiliki rekomendasi hasil "Kompeten". --}}
                             </p>
                             <a href="{{ route('mahasiswa.rekaman-asesmen') }}" class="btn btn-primary mt-3">
                                 <i class="fas fa-arrow-left me-1"></i>Kembali ke Rekaman Asesmen

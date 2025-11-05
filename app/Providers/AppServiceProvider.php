@@ -9,6 +9,7 @@ use App\Models\Pendaftaran;
 use App\Models\ObservasiChecklist;
 use App\Models\PenyesuaianChecklist;
 use App\Models\RekamanAsesmenKompetensi;
+use App\Models\UmpanBalikAsesmen;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -71,16 +72,33 @@ class AppServiceProvider extends ServiceProvider
                         ->count();
                     
                     $view->with('pendingRekamanAsesmenCount', $pendingRekamanAsesmenCount);
+
+                    // Share pending umpan balik count for mahasiswa
+                    // Rekaman asesmen yang sudah ditandatangani tetapi belum ada umpan baliknya
+                    $signedRekamanIds = RekamanAsesmenKompetensi::whereHas('pendaftaran', function($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->whereNotNull('mahasiswa_signature')
+                        ->pluck('id');
+                    
+                    $umpanBalikRekamanIds = UmpanBalikAsesmen::where('mahasiswa_id', $user->id)
+                        ->pluck('rekaman_asesmen_id');
+                    
+                    $pendingUmpanBalikCount = $signedRekamanIds->diff($umpanBalikRekamanIds)->count();
+                    
+                    $view->with('pendingUmpanBalikCount', $pendingUmpanBalikCount);
                 } else {
                     $view->with('pendingObservasiCount', 0);
                     $view->with('pendingPenyesuaianCount', 0);
                     $view->with('pendingRekamanAsesmenCount', 0);
+                    $view->with('pendingUmpanBalikCount', 0);
                 }
             } else {
                 $view->with('pendingPersetujuanCount', 0);
                 $view->with('pendingObservasiCount', 0);
                 $view->with('pendingPenyesuaianCount', 0);
                 $view->with('pendingRekamanAsesmenCount', 0);
+                $view->with('pendingUmpanBalikCount', 0);
             }
         });
     }

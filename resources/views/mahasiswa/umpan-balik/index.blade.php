@@ -6,18 +6,40 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-comments me-2"></i>
-                        Umpan Balik dan Catatan Asesmen
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ route('mahasiswa.umpan-balik.create') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>
-                            Buat Umpan Balik
-                        </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-comments me-2"></i>
+                            Umpan Balik dan Catatan Asesmen
+                        </h3>
+                        <div class="d-flex align-items-center gap-3">
+                            @if(isset($pendingUmpanBalikCount) && $pendingUmpanBalikCount > 0)
+                                <span class="badge bg-danger fs-6">
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $pendingUmpanBalikCount }} Perlu Umpan Balik
+                                </span>
+                            @endif
+                            <a href="{{ route('mahasiswa.umpan-balik.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>
+                                Buat Umpan Balik
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
+                    @if(isset($pendingUmpanBalikCount) && $pendingUmpanBalikCount > 0)
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Informasi:</strong> Asesi diharapkan untuk membuat Umpan Balik Asesmen jika sudah menerima hasil Rekaman Asesmen. 
+                            Saat ini Anda memiliki <strong>{{ $pendingUmpanBalikCount }}</strong> rekaman asesmen yang sudah ditandatangani dan memerlukan umpan balik.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @else
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Informasi:</strong> Asesi diharapkan untuk membuat Umpan Balik Asesmen jika sudah menerima hasil Rekaman Asesmen.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="fas fa-check-circle me-2"></i>
