@@ -26,12 +26,12 @@
                                 ->where('user_id', Auth::id())
                                 ->first();
                         @endphp
-                        @if(!$existingBanding)
+                        {{-- @if(!$existingBanding)
                             <a href="{{ route('mahasiswa.banding-asesmen.create', $rekamanAsesmen->id) }}" class="btn btn-warning">
                                 <i class="fas fa-gavel me-1"></i>
                                 Ajukan Banding
                             </a>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
                 <div class="card-body">

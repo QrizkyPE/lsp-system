@@ -32,7 +32,7 @@ class RekamanAsesmenController extends Controller
         $existingPendaftaranIds = RekamanAsesmenKompetensi::pluck('pendaftaran_id')->unique()->filter();
 
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->whereNotNull('persetujuan_data')
             ->whereNotIn('id', $existingPendaftaranIds)
             ->get();
@@ -166,7 +166,7 @@ class RekamanAsesmenController extends Controller
         }
 
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted'])
+            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
             ->whereNotNull('persetujuan_data')
             ->get();
 

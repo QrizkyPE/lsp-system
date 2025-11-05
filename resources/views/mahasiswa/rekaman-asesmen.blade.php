@@ -6,10 +6,17 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-clipboard-list me-2"></i>
-                        Rekaman Asesmen Kompetensi
-                    </h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Rekaman Asesmen Kompetensi
+                        </h3>
+                        @if(isset($pendingRekamanAsesmenCount) && $pendingRekamanAsesmenCount > 0)
+                            <span class="badge bg-danger fs-6">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ $pendingRekamanAsesmenCount }} Menunggu Tanda Tangan
+                            </span>
+                        @endif
+                    </div>
                 </div>
                 <div class="card-body">
                     @if(session('success'))

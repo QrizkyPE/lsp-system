@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Pendaftaran;
 use App\Models\ObservasiChecklist;
 use App\Models\PenyesuaianChecklist;
+use App\Models\RekamanAsesmenKompetensi;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,14 +62,25 @@ class AppServiceProvider extends ServiceProvider
                         ->count();
                     
                     $view->with('pendingPenyesuaianCount', $pendingPenyesuaianCount);
+
+                    // Share pending rekaman asesmen count for mahasiswa
+                    $pendingRekamanAsesmenCount = RekamanAsesmenKompetensi::whereHas('pendaftaran', function($query) use ($user) {
+                            $query->where('user_id', $user->id);
+                        })
+                        ->whereNull('mahasiswa_signature')
+                        ->count();
+                    
+                    $view->with('pendingRekamanAsesmenCount', $pendingRekamanAsesmenCount);
                 } else {
                     $view->with('pendingObservasiCount', 0);
                     $view->with('pendingPenyesuaianCount', 0);
+                    $view->with('pendingRekamanAsesmenCount', 0);
                 }
             } else {
                 $view->with('pendingPersetujuanCount', 0);
                 $view->with('pendingObservasiCount', 0);
                 $view->with('pendingPenyesuaianCount', 0);
+                $view->with('pendingRekamanAsesmenCount', 0);
             }
         });
     }
