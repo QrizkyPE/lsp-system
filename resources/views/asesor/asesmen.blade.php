@@ -104,6 +104,9 @@
                                 <option value="">Semua Status</option>
                                 <option value="pending">Menunggu Verifikasi</option>
                                 <option value="approved">Disetujui</option>
+                                <option value="in_progress">Dalam Proses</option>
+                                <option value="persetujuan_submitted">Persetujuan Dikirim</option>
+                                <option value="persetujuan_confirmed">Persetujuan Dikonfirmasi</option>
                                 <option value="rejected">Ditolak</option>
                                 <option value="completed">Selesai</option>
                             </select>
@@ -190,6 +193,12 @@
                                                                     <span class="badge bg-info">Dalam Proses</span>
                                                                 @endif
                                                                 @break
+                                                            @case('persetujuan_submitted')
+                                                                <span class="badge bg-info">Persetujuan Dikirim</span>
+                                                                @break
+                                                            @case('persetujuan_confirmed')
+                                                                <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
+                                                                @break
                                                             @case('rejected')
                                                                 <span class="badge bg-danger">Ditolak</span>
                                                                 @break
@@ -205,11 +214,12 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group" role="group">
-                                                            <button type="button" class="btn btn-sm btn-outline-info" 
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#detailModal{{ $p->id }}">
-                                                                <i class="fas fa-eye"></i>
-                                                            </button>
+                                                            <a href="{{ route('asesor.asesmen.pendaftaran.detail', $p->id) }}" 
+                                                               class="btn btn-sm btn-outline-info" 
+                                                               target="_blank"
+                                                               title="Lihat Detail Asesmen Mandiri">
+                                                                <i class="fas fa-eye"></i> Detail
+                                                            </a>
                                                             @if($p->asesmen_data)
                                                                 <button type="button" class="btn btn-sm btn-success" 
                                                                         data-bs-toggle="modal" 
@@ -527,9 +537,9 @@
                                                                             <tr>
                                                                                 <th>No. Kriteria</th>
                                                                                 <th>Deskripsi Kriteria</th>
-                                                                                <th>Jenis Bukti</th>
+                                                                                {{-- <th>Jenis Bukti</th>
                                                                                 <th>Metode Asesmen</th>
-                                                                                <th>Perangkat Asesmen</th>
+                                                                                <th>Perangkat Asesmen</th> --}}
                                                                                 <th>Pilihan Mahasiswa</th>
                                                                                 <th>Bukti yang relevan</th>
                                                                             </tr>
@@ -570,9 +580,9 @@
                                                                                 <tr>
                                                                                     <td>{{ $kriteria->nomor_kriteria }}</td>
                                                                                     <td>{{ $kriteria->deskripsi_kriteria }}</td>
-                                                                                    <td>{{ $kriteria->jenis_bukti ?? '-' }}</td>
+                                                                                    {{-- <td>{{ $kriteria->jenis_bukti ?? '-' }}</td>
                                                                                     <td>{{ $kriteria->metode_asesmen ?? '-' }}</td>
-                                                                                    <td>{{ $kriteria->perangkat_asesmen ?? '-' }}</td>
+                                                                                    <td>{{ $kriteria->perangkat_asesmen ?? '-' }}</td> --}}
                                                                                     <td>
                                                                                         @if($status === 'kompeten')
                                                                                             <div class="form-check form-check-inline">

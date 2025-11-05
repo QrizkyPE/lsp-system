@@ -103,6 +103,9 @@
                                 <option value="">Semua Status</option>
                                 <option value="pending">Menunggu Verifikasi</option>
                                 <option value="approved">Disetujui</option>
+                                <option value="in_progress">Dalam Proses</option>
+                                <option value="persetujuan_submitted">Persetujuan Dikirim</option>
+                                <option value="persetujuan_confirmed">Persetujuan Dikonfirmasi</option>
                                 <option value="rejected">Ditolak</option>
                                 <option value="completed">Selesai</option>
                             </select>
@@ -184,6 +187,12 @@
                                                                     <span class="badge bg-info">Dalam Proses</span>
                                                                 @endif
                                                                 @break
+                                                            @case('persetujuan_submitted')
+                                                                <span class="badge bg-info">Persetujuan Dikirim</span>
+                                                                @break
+                                                            @case('persetujuan_confirmed')
+                                                                <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
+                                                                @break
                                                             @case('rejected')
                                                                 <span class="badge bg-danger">Ditolak</span>
                                                                 @break
@@ -259,11 +268,23 @@
                                 <td><strong>Status:</strong></td>
                                 <td>
                                     @switch($p->status)
+                                        @case('draft')
+                                            <span class="badge bg-secondary">Draft</span>
+                                            @break
                                         @case('pending')
                                             <span class="badge bg-warning">Menunggu Verifikasi</span>
                                             @break
                                         @case('approved')
                                             <span class="badge bg-success">Disetujui</span>
+                                            @break
+                                        @case('in_progress')
+                                            <span class="badge bg-info">Dalam Proses</span>
+                                            @break
+                                        @case('persetujuan_submitted')
+                                            <span class="badge bg-info">Persetujuan Dikirim</span>
+                                            @break
+                                        @case('persetujuan_confirmed')
+                                            <span class="badge bg-success">Persetujuan Dikonfirmasi</span>
                                             @break
                                         @case('rejected')
                                             <span class="badge bg-danger">Ditolak</span>

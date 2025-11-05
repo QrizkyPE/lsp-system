@@ -478,15 +478,16 @@ class AsesorController extends Controller
             $rejectedAsesmen = 0;
         } else {
             // Filter pendaftaran based on assignment
+            // Include approved, in_progress, persetujuan_submitted, and persetujuan_confirmed
             $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji', 'verifications'])
-                ->whereIn('status', ['approved', 'in_progress'])
+                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed'])
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->latest()
                 ->paginate(10);
 
             // Calculate summary statistics (only for assigned pendaftaran)
-            $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress'])
+            $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed'])
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->count();
@@ -494,7 +495,7 @@ class AsesorController extends Controller
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->count();
-            $verifiedAsesmen = Pendaftaran::where('status', 'in_progress')
+            $verifiedAsesmen = Pendaftaran::whereIn('status', ['in_progress', 'persetujuan_submitted', 'persetujuan_confirmed'])
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->count();
@@ -533,6 +534,125 @@ class AsesorController extends Controller
         ));
     }
 
+    /**
+     * Show detail pendaftaran with asesmen mandiri for asesor
+     */
+    public function detailPendaftaran($id)
+    {
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return redirect()->route('login')->with('error', 'Anda bukan asesor');
+        }
+
+        // Get pendaftaran IDs that are assigned to this asesor through penugasan
+        $assignedPendaftaranIds = \App\Models\Penugasan::where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->with('pendaftaran')
+            ->get()
+            ->pluck('pendaftaran')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        // Get pendaftaran with all related data
+        $pendaftaran = Pendaftaran::with([
+            'user', 
+            'skemaSertifikasi', 
+            'jadwalUji.tuk',
+            'verifications' => function($query) {
+                $query->with(['verifier.asesor']);
+            }
+        ])
+        ->where('id', $id)
+        ->whereIn('id', $assignedPendaftaranIds)
+        ->firstOrFail();
+
+        // Decode JSON data safely
+        $profilData = null;
+        $sertifikasiData = null;
+        $asesmenData = null;
+
+        if ($pendaftaran->profil_data) {
+            if (is_string($pendaftaran->profil_data)) {
+                $decoded = json_decode($pendaftaran->profil_data, true);
+                $profilData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            } else {
+                $profilData = $pendaftaran->profil_data;
+            }
+        }
+
+        if ($pendaftaran->sertifikasi_data) {
+            if (is_string($pendaftaran->sertifikasi_data)) {
+                $decoded = json_decode($pendaftaran->sertifikasi_data, true);
+                $sertifikasiData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            } else {
+                $sertifikasiData = $pendaftaran->sertifikasi_data;
+            }
+        }
+
+        if ($pendaftaran->asesmen_data) {
+            if (is_string($pendaftaran->asesmen_data)) {
+                $decoded = json_decode($pendaftaran->asesmen_data, true);
+                $asesmenData = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            } else {
+                $asesmenData = $pendaftaran->asesmen_data;
+            }
+        }
+
+        // Get unit kompetensi, elemen, dan kriteria if sertifikasi data exists
+        // Similar structure to asesmen method
+        $unitKompetensiJudul = collect();
+        $elemenJudul = collect();
+        $kriteriaJudul = collect();
+
+        if ($sertifikasiData && isset($sertifikasiData['judul'])) {
+            $judul = $sertifikasiData['judul'];
+            
+            // Get judul sertifikasi name from first unit or from skema
+            $judulSertifikasi = null;
+            if (is_array($judul) && !empty($judul)) {
+                $firstUnit = \App\Models\UnitKompetensiJudul::whereIn('id', $judul)->first();
+                if ($firstUnit) {
+                    $judulSertifikasi = $firstUnit->judul_sertifikasi;
+                }
+            } elseif (is_string($judul)) {
+                $judulSertifikasi = $judul;
+            }
+            
+            if ($judulSertifikasi) {
+                // Ambil unit kompetensi per judul (semua, termasuk yang tidak aktif)
+                // Menggunakan urutan yang sama seperti saat data disimpan
+                $unitKompetensiJudul = \App\Models\UnitKompetensiJudul::where('judul_sertifikasi', $judulSertifikasi)
+                    ->orderBy('id')
+                    ->get();
+
+                // Ambil elemen per judul
+                $elemenJudul = \App\Models\ElemenJudul::where('judul_sertifikasi', $judulSertifikasi)
+                    ->orderBy('kode_unit')
+                    ->orderBy('kode_elemen')
+                    ->get();
+
+                // Ambil kriteria per judul
+                $kriteriaJudul = \App\Models\KriteriaUnjukKerjaJudul::where('judul_sertifikasi', $judulSertifikasi)
+                    ->orderBy('kode_unit')
+                    ->orderBy('kode_elemen')
+                    ->orderBy('nomor_kriteria')
+                    ->get();
+            }
+        }
+
+        return view('asesor.detail-pendaftaran', compact(
+            'pendaftaran',
+            'profilData',
+            'sertifikasiData', 
+            'asesmenData',
+            'unitKompetensiJudul',
+            'elemenJudul',
+            'kriteriaJudul'
+        ));
+    }
 
     public function verifyAsesmen(Request $request, $id)
     {

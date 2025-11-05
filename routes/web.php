@@ -138,6 +138,7 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::post('/dokumen/{id}/approve', [AsesorController::class, 'approveDokumen']);
     Route::post('/dokumen/{id}/reject', [AsesorController::class, 'rejectDokumen']);
     Route::get('/asesmen', [AsesorController::class, 'asesmen'])->name('asesmen');
+    Route::get('/asesmen/pendaftaran/{id}/detail', [AsesorController::class, 'detailPendaftaran'])->name('asesmen.pendaftaran.detail');
     Route::post('/asesmen/{id}/submit', [AsesorController::class, 'submitAsesmen']);
     
     // Personalization

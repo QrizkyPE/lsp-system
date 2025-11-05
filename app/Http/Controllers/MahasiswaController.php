@@ -920,14 +920,14 @@ class MahasiswaController extends Controller
             'submitted_at' => now(),
         ];
 
-        // Update pendaftaran
+        // Update pendaftaran - jika sudah ada tanda tangan, status menjadi persetujuan_confirmed
         $pendaftaran->update([
             'persetujuan_data' => json_encode($persetujuanData),
-            'status' => 'persetujuan_submitted'
+            'status' => 'persetujuan_confirmed' // Status langsung confirmed karena sudah ada tanda tangan
         ]);
 
         return redirect()->route('mahasiswa.dashboard')
-            ->with('success', 'Persetujuan asesmen dan kerahasiaanberhasil dikirim.');
+            ->with('success', 'Persetujuan asesmen dan kerahasiaan berhasil dikirim.');
     }
 
     /**
