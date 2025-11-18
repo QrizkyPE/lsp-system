@@ -169,6 +169,15 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/banding-asesmen', [App\Http\Controllers\AsesorBandingAsesmenController::class, 'index'])->name('banding-asesmen.index');
     Route::get('/banding-asesmen/{id}', [App\Http\Controllers\AsesorBandingAsesmenController::class, 'show'])->name('banding-asesmen.show');
     
+    // MAPA (Merencanakan Aktivitas dan Proses Asesmen)
+    Route::get('/mapa', [App\Http\Controllers\Asesor\MAPAController::class, 'index'])->name('mapa.index');
+    Route::get('/mapa/create/{skemaId}', [App\Http\Controllers\Asesor\MAPAController::class, 'create'])->name('mapa.create');
+    Route::post('/mapa/{skemaId}', [App\Http\Controllers\Asesor\MAPAController::class, 'store'])->name('mapa.store');
+    Route::get('/mapa/{id}', [App\Http\Controllers\Asesor\MAPAController::class, 'show'])->name('mapa.show');
+    Route::get('/mapa/{id}/edit', [App\Http\Controllers\Asesor\MAPAController::class, 'edit'])->name('mapa.edit');
+    Route::put('/mapa/{id}', [App\Http\Controllers\Asesor\MAPAController::class, 'update'])->name('mapa.update');
+    Route::delete('/mapa/{id}', [App\Http\Controllers\Asesor\MAPAController::class, 'destroy'])->name('mapa.destroy');
+    
     // Soal Upload
     Route::get('/soal-upload', [App\Http\Controllers\SoalUploadController::class, 'index'])->name('soal-upload.index');
     Route::get('/soal-upload/create/{jadwalId}', [App\Http\Controllers\SoalUploadController::class, 'create'])->name('soal-upload.create');
