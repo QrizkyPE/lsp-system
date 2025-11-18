@@ -137,10 +137,48 @@ class MahasiswaController extends Controller
         $pendaftaranData = session('pendaftaran_data');
         if ($pendaftaranData && isset($pendaftaranData['pendaftaran_id'])) {
             $pendaftaran = Pendaftaran::find($pendaftaranData['pendaftaran_id']);
-            if ($pendaftaran) {
+            if ($pendaftaran && $pendaftaran->status == 'draft') {
                 $existingData = [
                     'skema_sertifikasi_id' => $pendaftaran->skema_sertifikasi_id,
                     'jadwal_uji_id' => $pendaftaran->jadwal_uji_id,
+                ];
+            }
+        } elseif (!$pendaftaranData) {
+            // Try to load from database if no session
+            $user = Auth::user();
+            $draftPendaftaran = Pendaftaran::where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->latest()
+                ->first();
+            
+            if ($draftPendaftaran) {
+                // Restore session from database
+                $pendaftaranData = [
+                    'pendaftaran_id' => $draftPendaftaran->id,
+                    'pengajuan' => [
+                        'skema_sertifikasi_id' => $draftPendaftaran->skema_sertifikasi_id,
+                        'jadwal_uji_id' => $draftPendaftaran->jadwal_uji_id,
+                    ],
+                    'step' => 1,
+                ];
+                
+                if ($draftPendaftaran->profil_data) {
+                    $pendaftaranData['profil'] = $draftPendaftaran->profil_data;
+                    $pendaftaranData['step'] = 2;
+                }
+                if ($draftPendaftaran->sertifikasi_data) {
+                    $pendaftaranData['sertifikasi'] = $draftPendaftaran->sertifikasi_data;
+                    $pendaftaranData['step'] = 3;
+                }
+                if ($draftPendaftaran->asesmen_data) {
+                    $pendaftaranData['step'] = 4;
+                }
+                
+                session(['pendaftaran_data' => $pendaftaranData]);
+                
+                $existingData = [
+                    'skema_sertifikasi_id' => $draftPendaftaran->skema_sertifikasi_id,
+                    'jadwal_uji_id' => $draftPendaftaran->jadwal_uji_id,
                 ];
             }
         }
@@ -155,15 +193,39 @@ class MahasiswaController extends Controller
             'jadwal_uji_id' => 'required|exists:jadwal_uji,id',
         ]);
 
-        // Check if user already registered for this jadwal
-        $existingPendaftaran = Pendaftaran::where('user_id', Auth::id())
+        $user = Auth::user();
+        
+        // Check if user already registered for this jadwal (check all statuses except draft)
+        $existingPendaftaran = Pendaftaran::where('user_id', $user->id)
             ->where('jadwal_uji_id', $request->jadwal_uji_id)
+            ->whereNotIn('status', ['draft'])
             ->first();
 
         if ($existingPendaftaran) {
             return redirect()->back()
                 ->with('error', 'Anda sudah terdaftar untuk jadwal ini')
                 ->withInput();
+        }
+        
+        // Check if user has a draft with different jadwal
+        $pendaftaranData = session('pendaftaran_data');
+        $currentDraftId = $pendaftaranData['pendaftaran_id'] ?? null;
+        
+        if ($currentDraftId) {
+            $currentDraft = Pendaftaran::find($currentDraftId);
+            if ($currentDraft && $currentDraft->status == 'draft' && $currentDraft->jadwal_uji_id != $request->jadwal_uji_id) {
+                // User is changing jadwal, check if new jadwal is already registered
+                $existingPendaftaran = Pendaftaran::where('user_id', $user->id)
+                    ->where('jadwal_uji_id', $request->jadwal_uji_id)
+                    ->whereNotIn('status', ['draft'])
+                    ->first();
+                
+                if ($existingPendaftaran) {
+                    return redirect()->back()
+                        ->with('error', 'Anda sudah terdaftar untuk jadwal ini')
+                        ->withInput();
+                }
+            }
         }
 
         // Check quota
@@ -239,15 +301,37 @@ class MahasiswaController extends Controller
                 ->first();
             
             if ($draftPendaftaran) {
-                return redirect()->route('mahasiswa.pendaftaran.continue', $draftPendaftaran->id);
+                // Restore session from database
+                $pendaftaranData = [
+                    'pendaftaran_id' => $draftPendaftaran->id,
+                    'pengajuan' => [
+                        'skema_sertifikasi_id' => $draftPendaftaran->skema_sertifikasi_id,
+                        'jadwal_uji_id' => $draftPendaftaran->jadwal_uji_id,
+                    ],
+                    'step' => 1,
+                ];
+                
+                if ($draftPendaftaran->profil_data) {
+                    $pendaftaranData['profil'] = $draftPendaftaran->profil_data;
+                    $pendaftaranData['step'] = 2;
+                }
+                if ($draftPendaftaran->sertifikasi_data) {
+                    $pendaftaranData['sertifikasi'] = $draftPendaftaran->sertifikasi_data;
+                    $pendaftaranData['step'] = 3;
+                }
+                if ($draftPendaftaran->asesmen_data) {
+                    $pendaftaranData['step'] = 4;
+                }
+                
+                session(['pendaftaran_data' => $pendaftaranData]);
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step1')
+                    ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
             }
-            
-            return redirect()->route('mahasiswa.pendaftaran.step1')
-                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
 
         // Check if step 1 data exists in session
-        if (!isset($pendaftaranData['pengajuan']) || !isset($pendaftaranData['pengajuan']['skema_sertifikasi_id'])) {
+        if (!isset($pendaftaranData['pengajuan']) || !isset($pendaftaranData['pengajuan']['skema_sertifikasi_id']) || !isset($pendaftaranData['pengajuan']['jadwal_uji_id'])) {
             return redirect()->route('mahasiswa.pendaftaran.step1')
                 ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
@@ -299,13 +383,13 @@ class MahasiswaController extends Controller
         ]);
 
         // Check if step 1 data exists in session
-        if (!session('pendaftaran_data') || session('pendaftaran_data.step') != 1) {
+        $pendaftaranData = session('pendaftaran_data');
+        if (!$pendaftaranData || !isset($pendaftaranData['pengajuan']) || !isset($pendaftaranData['pengajuan']['skema_sertifikasi_id']) || !isset($pendaftaranData['pengajuan']['jadwal_uji_id'])) {
             return redirect()->route('mahasiswa.pendaftaran.step1')
                 ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
 
         // Update session with step 2 data
-        $pendaftaranData = session('pendaftaran_data');
         $pendaftaranData['step'] = 2;
         $pendaftaranData['profil'] = $request->all();
         
@@ -337,17 +421,57 @@ class MahasiswaController extends Controller
                 ->first();
             
             if ($draftPendaftaran) {
-                return redirect()->route('mahasiswa.pendaftaran.continue', $draftPendaftaran->id);
+                // Restore session from database
+                $data = [
+                    'pendaftaran_id' => $draftPendaftaran->id,
+                    'pengajuan' => [
+                        'skema_sertifikasi_id' => $draftPendaftaran->skema_sertifikasi_id,
+                        'jadwal_uji_id' => $draftPendaftaran->jadwal_uji_id,
+                    ],
+                    'step' => 1,
+                ];
+                
+                if ($draftPendaftaran->profil_data) {
+                    $data['profil'] = $draftPendaftaran->profil_data;
+                    $data['step'] = 2;
+                }
+                if ($draftPendaftaran->sertifikasi_data) {
+                    $data['sertifikasi'] = $draftPendaftaran->sertifikasi_data;
+                    $data['step'] = 3;
+                }
+                if ($draftPendaftaran->asesmen_data) {
+                    $data['step'] = 4;
+                }
+                
+                session(['pendaftaran_data' => $data]);
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step1')
+                    ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
             }
-            
-            return redirect()->route('mahasiswa.pendaftaran.step2')
-                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        }
+
+        // Check if step 1 data exists
+        if (!isset($data['pengajuan']) || !isset($data['pengajuan']['skema_sertifikasi_id']) || !isset($data['pengajuan']['jadwal_uji_id'])) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
         }
 
         // Ensure step 2 done (check if profil data exists)
-        if (!isset($data['profil']) && !isset($data['pendaftaran_id'])) {
-            return redirect()->route('mahasiswa.pendaftaran.step2')
-                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        if (!isset($data['profil'])) {
+            // Try to load from database
+            if (isset($data['pendaftaran_id'])) {
+                $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+                if ($pendaftaran && $pendaftaran->profil_data) {
+                    $data['profil'] = $pendaftaran->profil_data;
+                    session(['pendaftaran_data' => $data]);
+                } else {
+                    return redirect()->route('mahasiswa.pendaftaran.step2')
+                        ->with('error', 'Silakan lengkapi step sebelumnya.');
+                }
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step2')
+                    ->with('error', 'Silakan lengkapi step sebelumnya.');
+            }
         }
 
         // Get skema sertifikasi from step 1
@@ -410,9 +534,68 @@ class MahasiswaController extends Controller
     {
         // Ensure step 3 done
         $data = session('pendaftaran_data');
-        if (!$data || ($data['step'] ?? 0) < 3) {
-            return redirect()->route('mahasiswa.pendaftaran.step3')
-                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        
+        // If no session data, try to load from database
+        if (!$data) {
+            $user = Auth::user();
+            $draftPendaftaran = Pendaftaran::where('user_id', $user->id)
+                ->where('status', 'draft')
+                ->latest()
+                ->first();
+            
+            if ($draftPendaftaran) {
+                // Restore session from database
+                $data = [
+                    'pendaftaran_id' => $draftPendaftaran->id,
+                    'pengajuan' => [
+                        'skema_sertifikasi_id' => $draftPendaftaran->skema_sertifikasi_id,
+                        'jadwal_uji_id' => $draftPendaftaran->jadwal_uji_id,
+                    ],
+                    'step' => 1,
+                ];
+                
+                if ($draftPendaftaran->profil_data) {
+                    $data['profil'] = $draftPendaftaran->profil_data;
+                    $data['step'] = 2;
+                }
+                if ($draftPendaftaran->sertifikasi_data) {
+                    $data['sertifikasi'] = $draftPendaftaran->sertifikasi_data;
+                    $data['step'] = 3;
+                }
+                if ($draftPendaftaran->asesmen_data) {
+                    $data['step'] = 4;
+                }
+                
+                session(['pendaftaran_data' => $data]);
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step1')
+                    ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+            }
+        }
+        
+        // Check if step 1 data exists
+        if (!isset($data['pengajuan']) || !isset($data['pengajuan']['skema_sertifikasi_id']) || !isset($data['pengajuan']['jadwal_uji_id'])) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+        
+        // Check if step 3 data exists
+        if (!isset($data['sertifikasi'])) {
+            // Try to load from database
+            if (isset($data['pendaftaran_id'])) {
+                $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+                if ($pendaftaran && $pendaftaran->sertifikasi_data) {
+                    $data['sertifikasi'] = $pendaftaran->sertifikasi_data;
+                    $data['step'] = 3;
+                    session(['pendaftaran_data' => $data]);
+                } else {
+                    return redirect()->route('mahasiswa.pendaftaran.step3')
+                        ->with('error', 'Silakan lengkapi step sebelumnya.');
+                }
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step3')
+                    ->with('error', 'Silakan lengkapi step sebelumnya.');
+            }
         }
 
         // Get selected judul from step 3
@@ -478,9 +661,29 @@ class MahasiswaController extends Controller
     {
         // Ensure step 3 done
         $data = session('pendaftaran_data');
-        if (!$data || ($data['step'] ?? 0) < 3) {
-            return redirect()->route('mahasiswa.pendaftaran.step3')
-                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        
+        // Check if step 1 data exists
+        if (!$data || !isset($data['pengajuan']) || !isset($data['pengajuan']['skema_sertifikasi_id']) || !isset($data['pengajuan']['jadwal_uji_id'])) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+        
+        // Check if step 3 data exists
+        if (!isset($data['sertifikasi'])) {
+            // Try to load from database
+            if (isset($data['pendaftaran_id'])) {
+                $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+                if ($pendaftaran && $pendaftaran->sertifikasi_data) {
+                    $data['sertifikasi'] = $pendaftaran->sertifikasi_data;
+                    session(['pendaftaran_data' => $data]);
+                } else {
+                    return redirect()->route('mahasiswa.pendaftaran.step3')
+                        ->with('error', 'Silakan lengkapi step sebelumnya.');
+                }
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step3')
+                    ->with('error', 'Silakan lengkapi step sebelumnya.');
+            }
         }
 
         // Validate kriteria responses
@@ -489,6 +692,34 @@ class MahasiswaController extends Controller
             'kriteria.*.belum_kompeten' => 'nullable|boolean',
             'signature_data' => 'nullable|string',
         ]);
+
+        // Get selected judul from step 3
+        $selectedJudul = $data['sertifikasi']['judul'] ?? '';
+        
+        // Get all kriteria for the selected judul
+        $allKriteria = KriteriaUnjukKerjaJudul::where('judul_sertifikasi', $selectedJudul)
+            ->pluck('id')
+            ->toArray();
+        
+        // Validate that each kriteria has either kompeten or belum_kompeten selected
+        $kriteriaData = $request->input('kriteria', []);
+        $uncheckedKriteria = [];
+        
+        // Check all kriteria from database
+        foreach ($allKriteria as $kriteriaId) {
+            $kompeten = isset($kriteriaData[$kriteriaId]['kompeten']) && $kriteriaData[$kriteriaId]['kompeten'] == '1';
+            $belumKompeten = isset($kriteriaData[$kriteriaId]['belum_kompeten']) && $kriteriaData[$kriteriaId]['belum_kompeten'] == '1';
+            
+            if (!$kompeten && !$belumKompeten) {
+                $uncheckedKriteria[] = $kriteriaId;
+            }
+        }
+        
+        if (!empty($uncheckedKriteria)) {
+            return redirect()->back()
+                ->with('error', 'Silakan pilih salah satu (K atau BK) untuk semua kriteria unjuk kerja. Masih ada ' . count($uncheckedKriteria) . ' kriteria yang belum dipilih.')
+                ->withInput();
+        }
 
         // Update session data with step 4 completion
         $data['step'] = 4;
@@ -555,9 +786,93 @@ class MahasiswaController extends Controller
         ]);
 
         $data = session('pendaftaran_data');
-        if (!$data || ($data['step'] ?? 0) < 2) {
-            return redirect()->route('mahasiswa.pendaftaran.step2')
-                ->with('error', 'Silakan lengkapi step sebelumnya.');
+        
+        // Check if step 1 data exists
+        if (!$data || !isset($data['pengajuan']) || !isset($data['pengajuan']['skema_sertifikasi_id']) || !isset($data['pengajuan']['jadwal_uji_id'])) {
+            return redirect()->route('mahasiswa.pendaftaran.step1')
+                ->with('error', 'Silakan lengkapi step 1 terlebih dahulu');
+        }
+        
+        // Check if step 2 data exists
+        if (!isset($data['profil'])) {
+            // Try to load from database
+            if (isset($data['pendaftaran_id'])) {
+                $pendaftaran = Pendaftaran::find($data['pendaftaran_id']);
+                if ($pendaftaran && $pendaftaran->profil_data) {
+                    $data['profil'] = $pendaftaran->profil_data;
+                    session(['pendaftaran_data' => $data]);
+                } else {
+                    return redirect()->route('mahasiswa.pendaftaran.step2')
+                        ->with('error', 'Silakan lengkapi step sebelumnya.');
+                }
+            } else {
+                return redirect()->route('mahasiswa.pendaftaran.step2')
+                    ->with('error', 'Silakan lengkapi step sebelumnya.');
+            }
+        }
+
+        // Validate bukti persyaratan dasar - setiap baris harus memilih salah satu
+        $buktiPersyaratan = $request->input('bukti_persyaratan', []);
+        if (!empty($buktiPersyaratan)) {
+            // Count how many "Memenuhi Syarat" are checked
+            $memenuhiSyaratCount = 0;
+            foreach ($buktiPersyaratan as $index => $bukti) {
+                $memenuhiSyarat = isset($bukti['memenuhi_syarat']) && $bukti['memenuhi_syarat'] == 'on';
+                $tidakMemenuhiSyarat = isset($bukti['tidak_memenuhi_syarat']) && $bukti['tidak_memenuhi_syarat'] == 'on';
+                
+                if (!$memenuhiSyarat && !$tidakMemenuhiSyarat) {
+                    return redirect()->back()
+                        ->with('error', "Silakan pilih salah satu (Memenuhi Syarat atau Tidak Memenuhi Syarat) untuk Bukti Persyaratan Dasar baris " . ($index) . ".")
+                        ->withInput();
+                }
+                
+                if ($memenuhiSyarat) {
+                    $memenuhiSyaratCount++;
+                }
+            }
+            
+            // Validate that files are uploaded for "Memenuhi Syarat" selections
+            $uploadedFilesCount = $request->hasFile('bukti_files') ? count(array_filter($request->file('bukti_files'), function($file) {
+                return $file && $file->isValid();
+            })) : 0;
+            
+            if ($memenuhiSyaratCount > $uploadedFilesCount) {
+                return redirect()->back()
+                    ->with('error', "Silakan upload file untuk semua Bukti Persyaratan Dasar yang dipilih 'Memenuhi Syarat'. Anda memilih {$memenuhiSyaratCount} item 'Memenuhi Syarat' tetapi hanya mengupload {$uploadedFilesCount} file.")
+                    ->withInput();
+            }
+        }
+
+        // Validate bukti administratif - setiap baris harus memilih salah satu
+        $buktiAdministratif = $request->input('bukti_administratif', []);
+        if (!empty($buktiAdministratif)) {
+            // Count how many "Memenuhi Syarat" are checked
+            $memenuhiSyaratCount = 0;
+            foreach ($buktiAdministratif as $index => $bukti) {
+                $memenuhiSyarat = isset($bukti['memenuhi_syarat']) && $bukti['memenuhi_syarat'] == 'on';
+                $tidakMemenuhiSyarat = isset($bukti['tidak_memenuhi_syarat']) && $bukti['tidak_memenuhi_syarat'] == 'on';
+                
+                if (!$memenuhiSyarat && !$tidakMemenuhiSyarat) {
+                    return redirect()->back()
+                        ->with('error', "Silakan pilih salah satu (Memenuhi Syarat atau Tidak Memenuhi Syarat) untuk Bukti Administratif baris " . ($index) . ".")
+                        ->withInput();
+                }
+                
+                if ($memenuhiSyarat) {
+                    $memenuhiSyaratCount++;
+                }
+            }
+            
+            // Validate that files are uploaded for "Memenuhi Syarat" selections
+            $uploadedFilesCount = $request->hasFile('bukti_admin_files') ? count(array_filter($request->file('bukti_admin_files'), function($file) {
+                return $file && $file->isValid();
+            })) : 0;
+            
+            if ($memenuhiSyaratCount > $uploadedFilesCount) {
+                return redirect()->back()
+                    ->with('error', "Silakan upload file untuk semua Bukti Administratif yang dipilih 'Memenuhi Syarat'. Anda memilih {$memenuhiSyaratCount} item 'Memenuhi Syarat' tetapi hanya mengupload {$uploadedFilesCount} file.")
+                    ->withInput();
+            }
         }
 
         // Handle file uploads for bukti persyaratan dasar

@@ -615,6 +615,72 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
       
+      // Validate bukti persyaratan dasar - setiap baris harus memilih salah satu
+      const buktiTable = document.querySelector('#tabelBukti tbody');
+      if (buktiTable) {
+        const buktiRows = buktiTable.querySelectorAll('tr');
+        for (let i = 0; i < buktiRows.length; i++) {
+          const row = buktiRows[i];
+          const msChk = row.querySelector('.msChk');
+          const tmsChk = row.querySelector('.tmsChk');
+          const upload = row.querySelector('.uploadCtl');
+          
+          if (msChk && tmsChk) {
+            if (!msChk.checked && !tmsChk.checked) {
+              e.preventDefault();
+              alert(`Silakan pilih salah satu (Memenuhi Syarat atau Tidak Memenuhi Syarat) untuk Bukti Persyaratan Dasar baris ${i + 1}.`);
+              msChk.focus();
+              return false;
+            }
+            
+            // Jika memilih "Memenuhi Syarat", file harus diupload
+            if (msChk.checked) {
+              if (!upload || !upload.files || upload.files.length === 0) {
+                e.preventDefault();
+                alert(`Silakan upload file untuk Bukti Persyaratan Dasar baris ${i + 1} karena Anda memilih "Memenuhi Syarat".`);
+                if (upload) {
+                  upload.focus();
+                }
+                return false;
+              }
+            }
+          }
+        }
+      }
+      
+      // Validate bukti administratif - setiap baris harus memilih salah satu
+      const buktiAdminTable = document.querySelector('#tabelBuktiAdmin tbody');
+      if (buktiAdminTable) {
+        const buktiAdminRows = buktiAdminTable.querySelectorAll('tr');
+        for (let i = 0; i < buktiAdminRows.length; i++) {
+          const row = buktiAdminRows[i];
+          const msChk = row.querySelector('.msChk');
+          const tmsChk = row.querySelector('.tmsChk');
+          const upload = row.querySelector('.uploadCtl');
+          
+          if (msChk && tmsChk) {
+            if (!msChk.checked && !tmsChk.checked) {
+              e.preventDefault();
+              alert(`Silakan pilih salah satu (Memenuhi Syarat atau Tidak Memenuhi Syarat) untuk Bukti Administratif baris ${i + 1}.`);
+              msChk.focus();
+              return false;
+            }
+            
+            // Jika memilih "Memenuhi Syarat", file harus diupload
+            if (msChk.checked) {
+              if (!upload || !upload.files || upload.files.length === 0) {
+                e.preventDefault();
+                alert(`Silakan upload file untuk Bukti Administratif baris ${i + 1} karena Anda memilih "Memenuhi Syarat".`);
+                if (upload) {
+                  upload.focus();
+                }
+                return false;
+              }
+            }
+          }
+        }
+      }
+      
       // Allow form to submit normally
       return true;
     });

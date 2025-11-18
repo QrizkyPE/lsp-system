@@ -14,7 +14,7 @@
                 <div class="card-body">
                     <!-- Daftar Skema yang Tersedia -->
                     <div class="mb-4">
-                        <h5 class="mb-3">Pilih Skema untuk Membuat MAPA</h5>
+                        {{-- <h5 class="mb-3">Pilih Skema untuk Membuat MAPA</h5> --}}
                         @if($skemas->count() > 0)
                             <div class="row">
                                 @foreach($skemas as $skema)

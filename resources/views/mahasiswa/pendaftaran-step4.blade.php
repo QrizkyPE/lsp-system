@@ -210,6 +210,27 @@
 
 .checkbox-container {
     text-align: center;
+    position: relative;
+}
+
+.checkbox-container .warning-message {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
+.checkbox-warning {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5 !important;
 }
 
 .bukti-container {
@@ -357,6 +378,9 @@ function renderUnitKompetensi() {
                                    value="1" 
                                    class="form-check-input belum-kompeten-checkbox"
                                    data-kriteria="${kriteria.id}">
+                            <div class="warning-message text-danger small mt-1" style="display: none;" id="warning-${kriteria.id}">
+                                <i class="fas fa-exclamation-triangle"></i> Pilih salah satu (K atau BK)
+                            </div>
                         </td>
                         <td class="bukti-container">
                             ${buktiHtml}
@@ -375,14 +399,48 @@ function renderUnitKompetensi() {
  
     container.innerHTML = html;
 
-    // Add event listeners untuk checkbox mutual exclusive
+    // Function to check validation for a kriteria (global scope)
+    window.checkKriteriaValidation = function(kriteriaId) {
+        const kompetenCheckbox = document.querySelector(`input[name="kriteria[${kriteriaId}][kompeten]"]`);
+        const belumKompetenCheckbox = document.querySelector(`input[name="kriteria[${kriteriaId}][belum_kompeten]"]`);
+        const warning = document.getElementById(`warning-${kriteriaId}`);
+        
+        if (kompetenCheckbox && belumKompetenCheckbox) {
+            const row = kompetenCheckbox.closest('tr');
+            if (!kompetenCheckbox.checked && !belumKompetenCheckbox.checked) {
+                // Show warning
+                if (warning) {
+                    warning.style.display = 'block';
+                }
+                // Add warning class to row
+                if (row) {
+                    row.classList.add('checkbox-warning');
+                }
+            } else {
+                // Hide warning
+                if (warning) {
+                    warning.style.display = 'none';
+                }
+                // Remove warning class
+                if (row) {
+                    row.classList.remove('checkbox-warning');
+                }
+            }
+        }
+    };
+
+    // Add event listeners untuk checkbox
     document.querySelectorAll('.kompeten-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            const kriteriaId = this.dataset.kriteria;
             if (this.checked) {
-                const kriteriaId = this.dataset.kriteria;
                 const belumKompetenCheckbox = document.querySelector(`input[name="kriteria[${kriteriaId}][belum_kompeten]"]`);
                 if (belumKompetenCheckbox) {
                     belumKompetenCheckbox.checked = false;
+                }
+                // Hide warning if checkbox is checked
+                if (window.checkKriteriaValidation) {
+                    window.checkKriteriaValidation(kriteriaId);
                 }
             }
         });
@@ -390,11 +448,15 @@ function renderUnitKompetensi() {
 
     document.querySelectorAll('.belum-kompeten-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            const kriteriaId = this.dataset.kriteria;
             if (this.checked) {
-                const kriteriaId = this.dataset.kriteria;
                 const kompetenCheckbox = document.querySelector(`input[name="kriteria[${kriteriaId}][kompeten]"]`);
                 if (kompetenCheckbox) {
                     kompetenCheckbox.checked = false;
+                }
+                // Hide warning if checkbox is checked
+                if (window.checkKriteriaValidation) {
+                    window.checkKriteriaValidation(kriteriaId);
                 }
             }
         });
@@ -516,6 +578,38 @@ document.getElementById('asesmenForm').addEventListener('submit', function(e) {
         // Convert canvas to base64 image
         const dataURL = canvas.toDataURL('image/png');
         signatureData.value = dataURL;
+    }
+    
+    // Validate all checkboxes
+    let hasError = false;
+    const uncheckedKriteria = [];
+    
+    document.querySelectorAll('.kompeten-checkbox').forEach(checkbox => {
+        const kriteriaId = checkbox.dataset.kriteria;
+        const belumKompetenCheckbox = document.querySelector(`input[name="kriteria[${kriteriaId}][belum_kompeten]"]`);
+        
+        if (!checkbox.checked && (!belumKompetenCheckbox || !belumKompetenCheckbox.checked)) {
+            hasError = true;
+            uncheckedKriteria.push(kriteriaId);
+            if (window.checkKriteriaValidation) {
+                window.checkKriteriaValidation(kriteriaId);
+            }
+        }
+    });
+    
+    if (hasError) {
+        e.preventDefault();
+        alert('Silakan pilih salah satu (K atau BK) untuk semua kriteria unjuk kerja yang belum dipilih.');
+        
+        // Scroll to first unchecked kriteria
+        if (uncheckedKriteria.length > 0) {
+            const firstCheckbox = document.querySelector(`input[name="kriteria[${uncheckedKriteria[0]}][kompeten]"]`);
+            if (firstCheckbox) {
+                firstCheckbox.closest('tr').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        return false;
     }
 });
 </script>
