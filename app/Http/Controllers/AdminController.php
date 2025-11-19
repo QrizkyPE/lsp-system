@@ -444,7 +444,6 @@ class AdminController extends Controller
     public function updateAsesor(Request $request, $id)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'nama_lengkap' => 'required|string',
             'nip' => 'required|string',
             'jabatan' => 'required|string',
@@ -454,10 +453,29 @@ class AdminController extends Controller
             'tanggal_sertifikat' => 'required|date',
             'tanggal_expired' => 'required|date',
             'skema_kompetensi' => 'required|array',
+            'no_telepon' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
         ]);
 
         $asesor = Asesor::findOrFail($id);
-        $asesor->update($request->all());
+        
+        // Update asesor data (excluding no_telepon and alamat)
+        $asesorData = $request->except(['no_telepon', 'alamat']);
+        $asesor->update($asesorData);
+        
+        // Update user's no_telepon and alamat if provided
+        if ($asesor->user) {
+            $userData = [];
+            if ($request->has('no_telepon')) {
+                $userData['no_telepon'] = $request->no_telepon;
+            }
+            if ($request->has('alamat')) {
+                $userData['alamat'] = $request->alamat;
+            }
+            if (!empty($userData)) {
+                $asesor->user->update($userData);
+            }
+        }
 
         return redirect()->route('admin.asesor')
             ->with('success', 'Asesor berhasil diupdate');

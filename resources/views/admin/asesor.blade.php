@@ -87,11 +87,25 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-info btn-sm" 
-                                                onclick="viewAsesor({{ $asesorItem->id }}, '{{ $asesorItem->nama_lengkap }}', '{{ $asesorItem->nip }}', '{{ $asesorItem->jabatan }}', '{{ $asesorItem->instansi }}', '{{ $asesorItem->no_reg }}', '{{ $asesorItem->no_sertifikat_asesor }}', '{{ $asesorItem->tanggal_sertifikat->format('Y-m-d') }}', '{{ $asesorItem->tanggal_expired->format('Y-m-d') }}', {{ $asesorItem->status ? 'true' : 'false' }}, {{ json_encode($asesorItem->skema_kompetensi) }}, '{{ $asesorItem->user->email }}')">
+                                                data-asesor-id="{{ $asesorItem->id }}"
+                                                data-nama-lengkap="{{ $asesorItem->nama_lengkap }}"
+                                                data-nip="{{ $asesorItem->nip }}"
+                                                data-jabatan="{{ $asesorItem->jabatan }}"
+                                                data-instansi="{{ $asesorItem->instansi }}"
+                                                data-no-reg="{{ $asesorItem->no_reg }}"
+                                                data-no-sertifikat="{{ $asesorItem->no_sertifikat_asesor }}"
+                                                data-tanggal-sertifikat="{{ $asesorItem->tanggal_sertifikat->format('Y-m-d') }}"
+                                                data-tanggal-expired="{{ $asesorItem->tanggal_expired->format('Y-m-d') }}"
+                                                data-status="{{ $asesorItem->status ? '1' : '0' }}"
+                                                data-skema-kompetensi="{{ json_encode($asesorItem->skema_kompetensi) }}"
+                                                data-email="{{ $asesorItem->user->email }}"
+                                                data-no-telepon="{{ $asesorItem->user->no_telepon ?? '' }}"
+                                                data-alamat="{{ $asesorItem->user->alamat ?? '' }}"
+                                                onclick="viewAsesorFromButton(this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editAsesor({{ $asesorItem->id }}, {{ $asesorItem->user_id }}, '{{ $asesorItem->nama_lengkap }}', '{{ $asesorItem->nip }}', '{{ $asesorItem->jabatan }}', '{{ $asesorItem->instansi }}', '{{ $asesorItem->no_reg }}', '{{ $asesorItem->no_sertifikat_asesor }}', '{{ $asesorItem->tanggal_sertifikat->format('Y-m-d') }}', '{{ $asesorItem->tanggal_expired->format('Y-m-d') }}', {{ $asesorItem->status ? 'true' : 'false' }}, {{ json_encode($asesorItem->skema_kompetensi) }})">
+                                                onclick="editAsesor({{ $asesorItem->id }}, '{{ $asesorItem->nama_lengkap }}', '{{ $asesorItem->nip }}', '{{ $asesorItem->jabatan }}', '{{ $asesorItem->instansi }}', '{{ $asesorItem->no_reg }}', '{{ $asesorItem->no_sertifikat_asesor }}', '{{ $asesorItem->tanggal_sertifikat->format('Y-m-d') }}', '{{ $asesorItem->tanggal_expired->format('Y-m-d') }}', {{ $asesorItem->status ? 'true' : 'false' }}, {{ json_encode($asesorItem->skema_kompetensi) }}, '{{ $asesorItem->user->no_telepon ?? '' }}', '{{ addslashes($asesorItem->user->alamat ?? '') }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <form action="{{ route('admin.asesor') }}/{{ $asesorItem->id }}" method="POST" 
@@ -158,6 +172,10 @@
                         <strong>No. Reg.:</strong>
                         <p id="view_no_reg"></p>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>No. Telepon:</strong>
+                        <p id="view_no_telepon"></p>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -178,6 +196,10 @@
                         <strong>Tanggal Expired:</strong>
                         <p id="view_tanggal_expired"></p>
                     </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Alamat:</strong>
+                    <p id="view_alamat"></p>
                 </div>
                 <div class="mb-3">
                     <strong>Status:</strong>
@@ -209,18 +231,12 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_user_id" class="form-label">User Account <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit_user_id" name="user_id" required>
-                                <option value="">Pilih User Account</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
                             <label for="edit_nama_lengkap" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="edit_nama_lengkap" name="nama_lengkap" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_no_telepon" class="form-label">No. Telepon <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_no_telepon" name="no_telepon" required>
                         </div>
                     </div>
 
@@ -243,8 +259,8 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="edit_no_reg" class="form-label">No. Reg.</label>
-                            <input type="text" class="form-control" id="edit_no_reg" name="no_reg">
+                            <label for="edit_no_reg" class="form-label">No. Reg. <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_no_reg" name="no_reg" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -263,6 +279,11 @@
                             <label for="edit_tanggal_expired" class="form-label">Tanggal Expired <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="edit_tanggal_expired" name="tanggal_expired" required>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_alamat" class="form-label">Alamat</label>
+                        <textarea class="form-control" id="edit_alamat" name="alamat" rows="3"></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -300,6 +321,9 @@
 </div>
 
 <script>
+// Skema names mapping
+const skemaNames = @json($skemas->pluck('nama_skema', 'id')->toArray());
+
 // Search functionality
 document.getElementById('searchAsesor').addEventListener('keyup', function() {
     const searchTerm = this.value.toLowerCase();
@@ -323,17 +347,39 @@ document.getElementById('searchAsesor').addEventListener('keyup', function() {
     }
 });
 
+// View function from button
+function viewAsesorFromButton(button) {
+    const id = button.getAttribute('data-asesor-id');
+    const namaLengkap = button.getAttribute('data-nama-lengkap');
+    const nip = button.getAttribute('data-nip');
+    const jabatan = button.getAttribute('data-jabatan');
+    const instansi = button.getAttribute('data-instansi');
+    const noReg = button.getAttribute('data-no-reg');
+    const noSertifikat = button.getAttribute('data-no-sertifikat');
+    const tanggalSertifikat = button.getAttribute('data-tanggal-sertifikat');
+    const tanggalExpired = button.getAttribute('data-tanggal-expired');
+    const status = button.getAttribute('data-status') === '1';
+    const skemaKompetensi = JSON.parse(button.getAttribute('data-skema-kompetensi'));
+    const email = button.getAttribute('data-email');
+    const noTelepon = button.getAttribute('data-no-telepon');
+    const alamat = button.getAttribute('data-alamat');
+    
+    viewAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat, tanggalSertifikat, tanggalExpired, status, skemaKompetensi, email, noTelepon, alamat);
+}
+
 // View function
-function viewAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat, tanggalSertifikat, tanggalExpired, status, skemaKompetensi, email) {
+function viewAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat, tanggalSertifikat, tanggalExpired, status, skemaKompetensi, email, noTelepon, alamat) {
     document.getElementById('view_nama_lengkap').textContent = namaLengkap;
     document.getElementById('view_nip').textContent = nip;
     document.getElementById('view_jabatan').textContent = jabatan;
     document.getElementById('view_instansi').textContent = instansi;
     document.getElementById('view_no_reg').textContent = noReg || '-';
+    document.getElementById('view_no_telepon').textContent = noTelepon || '-';
     document.getElementById('view_no_sertifikat_asesor').textContent = noSertifikat;
     document.getElementById('view_email').textContent = email;
     document.getElementById('view_tanggal_sertifikat').textContent = new Date(tanggalSertifikat).toLocaleDateString('id-ID');
     document.getElementById('view_tanggal_expired').textContent = new Date(tanggalExpired).toLocaleDateString('id-ID');
+    document.getElementById('view_alamat').textContent = alamat || '-';
     document.getElementById('view_status').textContent = status ? 'Aktif' : 'Tidak Aktif';
     
     // Clear and populate skema kompetensi
@@ -343,10 +389,8 @@ function viewAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat
     if (skemaKompetensi && skemaKompetensi.length > 0) {
         skemaKompetensi.forEach(function(skemaId) {
             const li = document.createElement('li');
-            // Find skema name from the checkboxes in add modal
-            const skemaCheckbox = document.getElementById('skema_' + skemaId);
-            if (skemaCheckbox) {
-                li.textContent = skemaCheckbox.nextElementSibling.textContent;
+            if (skemaNames[skemaId]) {
+                li.textContent = skemaNames[skemaId];
                 skemaList.appendChild(li);
             }
         });
@@ -360,14 +404,15 @@ function viewAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat
 }
 
 // Edit function
-function editAsesor(id, userId, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat, tanggalSertifikat, tanggalExpired, status, skemaKompetensi) {
+function editAsesor(id, namaLengkap, nip, jabatan, instansi, noReg, noSertifikat, tanggalSertifikat, tanggalExpired, status, skemaKompetensi, noTelepon, alamat) {
     document.getElementById('editAsesorForm').action = "{{ route('admin.asesor') }}/" + id;
-    document.getElementById('edit_user_id').value = userId;
     document.getElementById('edit_nama_lengkap').value = namaLengkap;
     document.getElementById('edit_nip').value = nip;
     document.getElementById('edit_jabatan').value = jabatan;
     document.getElementById('edit_instansi').value = instansi;
     document.getElementById('edit_no_reg').value = noReg || '';
+    document.getElementById('edit_no_telepon').value = noTelepon || '';
+    document.getElementById('edit_alamat').value = alamat || '';
     document.getElementById('edit_no_sertifikat_asesor').value = noSertifikat;
     document.getElementById('edit_tanggal_sertifikat').value = tanggalSertifikat;
     document.getElementById('edit_tanggal_expired').value = tanggalExpired;

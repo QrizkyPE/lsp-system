@@ -135,9 +135,9 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="no_reg" class="form-label">No. Reg.</label>
+                                        <label for="no_reg" class="form-label">No. Reg. <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control @error('no_reg') is-invalid @enderror" 
-                                               id="no_reg" name="no_reg" value="{{ old('no_reg') }}">
+                                               id="no_reg" name="no_reg" value="{{ old('no_reg') }}" required>
                                         @error('no_reg')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -155,9 +155,9 @@
                                     </div>
 
                                     <div class="col-md-6 mb-3">
-                                        <label for="no_telepon" class="form-label">No. Telepon</label>
+                                        <label for="no_telepon" class="form-label">No. Telepon <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control @error('no_telepon') is-invalid @enderror" 
-                                               id="no_telepon" name="no_telepon" value="{{ old('no_telepon') }}">
+                                               id="no_telepon" name="no_telepon" value="{{ old('no_telepon') }}" required>
                                         @error('no_telepon')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
