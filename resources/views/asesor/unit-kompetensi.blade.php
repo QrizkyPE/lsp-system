@@ -104,7 +104,16 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-warning btn-sm" 
-                                                onclick="editUnitJudul({{ $unit->id }}, '{{ addslashes($unit->judul_sertifikasi) }}', '{{ addslashes($unit->kode_unit) }}', '{{ addslashes($unit->judul_unit) }}', '{{ addslashes($unit->standar_kompetensi_kerja) }}', {{ $unit->status ? 'true' : 'false' }})">
+                                                data-unit-id="{{ $unit->id }}"
+                                                data-judul="{{ $unit->judul_sertifikasi }}"
+                                                data-kode="{{ $unit->kode_unit }}"
+                                                data-nama="{{ $unit->judul_unit }}"
+                                                data-standar="{{ $unit->standar_kompetensi_kerja }}"
+                                                data-status="{{ $unit->status ? '1' : '0' }}"
+                                                data-ada-pembagian="{{ $unit->ada_pembagian_kelompok ? '1' : '0' }}"
+                                                data-jumlah-kelompok="{{ $unit->jumlah_kelompok ?? '' }}"
+                                                data-kelompok-asesor="{{ json_encode($unit->kelompokAsesor ?? []) }}"
+                                                onclick="editUnitJudulFromButton(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm" 
@@ -303,6 +312,32 @@
                         </select>
                         <small class="form-text text-muted">Unit Kompetensi yang tidak aktif tidak akan muncul di halaman pendaftaran mahasiswa</small>
                     </div>
+
+                    <!-- Pembagian Kelompok Pekerjaan -->
+                    <div class="mb-3">
+                        <label class="form-label">Adakah pembagian kelompok pekerjaan?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="edit_ada_pembagian_ya" value="1" onchange="toggleEditPembagianKelompok(this)">
+                            <label class="form-check-label" for="edit_ada_pembagian_ya">Ya</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="edit_ada_pembagian_tidak" value="0" checked onchange="toggleEditPembagianKelompok(this)">
+                            <label class="form-check-label" for="edit_ada_pembagian_tidak">Tidak</label>
+                        </div>
+                    </div>
+
+                    <div id="edit_pembagian_kelompok_container" style="display: none;">
+                        <div class="mb-3">
+                            <label for="edit_jumlah_kelompok" class="form-label">Jumlah Kelompok <span class="text-danger">*</span></label>
+                            <select class="form-select" id="edit_jumlah_kelompok" name="jumlah_kelompok" onchange="renderEditKelompokAsesor()">
+                                <option value="">Pilih Jumlah Kelompok</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+
+                        <div id="edit_kelompok_asesor_container"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -327,13 +362,69 @@ function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
     new bootstrap.Modal(document.getElementById('editUnitModal')).show();
 }
 
-function editUnitJudul(id, judul, kode, nama, standar, status) {
+function editUnitJudulFromButton(button) {
+    const id = button.getAttribute('data-unit-id');
+    const judul = button.getAttribute('data-judul');
+    const kode = button.getAttribute('data-kode');
+    const nama = button.getAttribute('data-nama');
+    const standar = button.getAttribute('data-standar');
+    const status = button.getAttribute('data-status');
+    const adaPembagianKelompok = button.getAttribute('data-ada-pembagian') === '1';
+    const jumlahKelompok = button.getAttribute('data-jumlah-kelompok');
+    const kelompokAsesorJson = button.getAttribute('data-kelompok-asesor');
+    
+    let kelompokAsesor = {};
+    try {
+        kelompokAsesor = JSON.parse(kelompokAsesorJson || '{}');
+    } catch (e) {
+        console.error('Error parsing kelompok asesor:', e);
+    }
+    
     document.getElementById('editUnitJudulForm').action = '{{ url("asesor/unit-kompetensi-judul") }}/' + id;
     document.getElementById('edit_judul_sertifikasi').value = judul;
     document.getElementById('edit_kode_unit_judul').value = kode;
     document.getElementById('edit_judul_unit_judul').value = nama;
     document.getElementById('edit_standar_kompetensi_kerja').value = standar;
-    document.getElementById('edit_status').value = status ? '1' : '0';
+    document.getElementById('edit_status').value = status;
+    
+    // Set pembagian kelompok
+    if (adaPembagianKelompok) {
+        document.getElementById('edit_ada_pembagian_ya').checked = true;
+        document.getElementById('edit_ada_pembagian_tidak').checked = false;
+        document.getElementById('edit_pembagian_kelompok_container').style.display = 'block';
+        
+        if (jumlahKelompok) {
+            document.getElementById('edit_jumlah_kelompok').value = jumlahKelompok;
+            renderEditKelompokAsesor();
+            
+            // Set selected asesor after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                if (kelompokAsesor && Object.keys(kelompokAsesor).length > 0) {
+                    Object.keys(kelompokAsesor).forEach(kelompok => {
+                        const select = document.querySelector(`select[name="kelompok_asesor[${kelompok}][]"]`);
+                        if (select && kelompokAsesor[kelompok] && Array.isArray(kelompokAsesor[kelompok])) {
+                            const asesorIds = kelompokAsesor[kelompok].map(a => {
+                                // Handle both direct id and pivot structure
+                                return a.id || (a.pivot && a.pivot.asesor_id) || a;
+                            }).filter(id => id !== null && id !== undefined);
+                            
+                            Array.from(select.options).forEach(option => {
+                                if (asesorIds.includes(parseInt(option.value))) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                    });
+                }
+            }, 200);
+        }
+    } else {
+        document.getElementById('edit_ada_pembagian_ya').checked = false;
+        document.getElementById('edit_ada_pembagian_tidak').checked = true;
+        document.getElementById('edit_pembagian_kelompok_container').style.display = 'none';
+        document.getElementById('edit_jumlah_kelompok').value = '';
+        document.getElementById('edit_kelompok_asesor_container').innerHTML = '';
+    }
     
     new bootstrap.Modal(document.getElementById('editUnitJudulModal')).show();
 }
@@ -444,5 +535,54 @@ document.getElementById('searchUnit').addEventListener('keyup', function() {
         row.style.display = found ? '' : 'none';
     }
 });
+
+// Edit Pembagian Kelompok Functions
+function toggleEditPembagianKelompok(radio) {
+    const container = document.getElementById('edit_pembagian_kelompok_container');
+    if (radio.value === '1') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+        // Reset form
+        document.getElementById('edit_jumlah_kelompok').value = '';
+        document.getElementById('edit_kelompok_asesor_container').innerHTML = '';
+    }
+}
+
+function renderEditKelompokAsesor() {
+    const jumlahKelompok = document.getElementById('edit_jumlah_kelompok').value;
+    const container = document.getElementById('edit_kelompok_asesor_container');
+    
+    if (!jumlahKelompok) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    const asesor = @json($asesor ?? []);
+    
+    for (let i = 1; i <= parseInt(jumlahKelompok); i++) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>Kelompok Pekerjaan ${i}</strong>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Pilih Asesor untuk Kelompok ${i}</label>
+                    <select class="form-select kelompok-asesor-select" name="kelompok_asesor[${i}][]" multiple size="5">
+                        @foreach($asesor as $a)
+                            <option value="{{ $a->id }}" data-nama="{{ $a->user->nama_lengkap ?? $a->user->name }}">
+                                {{ $a->user->nama_lengkap ?? $a->user->name }} - {{ $a->user->email }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa asesor</small>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
 </script>
 @endsection
