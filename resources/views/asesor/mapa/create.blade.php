@@ -379,7 +379,51 @@
                                         <label class="form-check-label" for="terintegrasi_ada"> Ada:</label>
                                     </div>
                                     <div id="terintegrasi_units_container" style="display: none;">
-                                        @foreach($unitKompetensiJudul as $unit)
+                                        @php
+                                            $unitsWithKelompok = $unitKompetensiJudul->filter(function($unit) {
+                                                return $unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor);
+                                            });
+                                            $unitsWithoutKelompok = $unitKompetensiJudul->filter(function($unit) {
+                                                return !$unit->ada_pembagian_kelompok || !isset($unit->kelompokAsesor);
+                                            });
+                                        @endphp
+                                        
+                                        @if($unitsWithKelompok->count() > 0)
+                                            @foreach($unitsWithKelompok as $unit)
+                                                <div class="card mb-3">
+                                                    <div class="card-body">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox" name="kegiatan_terintegrasi_units[]" value="{{ $unit->kode_unit }}" id="unit_{{ $unit->id }}" onchange="toggleUnitKelompok(this, {{ $unit->id }})">
+                                                            <label class="form-check-label" for="unit_{{ $unit->id }}">
+                                                                <strong>Kode Unit : {{ $unit->kode_unit }} Judul Unit : {{ $unit->judul_unit }}</strong>
+                                                            </label>
+                                                        </div>
+                                                        
+                                                        @if($unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor))
+                                                            <div id="kelompok_unit_{{ $unit->id }}" style="display: none;" class="ms-4 mt-2">
+                                                                @for($i = 1; $i <= $unit->jumlah_kelompok; $i++)
+                                                                    @php
+                                                                        $kelompokAsesor = $unit->kelompokAsesor->get($i) ?? collect();
+                                                                    @endphp
+                                                                    @if($kelompokAsesor->count() > 0)
+                                                                        <div class="mb-2">
+                                                                            <strong>Kelompok Pekerjaan {{ $i }}:</strong>
+                                                                            <ul class="list-unstyled ms-3">
+                                                                                @foreach($kelompokAsesor as $asesor)
+                                                                                    <li>• {{ $asesor->user->nama_lengkap ?? $asesor->user->name }}</li>
+                                                                                @endforeach
+                                                                            </ul>
+                                                                        </div>
+                                                                    @endif
+                                                                @endfor
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                        
+                                        @foreach($unitsWithoutKelompok as $unit)
                                             <div class="form-check ms-4">
                                                 <input class="form-check-input" type="checkbox" name="kegiatan_terintegrasi_units[]" value="{{ $unit->kode_unit }}" id="unit_{{ $unit->id }}">
                                                 <label class="form-check-label" for="unit_{{ $unit->id }}">
@@ -503,6 +547,17 @@ function toggleTerintegrasiUnits(radio) {
         container.style.display = 'none';
         // Uncheck all checkboxes
         container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        // Hide all kelompok containers
+        container.querySelectorAll('[id^="kelompok_unit_"]').forEach(el => el.style.display = 'none');
+    }
+}
+
+function toggleUnitKelompok(checkbox, unitId) {
+    const kelompokContainer = document.getElementById('kelompok_unit_' + unitId);
+    if (checkbox.checked && kelompokContainer) {
+        kelompokContainer.style.display = 'block';
+    } else if (kelompokContainer) {
+        kelompokContainer.style.display = 'none';
     }
 }
 

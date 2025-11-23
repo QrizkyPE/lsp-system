@@ -48,7 +48,7 @@
                 <div class="col-md-3">
                     <select class="form-select" id="jenisFilter">
                         <option value="">Semua Jenis</option>
-                        <option value="asesor">Asesor</option>
+                        <option value="asesor">MA (Master Asesor)</option>
                         <option value="mapa">MAPA</option>
                         <option value="ma">MA</option>
                         <option value="mkva">MKVA</option>
@@ -126,7 +126,7 @@
                                         <td>
                                             @switch($p->jenis_penugasan)
                                                 @case('asesor')
-                                                    <span class="badge bg-primary">Asesor</span>
+                                                    <span class="badge bg-primary">MA (Master Asesor)</span>
                                                     @break
                                                 @case('mapa')
                                                     <span class="badge bg-success">MAPA</span>
@@ -247,9 +247,8 @@
                                 <label for="jenis_penugasan" class="form-label">Jenis Penugasan <span class="text-danger">*</span></label>
                                 <select class="form-select" name="jenis_penugasan" id="jenis_penugasan" required>
                                     <option value="">Pilih Jenis Penugasan</option>
-                                    <option value="asesor">Asesor</option>
+                                    <option value="asesor">MA (Master Asesor)</option>
                                     <option value="mapa">MAPA (Master Asesor Penilaian Asesmen)</option>
-                                    <option value="ma">MA (Master Asesor)</option>
                                     <option value="mkva">MKVA (Master Kompetensi Verifikasi Asesmen)</option>
                                 </select>
                             </div>
@@ -329,9 +328,8 @@
                                 <label for="edit_jenis_penugasan" class="form-label">Jenis Penugasan <span class="text-danger">*</span></label>
                                 <select class="form-select" name="jenis_penugasan" id="edit_jenis_penugasan" required>
                                     <option value="">Pilih Jenis Penugasan</option>
-                                    <option value="asesor">Asesor</option>
+                                    <option value="asesor">MA (Master Asesor)</option>
                                     <option value="mapa">MAPA (Master Asesor Penilaian Asesmen)</option>
-                                    <option value="ma">MA (Master Asesor)</option>
                                     <option value="mkva">MKVA (Master Kompetensi Verifikasi Asesmen)</option>
                                 </select>
                             </div>

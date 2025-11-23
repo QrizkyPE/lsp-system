@@ -63,7 +63,7 @@ class AsesorController extends Controller
         $filterJudul = $request->get('filter_judul');
         
         // Data untuk tab Unit Kompetensi per Judul
-        $unitsJudulQuery = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id');
+        $unitsJudulQuery = UnitKompetensiJudul::with('asesorKelompok.user')->orderBy('judul_sertifikasi')->orderBy('id');
         
         // Apply filter if exists
         if ($filterJudul) {
@@ -71,6 +71,15 @@ class AsesorController extends Controller
         }
         
         $unitsJudul = $unitsJudulQuery->get();
+        
+        // Group asesor by kelompok for each unit
+        foreach ($unitsJudul as $unit) {
+            if ($unit->ada_pembagian_kelompok && $unit->asesorKelompok && $unit->asesorKelompok->count() > 0) {
+                $unit->kelompokAsesor = $unit->asesorKelompok->groupBy(function($asesor) {
+                    return $asesor->pivot->kelompok;
+                });
+            }
+        }
         
         // Get unique judul sertifikasi from database
         $judulOptions = UnitKompetensiJudul::select('judul_sertifikasi')

@@ -101,20 +101,19 @@
                         <input type="text" class="form-control" id="searchInput" placeholder="Cari penugasan...">
                     </div>
                 </div>
-                <div class="col-md-3">
+                {{-- <div class="col-md-3">
                     <select class="form-select" id="statusFilter">
                         <option value="">Semua Status</option>
                         <option value="pending">Pending</option>
                         <option value="accepted">Diterima</option>
                         <option value="rejected">Ditolak</option>
                     </select>
-                </div>
+                </div> --}}
                 <div class="col-md-3">
                     <select class="form-select" id="jenisFilter">
                         <option value="">Semua Jenis</option>
-                        <option value="asesor">Asesor</option>
+                        <option value="asesor">MA (Master Asesor)</option>
                         <option value="mapa">MAPA</option>
-                        <option value="ma">MA</option>
                         <option value="mkva">MKVA</option>
                     </select>
                 </div>
@@ -169,10 +168,10 @@
                                                 {{ $p->jadwalUji->skemaSertifikasi->nama_skema ?? '-' }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-jenis="{{ $p->jenis_penugasan }}">
                                             @switch($p->jenis_penugasan)
                                                 @case('asesor')
-                                                    <span class="badge bg-primary">Asesor</span>
+                                                    <span class="badge bg-primary">MA (Master Asesor)</span>
                                                     @break
                                                 @case('mapa')
                                                     <span class="badge bg-success">MAPA</span>
@@ -187,7 +186,7 @@
                                                     <span class="badge bg-secondary">{{ ucfirst($p->jenis_penugasan) }}</span>
                                             @endswitch
                                         </td>
-                                        <td>
+                                        {{-- <td>
                                             @switch($p->status)
                                                 @case('pending')
                                                     <span class="badge bg-warning">Pending</span>
@@ -201,7 +200,7 @@
                                                 @default
                                                     <span class="badge bg-secondary">{{ ucfirst($p->status) }}</span>
                                             @endswitch
-                                        </td>
+                                        </td> --}}
                                         <td>
                                             {{ $p->tanggal_penugasan ? \Carbon\Carbon::parse($p->tanggal_penugasan)->format('d/m/Y H:i') : '-' }}
                                         </td>
@@ -306,18 +305,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
+        const statusValue = statusFilter ? statusFilter.value : '';
         const jenisValue = jenisFilter.value;
 
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const text = row.textContent.toLowerCase();
-            const statusCell = row.cells[4]; // Status column
-            const jenisCell = row.cells[3]; // Jenis column
-
+            const jenisCell = row.cells[3]; // Jenis column (index 3)
+            
+            // Get jenis penugasan from data attribute
+            const jenisPenugasan = jenisCell.getAttribute('data-jenis') || '';
+            
             const matchesSearch = text.includes(searchTerm);
-            const matchesStatus = !statusValue || statusCell.textContent.toLowerCase().includes(statusValue);
-            const matchesJenis = !jenisValue || jenisCell.textContent.toLowerCase().includes(jenisValue);
+            const matchesStatus = !statusValue || true; // Status filter is commented out
+            const matchesJenis = !jenisValue || jenisPenugasan === jenisValue;
 
             if (matchesSearch && matchesStatus && matchesJenis) {
                 row.style.display = '';
@@ -334,6 +335,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function refreshData() {
     location.reload();
+}
+
+function getJenisPenugasanLabel(jenis) {
+    const labels = {
+        'asesor': 'MA (Master Asesor)',
+        'mapa': 'MAPA',
+        'ma': 'MA',
+        'mkva': 'MKVA'
+    };
+    return labels[jenis] || jenis;
 }
 
 function viewPenugasan(id) {
@@ -355,7 +366,7 @@ function viewPenugasan(id) {
                             </tr>
                             <tr>
                                 <td><strong>Jenis Penugasan:</strong></td>
-                                <td><span class="badge bg-primary">${data.jenis_penugasan}</span></td>
+                                <td><span class="badge bg-primary">${getJenisPenugasanLabel(data.jenis_penugasan)}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Status:</strong></td>

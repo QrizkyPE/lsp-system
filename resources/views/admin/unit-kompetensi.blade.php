@@ -57,6 +57,7 @@
                                 <th>Kode Unit</th>
                                 <th>Judul Unit</th>
                                 <th>Standar Kompetensi Kerja</th>
+                                <th>Kelompok</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -69,6 +70,30 @@
                                 <td>{{ $unit->kode_unit }}</td>
                                 <td>{{ $unit->judul_unit }}</td>
                                 <td>{{ $unit->standar_kompetensi_kerja }}</td>
+                                <td>
+                                    @if($unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor))
+                                        <div class="small">
+                                            <strong>{{ $unit->jumlah_kelompok }} Kelompok</strong>
+                                            @for($i = 1; $i <= $unit->jumlah_kelompok; $i++)
+                                                @php
+                                                    $kelompokAsesor = $unit->kelompokAsesor->get($i) ?? collect();
+                                                @endphp
+                                                @if($kelompokAsesor->count() > 0)
+                                                    <div class="mt-1">
+                                                        <strong>Kelompok {{ $i }}:</strong>
+                                                        <ul class="list-unstyled mb-0 ms-2">
+                                                            @foreach($kelompokAsesor as $asesor)
+                                                                <li>• {{ $asesor->user->nama_lengkap ?? $asesor->user->name }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                    @else
+                                        <span class="text-muted">Tidak ada</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($unit->status)
                                         <span class="badge bg-success">Aktif</span>
@@ -91,7 +116,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data unit kompetensi</td>
+                                <td colspan="8" class="text-center">Tidak ada data unit kompetensi</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -169,6 +194,32 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="form-text text-muted">Unit Kompetensi yang tidak aktif tidak akan muncul di halaman pendaftaran mahasiswa</small>
+                    </div>
+
+                    <!-- Pembagian Kelompok Pekerjaan -->
+                    <div class="mb-3">
+                        <label class="form-label">Adakah pembagian kelompok pekerjaan?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="ada_pembagian_ya" value="1" onchange="togglePembagianKelompok(this)">
+                            <label class="form-check-label" for="ada_pembagian_ya">Ya</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="ada_pembagian_tidak" value="0" checked onchange="togglePembagianKelompok(this)">
+                            <label class="form-check-label" for="ada_pembagian_tidak">Tidak</label>
+                        </div>
+                    </div>
+
+                    <div id="pembagian_kelompok_container" style="display: none;">
+                        <div class="mb-3">
+                            <label for="jumlah_kelompok" class="form-label">Jumlah Kelompok <span class="text-danger">*</span></label>
+                            <select class="form-select" id="jumlah_kelompok" name="jumlah_kelompok" onchange="renderKelompokAsesor()">
+                                <option value="">Pilih Jumlah Kelompok</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+
+                        <div id="kelompok_asesor_container"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -419,5 +470,61 @@ document.getElementById('searchUnit').addEventListener('keyup', function() {
         row.style.display = found ? '' : 'none';
     }
 });
+
+// Pembagian Kelompok Pekerjaan
+function togglePembagianKelompok(radio) {
+    const container = document.getElementById('pembagian_kelompok_container');
+    if (radio.value === '1') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+        // Reset form
+        document.getElementById('jumlah_kelompok').value = '';
+        document.getElementById('kelompok_asesor_container').innerHTML = '';
+    }
+}
+
+function renderKelompokAsesor() {
+    const jumlahKelompok = document.getElementById('jumlah_kelompok').value;
+    const container = document.getElementById('kelompok_asesor_container');
+    
+    if (!jumlahKelompok) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    const asesor = @json($asesor);
+    
+    for (let i = 1; i <= parseInt(jumlahKelompok); i++) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>Kelompok Pekerjaan ${i}</strong>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Pilih Asesor untuk Kelompok ${i}</label>
+                    <select class="form-select kelompok-asesor-select" name="kelompok_asesor[${i}][]" multiple size="5" onchange="validateUnitKompetensi(this, ${i})">
+                        @foreach($asesor as $a)
+                            <option value="{{ $a->id }}" data-nama="{{ $a->user->nama_lengkap ?? $a->user->name }}">
+                                {{ $a->user->nama_lengkap ?? $a->user->name }} - {{ $a->user->email }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa asesor</small>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Validasi: jika unit kompetensi sudah dipilih di suatu kelompok, kelompok lain tidak bisa pilih unit kompetensi yang sama
+// Note: Validasi ini akan dilakukan di server side karena kita perlu cek database
+function validateUnitKompetensi(select, kelompok) {
+    // Client-side validation bisa ditambahkan di sini jika diperlukan
+    // Server-side validation lebih penting untuk memastikan data konsisten
+}
 </script>
 @endsection

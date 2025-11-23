@@ -57,6 +57,7 @@
                                 <th>Kode Unit</th>
                                 <th>Judul Unit</th>
                                 <th>Standar Kompetensi Kerja</th>
+                                <th>Kelompok</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -69,6 +70,30 @@
                                 <td>{{ $unit->kode_unit }}</td>
                                 <td>{{ $unit->judul_unit }}</td>
                                 <td>{{ $unit->standar_kompetensi_kerja }}</td>
+                                <td>
+                                    @if($unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor))
+                                        <div class="small">
+                                            <strong>{{ $unit->jumlah_kelompok }} Kelompok</strong>
+                                            @for($i = 1; $i <= $unit->jumlah_kelompok; $i++)
+                                                @php
+                                                    $kelompokAsesor = $unit->kelompokAsesor->get($i) ?? collect();
+                                                @endphp
+                                                @if($kelompokAsesor->count() > 0)
+                                                    <div class="mt-1">
+                                                        <strong>Kelompok {{ $i }}:</strong>
+                                                        <ul class="list-unstyled mb-0 ms-2">
+                                                            @foreach($kelompokAsesor as $asesor)
+                                                                <li>• {{ $asesor->user->nama_lengkap ?? $asesor->user->name }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                    @else
+                                        <span class="text-muted">Tidak ada</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($unit->status)
                                         <span class="badge bg-success">Aktif</span>
@@ -91,7 +116,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada data unit kompetensi</td>
+                                <td colspan="8" class="text-center">Tidak ada data unit kompetensi</td>
                             </tr>
                             @endforelse
                         </tbody>

@@ -62,6 +62,7 @@ class MAPAController extends Controller
         // Get unit kompetensi judul berdasarkan nama skema
         $unitKompetensiJudul = UnitKompetensiJudul::where('judul_sertifikasi', $skema->nama_skema)
             ->where('status', true)
+            ->with('asesorKelompok.user')
             ->get();
         
         // Load elemen and kriteria for each unit
@@ -75,6 +76,13 @@ class MAPAController extends Controller
                     ->where('kode_unit', $unit->kode_unit)
                     ->where('kode_elemen', $elemen->kode_elemen)
                     ->get();
+            }
+            
+            // Group asesor by kelompok
+            if ($unit->ada_pembagian_kelompok && $unit->asesorKelompok && $unit->asesorKelompok->count() > 0) {
+                $unit->kelompokAsesor = $unit->asesorKelompok->groupBy(function($asesor) {
+                    return $asesor->pivot->kelompok;
+                });
             }
         }
 

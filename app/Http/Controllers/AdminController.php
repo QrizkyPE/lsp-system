@@ -121,7 +121,7 @@ class AdminController extends Controller
         $filterJudul = $request->get('filter_judul');
         
         // Data untuk tab Unit Kompetensi per Judul
-        $unitsJudulQuery = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('id');
+        $unitsJudulQuery = UnitKompetensiJudul::with('asesorKelompok.user')->orderBy('judul_sertifikasi')->orderBy('id');
         
         // Apply filter if exists
         if ($filterJudul) {
@@ -130,6 +130,15 @@ class AdminController extends Controller
         
         $unitsJudul = $unitsJudulQuery->get();
         
+        // Group asesor by kelompok for each unit
+        foreach ($unitsJudul as $unit) {
+            if ($unit->ada_pembagian_kelompok && $unit->asesorKelompok && $unit->asesorKelompok->count() > 0) {
+                $unit->kelompokAsesor = $unit->asesorKelompok->groupBy(function($asesor) {
+                    return $asesor->pivot->kelompok;
+                });
+            }
+        }
+        
         // Get unique judul sertifikasi from database
         $judulOptions = UnitKompetensiJudul::select('judul_sertifikasi')
             ->distinct()
@@ -137,7 +146,10 @@ class AdminController extends Controller
             ->pluck('judul_sertifikasi')
             ->toArray();
         
-        return view('admin.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions', 'filterJudul'));
+        // Get asesor for pembagian kelompok
+        $asesor = Asesor::with('user')->where('status', true)->get();
+        
+        return view('admin.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions', 'filterJudul', 'asesor'));
     }
 
     public function storeUnitKompetensi(Request $request)
@@ -592,12 +604,49 @@ class AdminController extends Controller
             'judul_unit' => 'required|string',
             'standar_kompetensi_kerja' => 'required|string',
             'status' => 'nullable|boolean',
+            'ada_pembagian_kelompok' => 'nullable|boolean',
+            'jumlah_kelompok' => 'nullable|integer|in:2,3',
+            'kelompok_asesor' => 'nullable|array',
+            'kelompok_asesor.*' => 'nullable|array',
+            'kelompok_asesor.*.*' => 'exists:asesor,id',
         ]);
 
         $data = $request->all();
         $data['status'] = $request->has('status') ? (bool)$request->status : true;
+        $data['ada_pembagian_kelompok'] = $request->has('ada_pembagian_kelompok') ? (bool)$request->ada_pembagian_kelompok : false;
+        
+        // Jika tidak ada pembagian kelompok, set jumlah_kelompok ke null
+        if (!$data['ada_pembagian_kelompok']) {
+            $data['jumlah_kelompok'] = null;
+        }
 
-        UnitKompetensiJudul::create($data);
+        $unit = UnitKompetensiJudul::create($data);
+
+        // Simpan asesor per kelompok jika ada pembagian kelompok
+        if ($data['ada_pembagian_kelompok'] && $request->has('kelompok_asesor')) {
+            foreach ($request->kelompok_asesor as $kelompok => $asesorIds) {
+                if (is_array($asesorIds)) {
+                    foreach ($asesorIds as $asesorId) {
+                        // Validasi: cek apakah unit kompetensi ini sudah dipilih di kelompok lain
+                        $existing = DB::table('unit_kompetensi_judul_asesor_kelompok')
+                            ->where('unit_kompetensi_judul_id', $unit->id)
+                            ->where('asesor_id', $asesorId)
+                            ->where('kelompok', '!=', $kelompok)
+                            ->exists();
+                        
+                        if (!$existing) {
+                            DB::table('unit_kompetensi_judul_asesor_kelompok')->insert([
+                                'unit_kompetensi_judul_id' => $unit->id,
+                                'asesor_id' => $asesorId,
+                                'kelompok' => $kelompok,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
 
         return redirect()->route('admin.unit-kompetensi')
             ->with('success', 'Unit kompetensi berhasil ditambahkan');
@@ -611,11 +660,49 @@ class AdminController extends Controller
             'judul_unit' => 'required|string',
             'standar_kompetensi_kerja' => 'required|string',
             'status' => 'nullable|boolean',
+            'ada_pembagian_kelompok' => 'nullable|boolean',
+            'jumlah_kelompok' => 'nullable|integer|in:2,3',
+            'kelompok_asesor' => 'nullable|array',
+            'kelompok_asesor.*' => 'nullable|array',
+            'kelompok_asesor.*.*' => 'exists:asesor,id',
         ]);
 
         $unit = UnitKompetensiJudul::findOrFail($id);
         $data = $request->all();
         $data['status'] = $request->has('status') ? (bool)$request->status : true;
+        $data['ada_pembagian_kelompok'] = $request->has('ada_pembagian_kelompok') ? (bool)$request->ada_pembagian_kelompok : false;
+        
+        // Jika tidak ada pembagian kelompok, set jumlah_kelompok ke null dan hapus data kelompok
+        if (!$data['ada_pembagian_kelompok']) {
+            $data['jumlah_kelompok'] = null;
+            // Hapus semua data kelompok yang ada
+            DB::table('unit_kompetensi_judul_asesor_kelompok')
+                ->where('unit_kompetensi_judul_id', $unit->id)
+                ->delete();
+        } else {
+            // Hapus data kelompok lama
+            DB::table('unit_kompetensi_judul_asesor_kelompok')
+                ->where('unit_kompetensi_judul_id', $unit->id)
+                ->delete();
+            
+            // Simpan data kelompok baru jika ada
+            if ($request->has('kelompok_asesor')) {
+                foreach ($request->kelompok_asesor as $kelompok => $asesorIds) {
+                    if (is_array($asesorIds)) {
+                        foreach ($asesorIds as $asesorId) {
+                            DB::table('unit_kompetensi_judul_asesor_kelompok')->insert([
+                                'unit_kompetensi_judul_id' => $unit->id,
+                                'asesor_id' => $asesorId,
+                                'kelompok' => $kelompok,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
         $unit->update($data);
 
         return redirect()->route('admin.unit-kompetensi')
