@@ -112,7 +112,17 @@
                                                 data-status="{{ $unit->status ? '1' : '0' }}"
                                                 data-ada-pembagian="{{ $unit->ada_pembagian_kelompok ? '1' : '0' }}"
                                                 data-jumlah-kelompok="{{ $unit->jumlah_kelompok ?? '' }}"
-                                                data-kelompok-asesor="{{ json_encode($unit->kelompokAsesor ?? []) }}"
+@php
+    $kelompokAsesorData = [];
+    if (isset($unit->kelompokAsesor) && is_object($unit->kelompokAsesor)) {
+        $kelompokAsesorData = $unit->kelompokAsesor->mapWithKeys(function($collection, $key) {
+            return [strval($key) => $collection->map(function($item) {
+                return is_object($item) && method_exists($item, 'toArray') ? $item->toArray() : (is_array($item) ? $item : []);
+            })->values()->toArray()];
+        })->toArray();
+    }
+@endphp
+                                                data-kelompok-asesor="{{ htmlspecialchars(json_encode($kelompokAsesorData), ENT_QUOTES, 'UTF-8') }}"
                                                 onclick="editUnitJudulFromButton(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -203,6 +213,32 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="form-text text-muted">Unit Kompetensi yang tidak aktif tidak akan muncul di halaman pendaftaran mahasiswa</small>
+                    </div>
+
+                    <!-- Pembagian Kelompok Pekerjaan -->
+                    <div class="mb-3">
+                        <label class="form-label">Adakah pembagian kelompok pekerjaan?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="ada_pembagian_ya" value="1" onchange="togglePembagianKelompok(this)">
+                            <label class="form-check-label" for="ada_pembagian_ya">Ya</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ada_pembagian_kelompok" id="ada_pembagian_tidak" value="0" checked onchange="togglePembagianKelompok(this)">
+                            <label class="form-check-label" for="ada_pembagian_tidak">Tidak</label>
+                        </div>
+                    </div>
+
+                    <div id="pembagian_kelompok_container" style="display: none;">
+                        <div class="mb-3">
+                            <label for="jumlah_kelompok" class="form-label">Jumlah Kelompok <span class="text-danger">*</span></label>
+                            <select class="form-select" id="jumlah_kelompok" name="jumlah_kelompok" onchange="renderKelompokAsesor()">
+                                <option value="">Pilih Jumlah Kelompok</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+
+                        <div id="kelompok_asesor_container"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -351,6 +387,251 @@
 
 @section('scripts')
 <script>
+// Define asesor data globally
+@php
+    $asesorArray = [];
+    $originalCount = 0;
+    $asesorType = 'unknown';
+    
+    // If $asesor is not set or empty, fetch directly from database
+    $shouldFetch = false;
+    $fetchReason = '';
+    
+    // Calculate count first - try multiple methods, but also check later when we calculate $originalCount
+    $calculatedCount = -1;
+    if (isset($asesor)) {
+        try {
+            // Try is_countable() first
+            if (is_countable($asesor)) {
+                $calculatedCount = count($asesor);
+            }
+            // Try method count() on object
+            if ($calculatedCount < 0 && is_object($asesor) && method_exists($asesor, 'count')) {
+                try {
+                    $calculatedCount = $asesor->count();
+                } catch (\Exception $e) {
+                    // Ignore
+                }
+            }
+            // Try count() on array
+            if ($calculatedCount < 0 && is_array($asesor)) {
+                $calculatedCount = count($asesor);
+            }
+            // Try isEmpty() - if empty, count is 0
+            if ($calculatedCount < 0 && is_object($asesor) && method_exists($asesor, 'isEmpty')) {
+                try {
+                    if ($asesor->isEmpty()) {
+                        $calculatedCount = 0;
+                    }
+                } catch (\Exception $e) {
+                    // Ignore
+                }
+            }
+        } catch (\Exception $e) {
+            $calculatedCount = -1;
+        }
+    }
+    
+    // Check if we need to fetch - use calculated count
+    if (!isset($asesor)) {
+        $shouldFetch = true;
+        $fetchReason = 'not_set';
+    } elseif ($calculatedCount === 0) {
+        // If count is 0, we need to fetch
+        $shouldFetch = true;
+        $fetchReason = 'count_zero';
+    } elseif (is_object($asesor) && method_exists($asesor, 'isEmpty')) {
+        // Also check isEmpty() for Collections (as additional check)
+        try {
+            if ($asesor->isEmpty()) {
+                $shouldFetch = true;
+                $fetchReason = 'collection_empty';
+            }
+        } catch (\Exception $e) {
+            // Ignore
+        }
+    } elseif (is_array($asesor) && empty($asesor)) {
+        // Check if it's an empty array
+        $shouldFetch = true;
+        $fetchReason = 'array_empty';
+    } elseif (!$asesor) {
+        // Check if it's falsy
+        $shouldFetch = true;
+        $fetchReason = 'empty_value';
+    }
+    
+    
+    if ($shouldFetch) {
+        try {
+            $asesor = \App\Models\Asesor::with('user')->get();
+            // If still empty, try without eager loading
+            if ($asesor->isEmpty()) {
+                $asesor = \App\Models\Asesor::all();
+                if ($asesor->isNotEmpty()) {
+                    $asesor->load('user');
+                }
+            }
+            // Verify we got data
+            if ($asesor->isEmpty()) {
+                // Last resort: use DB query
+                $asesor = \Illuminate\Support\Facades\DB::table('asesor')
+                    ->join('users', 'asesor.user_id', '=', 'users.id')
+                    ->select('asesor.*', 'users.name', 'users.email', 'users.nama_lengkap')
+                    ->get()
+                    ->map(function($item) {
+                        return (object)[
+                            'id' => $item->id,
+                            'user_id' => $item->user_id,
+                            'nama_lengkap' => $item->nama_lengkap,
+                            'user' => (object)[
+                                'id' => $item->user_id,
+                                'name' => $item->name,
+                                'email' => $item->email,
+                                'nama_lengkap' => $item->nama_lengkap ?? $item->name
+                            ]
+                        ];
+                    });
+            }
+        } catch (\Exception $e) {
+            try {
+                $asesor = \Illuminate\Support\Facades\DB::table('asesor')
+                    ->join('users', 'asesor.user_id', '=', 'users.id')
+                    ->select('asesor.*', 'users.name', 'users.email', 'users.nama_lengkap')
+                    ->get()
+                    ->map(function($item) {
+                        return (object)[
+                            'id' => $item->id,
+                            'user_id' => $item->user_id,
+                            'nama_lengkap' => $item->nama_lengkap,
+                            'user' => (object)[
+                                'id' => $item->user_id,
+                                'name' => $item->name,
+                                'email' => $item->email,
+                                'nama_lengkap' => $item->nama_lengkap ?? $item->name
+                            ]
+                        ];
+                    });
+            } catch (\Exception $e2) {
+                $asesor = collect([]);
+            }
+        }
+    }
+    
+    
+    // After fetch, verify we have data - if still empty, force fetch again
+    if ($shouldFetch && isset($asesor) && is_object($asesor) && method_exists($asesor, 'isEmpty') && $asesor->isEmpty()) {
+        // Fetch failed, try one more time with DB query
+        try {
+            $asesor = \Illuminate\Support\Facades\DB::table('asesor')
+                ->join('users', 'asesor.user_id', '=', 'users.id')
+                ->select('asesor.*', 'users.name', 'users.email', 'users.nama_lengkap')
+                ->get()
+                ->map(function($item) {
+                    return (object)[
+                        'id' => $item->id,
+                        'user_id' => $item->user_id,
+                        'nama_lengkap' => $item->nama_lengkap,
+                        'user' => (object)[
+                            'id' => $item->user_id,
+                            'name' => $item->name,
+                            'email' => $item->email,
+                            'nama_lengkap' => $item->nama_lengkap ?? $item->name
+                        ]
+                    ];
+                });
+        } catch (\Exception $e) {
+            // Keep empty collection if all fails
+        }
+    }
+    
+    // Use the same logic that calculates $originalCount to determine if we need to fetch
+    // This ensures consistency
+    if (isset($asesor) && $asesor) {
+        $asesorType = gettype($asesor);
+        try {
+            // Check if it's countable - use same logic as $originalCount
+            if (is_countable($asesor)) {
+                $originalCount = count($asesor);
+                // If count is 0, ALWAYS re-fetch regardless of $shouldFetch
+                if ($originalCount === 0) {
+                    // Re-fetch data - try multiple methods
+                    try {
+                        $asesor = \App\Models\Asesor::with('user')->get();
+                        if ($asesor->isEmpty()) {
+                            $asesor = \App\Models\Asesor::all();
+                            if ($asesor->isNotEmpty()) {
+                                $asesor->load('user');
+                            }
+                        }
+                        // If still empty, try DB query
+                        if ($asesor->isEmpty()) {
+                            $asesor = \Illuminate\Support\Facades\DB::table('asesor')
+                                ->join('users', 'asesor.user_id', '=', 'users.id')
+                                ->select('asesor.*', 'users.name', 'users.email', 'users.nama_lengkap')
+                                ->get()
+                                ->map(function($item) {
+                                    return (object)[
+                                        'id' => $item->id,
+                                        'user_id' => $item->user_id,
+                                        'nama_lengkap' => $item->nama_lengkap,
+                                        'user' => (object)[
+                                            'id' => $item->user_id,
+                                            'name' => $item->name,
+                                            'email' => $item->email,
+                                            'nama_lengkap' => $item->nama_lengkap ?? $item->name
+                                        ]
+                                    ];
+                                });
+                        }
+                        // Recalculate count after fetch
+                        if (is_countable($asesor)) {
+                            $originalCount = count($asesor);
+                        } elseif (is_object($asesor) && method_exists($asesor, 'count')) {
+                            $originalCount = $asesor->count();
+                        }
+                    } catch (\Exception $e) {
+                        // Keep original count
+                    }
+                }
+            } else {
+                $originalCount = 0;
+                // If not countable but exists, try to fetch anyway
+                try {
+                    $asesor = \App\Models\Asesor::with('user')->get();
+                    if (is_countable($asesor)) {
+                        $originalCount = count($asesor);
+                    }
+                } catch (\Exception $e) {
+                    // Keep original
+                }
+            }
+            
+            // Always loop through collection/array to create numeric array
+            if (is_iterable($asesor)) {
+                foreach ($asesor as $item) {
+                    if (is_object($item) && method_exists($item, 'toArray')) {
+                        $itemArray = $item->toArray();
+                        $asesorArray[] = $itemArray;
+                    } elseif (is_array($item)) {
+                        $asesorArray[] = $item;
+                    } else {
+                        $asesorArray[] = (array)$item;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $asesorArray = [];
+        }
+    }
+    
+    // Final check: ensure it's always a numeric array (not associative)
+    $asesorArray = array_values($asesorArray);
+    
+    // Debug: Log count in PHP
+    $count = count($asesorArray);
+@endphp
+const asesorData = @json($asesorArray);
+
 function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
     document.getElementById('editUnitForm').action = '{{ route("asesor.unit-kompetensi") }}/' + id;
     document.getElementById('edit_kode_unit').value = kode;
@@ -361,6 +642,9 @@ function editUnit(id, kode, nama, deskripsi, kriteria, skemaId) {
     
     new bootstrap.Modal(document.getElementById('editUnitModal')).show();
 }
+
+// Store kelompokAsesor data globally for edit function
+let storedKelompokAsesor = {};
 
 function editUnitJudulFromButton(button) {
     const id = button.getAttribute('data-unit-id');
@@ -373,11 +657,12 @@ function editUnitJudulFromButton(button) {
     const jumlahKelompok = button.getAttribute('data-jumlah-kelompok');
     const kelompokAsesorJson = button.getAttribute('data-kelompok-asesor');
     
-    let kelompokAsesor = {};
+    // Parse and store kelompokAsesor data
+    storedKelompokAsesor = {};
     try {
-        kelompokAsesor = JSON.parse(kelompokAsesorJson || '{}');
+        storedKelompokAsesor = JSON.parse(kelompokAsesorJson || '{}');
     } catch (e) {
-        console.error('Error parsing kelompok asesor:', e);
+        storedKelompokAsesor = {};
     }
     
     document.getElementById('editUnitJudulForm').action = '{{ url("asesor/unit-kompetensi-judul") }}/' + id;
@@ -395,28 +680,11 @@ function editUnitJudulFromButton(button) {
         
         if (jumlahKelompok) {
             document.getElementById('edit_jumlah_kelompok').value = jumlahKelompok;
+            // Render first, then set selected values
             renderEditKelompokAsesor();
-            
-            // Set selected asesor after a short delay to ensure DOM is ready
-            setTimeout(() => {
-                if (kelompokAsesor && Object.keys(kelompokAsesor).length > 0) {
-                    Object.keys(kelompokAsesor).forEach(kelompok => {
-                        const select = document.querySelector(`select[name="kelompok_asesor[${kelompok}][]"]`);
-                        if (select && kelompokAsesor[kelompok] && Array.isArray(kelompokAsesor[kelompok])) {
-                            const asesorIds = kelompokAsesor[kelompok].map(a => {
-                                // Handle both direct id and pivot structure
-                                return a.id || (a.pivot && a.pivot.asesor_id) || a;
-                            }).filter(id => id !== null && id !== undefined);
-                            
-                            Array.from(select.options).forEach(option => {
-                                if (asesorIds.includes(parseInt(option.value))) {
-                                    option.selected = true;
-                                }
-                            });
-                        }
-                    });
-                }
-            }, 200);
+        } else {
+            document.getElementById('edit_jumlah_kelompok').value = '';
+            document.getElementById('edit_kelompok_asesor_container').innerHTML = '';
         }
     } else {
         document.getElementById('edit_ada_pembagian_ya').checked = false;
@@ -536,6 +804,89 @@ document.getElementById('searchUnit').addEventListener('keyup', function() {
     }
 });
 
+// Pembagian Kelompok Pekerjaan
+function togglePembagianKelompok(radio) {
+    const container = document.getElementById('pembagian_kelompok_container');
+    if (radio.value === '1') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+        // Reset form
+        document.getElementById('jumlah_kelompok').value = '';
+        document.getElementById('kelompok_asesor_container').innerHTML = '';
+    }
+}
+
+function renderKelompokAsesor() {
+    const jumlahKelompok = document.getElementById('jumlah_kelompok').value;
+    const container = document.getElementById('kelompok_asesor_container');
+    
+    if (!jumlahKelompok) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    // Use global asesor data - ensure it's always an array
+    let asesor = [];
+    if (Array.isArray(asesorData)) {
+        asesor = asesorData;
+    } else if (asesorData && typeof asesorData === 'object') {
+        // If it's an object, convert to array
+        asesor = Object.values(asesorData);
+    }
+    
+    if (!Array.isArray(asesor) || asesor.length === 0) {
+        container.innerHTML = '<div class="alert alert-warning">Tidak ada asesor yang tersedia.</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    for (let i = 1; i <= parseInt(jumlahKelompok); i++) {
+        let optionsHtml = '';
+        asesor.forEach(function(a) {
+            if (a && a.id && a.user) {
+                const nama = a.user.nama_lengkap || a.user.name || '';
+                const email = a.user.email || '';
+                optionsHtml += `<option value="${a.id}" data-nama="${nama}">${nama} - ${email}</option>`;
+            }
+        });
+        
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>Kelompok Pekerjaan ${i}</strong>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Pilih Asesor untuk Kelompok ${i}</label>
+                    <select class="form-select kelompok-asesor-select" name="kelompok_asesor[${i}][]" multiple size="5" data-kelompok="${i}" onchange="validateUnitKompetensi(this, ${i})">
+                        ${optionsHtml}
+                    </select>
+                    <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa asesor</small>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+    
+    // Add event listeners after DOM is updated
+    // Use longer timeout to ensure DOM is fully ready
+    setTimeout(() => {
+        // First enable all options
+        const allSelects = document.querySelectorAll('.kelompok-asesor-select');
+        allSelects.forEach(select => {
+            Array.from(select.options).forEach(option => {
+                option.disabled = false;
+                option.style.color = '';
+                option.style.backgroundColor = '';
+            });
+        });
+        // Then update disabled options based on selections
+        updateDisabledAsesorOptions();
+    }, 200);
+}
+
 // Edit Pembagian Kelompok Functions
 function toggleEditPembagianKelompok(radio) {
     const container = document.getElementById('edit_pembagian_kelompok_container');
@@ -549,6 +900,101 @@ function toggleEditPembagianKelompok(radio) {
     }
 }
 
+// Update disabled options untuk mencegah asesor yang sama dipilih di lebih dari satu kelompok
+function updateDisabledAsesorOptions() {
+    const allSelects = document.querySelectorAll('.kelompok-asesor-select');
+    
+    if (allSelects.length === 0) {
+        return;
+    }
+    
+    // First, enable all options in all selects
+    allSelects.forEach(select => {
+        Array.from(select.options).forEach(option => {
+            option.disabled = false;
+            option.style.color = '';
+            option.style.backgroundColor = '';
+        });
+    });
+    
+    // Collect all selected asesor IDs from all groups
+    const selectedAsesorIds = new Set();
+    allSelects.forEach(select => {
+        Array.from(select.selectedOptions).forEach(option => {
+            selectedAsesorIds.add(parseInt(option.value));
+        });
+    });
+    
+    // Disable options that are selected in other groups
+    allSelects.forEach(select => {
+        const currentGroup = select.getAttribute('data-kelompok');
+        const currentSelected = new Set();
+        
+        // Get currently selected in this group
+        Array.from(select.selectedOptions).forEach(option => {
+            currentSelected.add(parseInt(option.value));
+        });
+        
+        // Update disabled state for all options
+        Array.from(select.options).forEach(option => {
+            const optionId = parseInt(option.value);
+            const isSelectedInThisGroup = currentSelected.has(optionId);
+            const isSelectedInOtherGroup = selectedAsesorIds.has(optionId) && !isSelectedInThisGroup;
+            
+            // Disable if selected in other group, keep enabled if selected in this group or not selected anywhere
+            if (isSelectedInOtherGroup) {
+                option.disabled = true;
+                option.style.color = '#999';
+                option.style.backgroundColor = '#f5f5f5';
+            } else {
+                option.disabled = false;
+                option.style.color = '';
+                option.style.backgroundColor = '';
+            }
+        });
+    });
+}
+
+// Validasi: mencegah asesor yang sama dipilih di lebih dari satu kelompok
+function validateUnitKompetensi(select, kelompok) {
+    // Update disabled options first
+    updateDisabledAsesorOptions();
+    
+    // Check if user is trying to select an asesor that's already selected in another group
+    const selectedOptions = Array.from(select.selectedOptions);
+    const allSelects = document.querySelectorAll('.kelompok-asesor-select');
+    let hasConflict = false;
+    
+    selectedOptions.forEach(option => {
+        const optionId = parseInt(option.value);
+        let foundInOtherGroup = false;
+        
+        allSelects.forEach(otherSelect => {
+            if (otherSelect !== select) {
+                const otherSelected = Array.from(otherSelect.selectedOptions);
+                otherSelected.forEach(otherOption => {
+                    if (parseInt(otherOption.value) === optionId) {
+                        foundInOtherGroup = true;
+                    }
+                });
+            }
+        });
+        
+        if (foundInOtherGroup) {
+            // Deselect if already selected in another group
+            option.selected = false;
+            hasConflict = true;
+        }
+    });
+    
+    if (hasConflict) {
+        alert('Asesor ini sudah dipilih di kelompok lain. Satu asesor tidak dapat berada di lebih dari satu kelompok.');
+    }
+    
+    // Update disabled options again after validation
+    updateDisabledAsesorOptions();
+}
+
 function renderEditKelompokAsesor() {
     const jumlahKelompok = document.getElementById('edit_jumlah_kelompok').value;
     const container = document.getElementById('edit_kelompok_asesor_container');
@@ -558,10 +1004,46 @@ function renderEditKelompokAsesor() {
         return;
     }
     
+    // Use global asesor data - ensure it's always an array
+    let asesor = [];
+    if (Array.isArray(asesorData)) {
+        asesor = asesorData;
+    } else if (asesorData && typeof asesorData === 'object') {
+        // If it's an object, convert to array
+        asesor = Object.values(asesorData);
+    }
+    
+    if (!Array.isArray(asesor) || asesor.length === 0) {
+        container.innerHTML = '<div class="alert alert-warning">Tidak ada asesor yang tersedia. Silakan refresh halaman.</div>';
+        return;
+    }
+    
     let html = '';
-    const asesor = @json($asesor ?? []);
     
     for (let i = 1; i <= parseInt(jumlahKelompok); i++) {
+        let optionsHtml = '';
+        asesor.forEach(function(a) {
+            if (a && a.id) {
+                // Handle both cases: with user and without user
+                let nama = '';
+                let email = '';
+                
+                if (a.user) {
+                    nama = a.user.nama_lengkap || a.user.name || a.nama_lengkap || '';
+                    email = a.user.email || '';
+                } else {
+                    // Fallback to asesor data if user is not available
+                    nama = a.nama_lengkap || '';
+                    email = '';
+                }
+                
+                if (nama) {
+                    const displayText = email ? `${nama} - ${email}` : nama;
+                    optionsHtml += `<option value="${a.id}" data-nama="${nama}">${displayText}</option>`;
+                }
+            }
+        });
+        
         html += `
             <div class="card mb-3">
                 <div class="card-header">
@@ -569,12 +1051,8 @@ function renderEditKelompokAsesor() {
                 </div>
                 <div class="card-body">
                     <label class="form-label">Pilih Asesor untuk Kelompok ${i}</label>
-                    <select class="form-select kelompok-asesor-select" name="kelompok_asesor[${i}][]" multiple size="5">
-                        @foreach($asesor as $a)
-                            <option value="{{ $a->id }}" data-nama="{{ $a->user->nama_lengkap ?? $a->user->name }}">
-                                {{ $a->user->nama_lengkap ?? $a->user->name }} - {{ $a->user->email }}
-                            </option>
-                        @endforeach
+                    <select class="form-select kelompok-asesor-select" name="kelompok_asesor[${i}][]" multiple size="5" data-kelompok="${i}" onchange="validateUnitKompetensi(this, ${i})">
+                        ${optionsHtml}
                     </select>
                     <small class="form-text text-muted">Gunakan Ctrl+Click (Windows) atau Cmd+Click (Mac) untuk memilih beberapa asesor</small>
                 </div>
@@ -583,6 +1061,68 @@ function renderEditKelompokAsesor() {
     }
     
     container.innerHTML = html;
+    
+    // Add event listeners after DOM is updated
+    // Use longer timeout to ensure DOM is fully ready
+    setTimeout(() => {
+        const allSelects = document.querySelectorAll('.kelompok-asesor-select');
+        
+        if (allSelects.length === 0) {
+            console.warn('No select elements found after render');
+            return;
+        }
+        
+        // First enable all options
+        allSelects.forEach(select => {
+            Array.from(select.options).forEach(option => {
+                option.disabled = false;
+                option.style.color = '';
+                option.style.backgroundColor = '';
+            });
+        });
+        
+        // Set selected asesor from storedKelompokAsesor
+        if (storedKelompokAsesor && typeof storedKelompokAsesor === 'object' && Object.keys(storedKelompokAsesor).length > 0) {
+            Object.keys(storedKelompokAsesor).forEach(kelompok => {
+                // Convert kelompok key to string to match select name
+                const kelompokKey = String(kelompok);
+                const select = document.querySelector(`select[name="kelompok_asesor[${kelompokKey}][]"]`);
+                if (select && storedKelompokAsesor[kelompok] && Array.isArray(storedKelompokAsesor[kelompok])) {
+                    const asesorIds = storedKelompokAsesor[kelompok].map(a => {
+                        // Handle both direct id and pivot structure
+                        if (typeof a === 'object' && a !== null) {
+                            // If it's a direct object with id
+                            if (a.id) {
+                                return parseInt(a.id);
+                            }
+                            // If it has pivot structure
+                            if (a.pivot && a.pivot.asesor_id) {
+                                return parseInt(a.pivot.asesor_id);
+                            }
+                            // If asesor_id is directly in the object
+                            if (a.asesor_id) {
+                                return parseInt(a.asesor_id);
+                            }
+                        }
+                        // If it's already a number
+                        if (typeof a === 'number') {
+                            return a;
+                        }
+                        return null;
+                    }).filter(id => id !== null && id !== undefined && !isNaN(id));
+                    
+                    Array.from(select.options).forEach(option => {
+                        if (asesorIds.includes(parseInt(option.value))) {
+                            option.selected = true;
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Then update disabled options based on selections
+        updateDisabledAsesorOptions();
+    }, 300);
 }
 </script>
 @endsection

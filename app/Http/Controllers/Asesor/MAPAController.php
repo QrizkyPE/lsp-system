@@ -81,8 +81,11 @@ class MAPAController extends Controller
             // Group asesor by kelompok
             if ($unit->ada_pembagian_kelompok && $unit->asesorKelompok && $unit->asesorKelompok->count() > 0) {
                 $unit->kelompokAsesor = $unit->asesorKelompok->groupBy(function($asesor) {
-                    return $asesor->pivot->kelompok;
+                    return (int)$asesor->pivot->kelompok; // Ensure integer key
                 });
+            } else {
+                // Ensure kelompokAsesor is always set, even if empty
+                $unit->kelompokAsesor = collect([]);
             }
         }
 

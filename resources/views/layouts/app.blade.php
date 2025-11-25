@@ -138,11 +138,11 @@
                                     <i class="fas fa-check-circle me-2"></i>Kriteria Unjuk Kerja
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.dokumen') ? 'active' : '' }}" href="{{ route('asesor.dokumen') }}">
                                     <i class="fas fa-file-alt me-2"></i>Dokumen
                                 </a>
-                            </li>
+                            </li> --}}
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.asesmen') ? 'active' : '' }}" href="{{ route('asesor.asesmen') }}">
                                     <i class="fas fa-clipboard-check me-2"></i>Asesmen
@@ -206,11 +206,11 @@
                                     <i class="fas fa-history me-2"></i>Riwayat Pendaftaran
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.jadwal') ? 'active' : '' }}" href="{{ route('mahasiswa.jadwal') }}">
                                     <i class="fas fa-calendar me-2"></i>Jadwal
                                 </a>
-                            </li>
+                            </li> --}}
                             
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.observasi-checklist*') ? 'active' : '' }}" href="{{ route('mahasiswa.observasi-checklist') }}">
@@ -255,7 +255,7 @@
                                 </a>
                             </li>
                             
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.dokumen') ? 'active' : '' }}" href="{{ route('mahasiswa.dokumen') }}">
                                     <i class="fas fa-file-alt me-2"></i>Dokumen
                                 </a>
@@ -264,7 +264,7 @@
                                 <a class="nav-link {{ request()->routeIs('mahasiswa.hasil') ? 'active' : '' }}" href="{{ route('mahasiswa.hasil') }}">
                                     <i class="fas fa-chart-line me-2"></i>Hasil
                                 </a>
-                            </li>
+                            </li> --}}
                         @endif
                     </ul>
                 </div>

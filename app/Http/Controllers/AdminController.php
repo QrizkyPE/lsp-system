@@ -146,8 +146,30 @@ class AdminController extends Controller
             ->pluck('judul_sertifikasi')
             ->toArray();
         
-        // Get asesor for pembagian kelompok
-        $asesor = Asesor::with('user')->where('status', true)->get();
+        // Get asesor for pembagian kelompok - get all asesor with user relation
+        // Always get all asesor - use DB query directly to ensure we get data
+        try {
+            $asesor = Asesor::with('user')->get();
+            
+            // If empty, try without eager loading
+            if ($asesor->isEmpty()) {
+                $asesor = Asesor::all();
+                if ($asesor->isNotEmpty()) {
+                    $asesor->load('user');
+                }
+            }
+            
+            // Ensure it's always a collection with numeric keys
+            $asesor = $asesor->values();
+        } catch (\Exception $e) {
+            // If there's any error, get all asesor without relation
+            $asesor = Asesor::all()->values();
+        }
+        
+        // Final check - ensure it's always a collection
+        if (!$asesor || !is_iterable($asesor)) {
+            $asesor = collect([]);
+        }
         
         return view('admin.unit-kompetensi', compact('units', 'skemas', 'unitsJudul', 'judulOptions', 'filterJudul', 'asesor'));
     }
@@ -660,17 +682,24 @@ class AdminController extends Controller
             'judul_unit' => 'required|string',
             'standar_kompetensi_kerja' => 'required|string',
             'status' => 'nullable|boolean',
-            'ada_pembagian_kelompok' => 'nullable|boolean',
+            'ada_pembagian_kelompok' => 'nullable',
             'jumlah_kelompok' => 'nullable|integer|in:2,3',
             'kelompok_asesor' => 'nullable|array',
             'kelompok_asesor.*' => 'nullable|array',
-            'kelompok_asesor.*.*' => 'exists:asesor,id',
+            'kelompok_asesor.*.*' => 'nullable|integer|exists:asesor,id',
         ]);
 
         $unit = UnitKompetensiJudul::findOrFail($id);
         $data = $request->all();
         $data['status'] = $request->has('status') ? (bool)$request->status : true;
-        $data['ada_pembagian_kelompok'] = $request->has('ada_pembagian_kelompok') ? (bool)$request->ada_pembagian_kelompok : false;
+        
+        // Handle ada_pembagian_kelompok - bisa berupa string "1" atau "0" dari radio button
+        if ($request->has('ada_pembagian_kelompok')) {
+            $adaPembagian = $request->ada_pembagian_kelompok;
+            $data['ada_pembagian_kelompok'] = ($adaPembagian === '1' || $adaPembagian === 1 || $adaPembagian === true);
+        } else {
+            $data['ada_pembagian_kelompok'] = false;
+        }
         
         // Jika tidak ada pembagian kelompok, set jumlah_kelompok ke null dan hapus data kelompok
         if (!$data['ada_pembagian_kelompok']) {
@@ -686,17 +715,39 @@ class AdminController extends Controller
                 ->delete();
             
             // Simpan data kelompok baru jika ada
-            if ($request->has('kelompok_asesor')) {
+            if ($request->has('kelompok_asesor') && is_array($request->kelompok_asesor)) {
+                // Validasi: pastikan tidak ada asesor yang sama dipilih di lebih dari satu kelompok
+                $allAsesorIds = [];
                 foreach ($request->kelompok_asesor as $kelompok => $asesorIds) {
                     if (is_array($asesorIds)) {
                         foreach ($asesorIds as $asesorId) {
-                            DB::table('unit_kompetensi_judul_asesor_kelompok')->insert([
-                                'unit_kompetensi_judul_id' => $unit->id,
-                                'asesor_id' => $asesorId,
-                                'kelompok' => $kelompok,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
+                            if (is_numeric($asesorId) && $asesorId > 0) {
+                                $asesorIdInt = (int)$asesorId;
+                                if (in_array($asesorIdInt, $allAsesorIds)) {
+                                    return redirect()->back()
+                                        ->withInput()
+                                        ->withErrors(['kelompok_asesor' => 'Asesor dengan ID ' . $asesorIdInt . ' tidak dapat dipilih di lebih dari satu kelompok.']);
+                                }
+                                $allAsesorIds[] = $asesorIdInt;
+                            }
+                        }
+                    }
+                }
+                
+                // Jika validasi berhasil, simpan data
+                foreach ($request->kelompok_asesor as $kelompok => $asesorIds) {
+                    if (is_array($asesorIds)) {
+                        foreach ($asesorIds as $asesorId) {
+                            // Pastikan asesorId adalah integer yang valid
+                            if (is_numeric($asesorId) && $asesorId > 0) {
+                                DB::table('unit_kompetensi_judul_asesor_kelompok')->insert([
+                                    'unit_kompetensi_judul_id' => $unit->id,
+                                    'asesor_id' => (int)$asesorId,
+                                    'kelompok' => $kelompok,
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                            }
                         }
                     }
                 }

@@ -261,7 +261,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih mahasiswa yang sudah disetujui admin)</small></label>
+                        <label for="pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih asesi yang sudah disetujui)</small></label>
                         <select class="form-select" name="pendaftaran_id[]" id="pendaftaran_id" multiple size="5">
                             @foreach($mahasiswa as $m)
                                 <option value="{{ $m->id }}">
@@ -342,7 +342,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih mahasiswa yang sudah disetujui admin)</small></label>
+                        <label for="edit_pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih asesi yang sudah disetujui)</small></label>
                         <select class="form-select" name="pendaftaran_id[]" id="edit_pendaftaran_id" multiple size="5">
                             @foreach($mahasiswa as $m)
                                 <option value="{{ $m->id }}">

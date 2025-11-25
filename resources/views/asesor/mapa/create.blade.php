@@ -380,57 +380,67 @@
                                     </div>
                                     <div id="terintegrasi_units_container" style="display: none;">
                                         @php
-                                            $unitsWithKelompok = $unitKompetensiJudul->filter(function($unit) {
-                                                return $unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor);
-                                            });
-                                            $unitsWithoutKelompok = $unitKompetensiJudul->filter(function($unit) {
-                                                return !$unit->ada_pembagian_kelompok || !isset($unit->kelompokAsesor);
-                                            });
+                                            // Kelompokkan unit kompetensi berdasarkan kelompok
+                                            $unitsByKelompok = [];
+                                            
+                                            // Get all unit IDs
+                                            $unitIds = $unitKompetensiJudul->pluck('id')->toArray();
+                                            
+                                            // Query langsung dari database untuk memastikan data ter-load
+                                            $kelompokData = \Illuminate\Support\Facades\DB::table('unit_kompetensi_judul_asesor_kelompok')
+                                                ->whereIn('unit_kompetensi_judul_id', $unitIds)
+                                                ->select('unit_kompetensi_judul_id', 'kelompok')
+                                                ->distinct()
+                                                ->get()
+                                                ->groupBy('unit_kompetensi_judul_id');
+                                            
+                                            // Iterate through all units and group them by kelompok
+                                            foreach ($unitKompetensiJudul as $unit) {
+                                                // Check if unit has pembagian kelompok
+                                                if ($unit->ada_pembagian_kelompok == true) {
+                                                    // Check if this unit has kelompok data from database
+                                                    if (isset($kelompokData[$unit->id])) {
+                                                        $kelompokNumbers = $kelompokData[$unit->id]->pluck('kelompok')->unique()->toArray();
+                                                        
+                                                        foreach ($kelompokNumbers as $kelompokNum) {
+                                                            $kelompokNum = (int)$kelompokNum;
+                                                            if ($kelompokNum > 0) {
+                                                                if (!isset($unitsByKelompok[$kelompokNum])) {
+                                                                    $unitsByKelompok[$kelompokNum] = [];
+                                                                }
+                                                                // Add unit if not already added
+                                                                $unitExists = false;
+                                                                foreach ($unitsByKelompok[$kelompokNum] as $existingUnit) {
+                                                                    if ($existingUnit->id === $unit->id) {
+                                                                        $unitExists = true;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                if (!$unitExists) {
+                                                                    $unitsByKelompok[$kelompokNum][] = $unit;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Sort by kelompok number
+                                            ksort($unitsByKelompok);
                                         @endphp
                                         
-                                        @if($unitsWithKelompok->count() > 0)
-                                            @foreach($unitsWithKelompok as $unit)
-                                                <div class="card mb-3">
-                                                    <div class="card-body">
-                                                        <div class="form-check mb-2">
-                                                            <input class="form-check-input" type="checkbox" name="kegiatan_terintegrasi_units[]" value="{{ $unit->kode_unit }}" id="unit_{{ $unit->id }}" onchange="toggleUnitKelompok(this, {{ $unit->id }})">
-                                                            <label class="form-check-label" for="unit_{{ $unit->id }}">
-                                                                <strong>Kode Unit : {{ $unit->kode_unit }} Judul Unit : {{ $unit->judul_unit }}</strong>
-                                                            </label>
-                                                        </div>
-                                                        
-                                                        @if($unit->ada_pembagian_kelompok && isset($unit->kelompokAsesor))
-                                                            <div id="kelompok_unit_{{ $unit->id }}" style="display: none;" class="ms-4 mt-2">
-                                                                @for($i = 1; $i <= $unit->jumlah_kelompok; $i++)
-                                                                    @php
-                                                                        $kelompokAsesor = $unit->kelompokAsesor->get($i) ?? collect();
-                                                                    @endphp
-                                                                    @if($kelompokAsesor->count() > 0)
-                                                                        <div class="mb-2">
-                                                                            <strong>Kelompok Pekerjaan {{ $i }}:</strong>
-                                                                            <ul class="list-unstyled ms-3">
-                                                                                @foreach($kelompokAsesor as $asesor)
-                                                                                    <li>• {{ $asesor->user->nama_lengkap ?? $asesor->user->name }}</li>
-                                                                                @endforeach
-                                                                            </ul>
-                                                                        </div>
-                                                                    @endif
-                                                                @endfor
-                                                            </div>
-                                                        @endif
+                                        @if(count($unitsByKelompok) > 0)
+                                            @foreach($unitsByKelompok as $kelompokNum => $units)
+                                                @if(count($units) > 0)
+                                                    <div class="mb-2">
+                                                        <strong>Kelompok {{ $kelompokNum }}:</strong>
+                                                        @foreach($units as $index => $unit)
+                                                            ({{ $unit->kode_unit }} - {{ $unit->judul_unit }})@if($index < count($units) - 1), @endif
+                                                        @endforeach
                                                     </div>
-                                                </div>
+                                                @endif
                                             @endforeach
                                         @endif
-                                        
-                                        @foreach($unitsWithoutKelompok as $unit)
-                                            <div class="form-check ms-4">
-                                                <input class="form-check-input" type="checkbox" name="kegiatan_terintegrasi_units[]" value="{{ $unit->kode_unit }}" id="unit_{{ $unit->id }}">
-                                                <label class="form-check-label" for="unit_{{ $unit->id }}">
-                                                    Kode Unit : {{ $unit->kode_unit }} Judul Unit : {{ $unit->judul_unit }}
-                                                </label>
-                                            </div>
-                                        @endforeach
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="peluang_kegiatan_terintegrasi" id="terintegrasi_tidak" value="Tidak Ada" onchange="toggleTerintegrasiUnits(this)">
@@ -547,17 +557,6 @@ function toggleTerintegrasiUnits(radio) {
         container.style.display = 'none';
         // Uncheck all checkboxes
         container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        // Hide all kelompok containers
-        container.querySelectorAll('[id^="kelompok_unit_"]').forEach(el => el.style.display = 'none');
-    }
-}
-
-function toggleUnitKelompok(checkbox, unitId) {
-    const kelompokContainer = document.getElementById('kelompok_unit_' + unitId);
-    if (checkbox.checked && kelompokContainer) {
-        kelompokContainer.style.display = 'block';
-    } else if (kelompokContainer) {
-        kelompokContainer.style.display = 'none';
     }
 }
 
