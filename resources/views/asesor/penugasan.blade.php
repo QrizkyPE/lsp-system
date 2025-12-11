@@ -351,10 +351,57 @@ function viewPenugasan(id) {
     fetch(`/asesor/penugasan/${id}`)
         .then(response => response.json())
         .then(data => {
+            // Build mahasiswa list HTML
+            let mahasiswaHtml = '';
+            if (data.pendaftaran && data.pendaftaran.length > 0) {
+                mahasiswaHtml = `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-users me-2"></i>Mahasiswa yang akan diverifikasi</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">No</th>
+                                        <th>No. Pendaftaran</th>
+                                        <th>Nama Mahasiswa</th>
+                                        <th>Skema Sertifikasi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                data.pendaftaran.forEach((pendaftaran, index) => {
+                    const namaMahasiswa = pendaftaran.user?.nama_lengkap || pendaftaran.user?.name || '-';
+                    const skemaNama = pendaftaran.skema_sertifikasi?.nama_skema || pendaftaran.skemaSertifikasi?.nama_skema || '-';
+                    mahasiswaHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${pendaftaran.no_pendaftaran || '-'}</strong></td>
+                            <td>${namaMahasiswa}</td>
+                            <td><span class="badge bg-info">${skemaNama}</span></td>
+                        </tr>
+                    `;
+                });
+                mahasiswaHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else {
+                mahasiswaHtml = `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-users me-2"></i>Mahasiswa yang akan Diverifikasi</h6>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Tidak ada mahasiswa yang ditugaskan untuk penugasan ini.
+                        </div>
+                    </div>
+                `;
+            }
+
             const detailHtml = `
                 <div class="row">
                     <div class="col-md-6">
-                        <h6>Informasi Penugasan</h6>
+                        <h6><i class="fas fa-info-circle me-2"></i>Informasi Penugasan</h6>
                         <table class="table table-sm">
                             <tr>
                                 <td><strong>Jadwal Uji:</strong></td>
@@ -370,12 +417,12 @@ function viewPenugasan(id) {
                             </tr>
                             <tr>
                                 <td><strong>Status:</strong></td>
-                                <td><span class="badge bg-${data.status === 'accepted' ? 'success' : data.status === 'rejected' ? 'danger' : 'warning'}">${data.status}</span></td>
+                                <td><span class="badge bg-${data.status === 'accepted' ? 'success' : data.status === 'rejected' ? 'danger' : 'warning'}">${data.status === 'accepted' ? 'Diterima' : data.status === 'rejected' ? 'Ditolak' : 'Pending'}</span></td>
                             </tr>
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <h6>Detail Jadwal</h6>
+                        <h6><i class="fas fa-calendar-alt me-2"></i>Detail Jadwal</h6>
                         <table class="table table-sm">
                             <tr>
                                 <td><strong>Tanggal Uji:</strong></td>
@@ -398,10 +445,11 @@ function viewPenugasan(id) {
                 </div>
                 ${data.keterangan ? `
                     <div class="mt-3">
-                        <h6>Keterangan</h6>
+                        <h6><i class="fas fa-sticky-note me-2"></i>Keterangan</h6>
                         <p class="text-muted">${data.keterangan}</p>
                     </div>
                 ` : ''}
+                ${mahasiswaHtml}
             `;
             
             document.getElementById('penugasanDetail').innerHTML = detailHtml;

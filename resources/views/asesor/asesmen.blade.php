@@ -688,7 +688,7 @@
                                     
                                     <!-- Summary Asesmen -->
                                     @if($asesmenData && is_array($asesmenData))
-                                        @php
+                                        <!-- @php
                                             $totalKriteria = 0;
                                             $kompetenCount = 0;
                                             $belumKompetenCount = 0;
@@ -707,7 +707,7 @@
                                                     }
                                                 }
                                             }
-                                        @endphp
+                                        @endphp -->
                                         
                                         <div class="row mt-3">
                                             {{-- <div class="col-md-4">
@@ -718,7 +718,7 @@
                                                     </div>
                                                 </div>
                                             </div> --}}
-                                            <div class="col-md-4">
+                                            <!-- <div class="col-md-4">
                                                 <div class="card bg-success text-white">
                                                     <div class="card-body text-center">
                                                         <h5 class="card-title">{{ $kompetenCount }}</h5>
@@ -733,7 +733,7 @@
                                                         <p class="card-text">Belum Kompeten</p>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     @endif
                                 @else

@@ -88,7 +88,7 @@
                                 <th>Jadwal Uji</th>
                                 <th>Skema</th>
                                 <th>Jenis Penugasan</th>
-                                <th>Status</th>
+                                <!-- <th>Status</th> -->
                                 <th>Tanggal</th>
                             </tr>
                         </thead>
@@ -98,11 +98,11 @@
                                 <td>{{ $penugasan->jadwalUji->nama_batch }}</td>
                                 <td>{{ $penugasan->jadwalUji->skemaSertifikasi->nama_skema }}</td>
                                 <td>{{ strtoupper($penugasan->jenis_penugasan) }}</td>
-                                <td>
+                                <!-- <td>
                                     <span class="badge badge-{{ $penugasan->status == 'accepted' ? 'success' : ($penugasan->status == 'assigned' ? 'warning' : 'danger') }}">
                                         {{ ucfirst($penugasan->status) }}
                                     </span>
-                                </td>
+                                </td> -->
                                 <td>{{ $penugasan->created_at->format('d/m/Y') }}</td>
                             </tr>
                             @empty

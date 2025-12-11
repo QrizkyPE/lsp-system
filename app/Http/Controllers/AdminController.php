@@ -922,9 +922,16 @@ class AdminController extends Controller
         $jadwals = JadwalUji::with('skemaSertifikasi')->get();
         $asesor = Asesor::with('user')->where('status', true)->get();
         
-        // Get approved pendaftaran (only those with status 'approved')
-        $mahasiswa = Pendaftaran::with('user')
+        // Get IDs of pendaftaran that are already assigned to other penugasan
+        $assignedPendaftaranIds = \DB::table('penugasan_pendaftaran')
+            ->pluck('pendaftaran_id')
+            ->unique()
+            ->toArray();
+        
+        // Get approved pendaftaran (only those with status 'approved') that are not yet assigned
+        $mahasiswa = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->where('status', 'approved')
+            ->whereNotIn('id', $assignedPendaftaranIds)
             ->orderBy('no_pendaftaran')
             ->get();
         
@@ -1011,6 +1018,42 @@ class AdminController extends Controller
     {
         $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user', 'pendaftaran'])->findOrFail($id);
         $penugasan->pendaftaran_ids = $penugasan->pendaftaran->pluck('id')->toArray();
+        
+        // Get IDs of pendaftaran that are already assigned to other penugasan (excluding current penugasan)
+        $assignedPendaftaranIds = \DB::table('penugasan_pendaftaran')
+            ->where('penugasan_id', '!=', $id)
+            ->pluck('pendaftaran_id')
+            ->unique()
+            ->toArray();
+        
+        // Get approved pendaftaran that are available for edit
+        // Include those already assigned to this penugasan, exclude those assigned to other penugasan
+        $currentPendaftaranIds = $penugasan->pendaftaran->pluck('id')->toArray();
+        
+        $availableMahasiswa = Pendaftaran::with(['user', 'skemaSertifikasi'])
+            ->where('status', 'approved')
+            ->where(function($query) use ($assignedPendaftaranIds, $currentPendaftaranIds) {
+                // Include mahasiswa that are not assigned to other penugasan
+                if (!empty($assignedPendaftaranIds)) {
+                    $query->whereNotIn('id', $assignedPendaftaranIds);
+                }
+                
+                // Always include current penugasan's pendaftaran (even if assigned elsewhere)
+                if (!empty($currentPendaftaranIds)) {
+                    $query->orWhereIn('id', $currentPendaftaranIds);
+                }
+            })
+            ->orderBy('no_pendaftaran')
+            ->get()
+            ->map(function($m) {
+                return [
+                    'id' => $m->id,
+                    'text' => $m->no_pendaftaran . ' - ' . ($m->user->nama_lengkap ?? $m->user->name) . ' (' . ($m->skemaSertifikasi->nama_skema ?? '-') . ')'
+                ];
+            });
+        
+        $penugasan->available_mahasiswa = $availableMahasiswa;
+        
         return response()->json($penugasan);
     }
 

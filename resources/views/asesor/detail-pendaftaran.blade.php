@@ -295,7 +295,7 @@
                             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Hasil Asesmen Mandiri</h5>
                         </div>
                         <div class="card-body">
-                            @php
+                            <!-- @php
                                 $totalKriteria = 0;
                                 $kompetenCount = 0;
                                 $belumKompetenCount = 0;
@@ -310,7 +310,7 @@
                                         if($belumKompeten) $belumKompetenCount++;
                                     }
                                 }
-                            @endphp
+                            @endphp -->
                             
                             <div class="row mb-3">
                                 {{-- <div class="col-md-3">
@@ -321,7 +321,7 @@
                                         </div>
                                     </div>
                                 </div> --}}
-                                <div class="col-md-3">
+                                <!-- <div class="col-md-3">
                                     <div class="card bg-success text-white">
                                         <div class="card-body text-center">
                                             <h4>{{ $kompetenCount }}</h4>
@@ -336,7 +336,7 @@
                                             <small>Belum Kompeten</small>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 {{-- <div class="col-md-3">
                                     <div class="card bg-warning text-white">
                                         <div class="card-body text-center">

@@ -260,7 +260,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="mahasiswaField" style="display: none;">
                         <label for="pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih asesi yang sudah disetujui)</small></label>
                         <select class="form-select" name="pendaftaran_id[]" id="pendaftaran_id" multiple size="5">
                             @foreach($mahasiswa as $m)
@@ -341,7 +341,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="editMahasiswaField" style="display: none;">
                         <label for="edit_pendaftaran_id" class="form-label">Mahasiswa yang akan Diverifikasi <small class="text-muted">(Pilih asesi yang sudah disetujui)</small></label>
                         <select class="form-select" name="pendaftaran_id[]" id="edit_pendaftaran_id" multiple size="5">
                             @foreach($mahasiswa as $m)
@@ -397,6 +397,58 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', filterTable);
     statusFilter.addEventListener('change', filterTable);
     jenisFilter.addEventListener('change', filterTable);
+
+    // Toggle mahasiswa field based on jenis penugasan
+    const jenisPenugasan = document.getElementById('jenis_penugasan');
+    const mahasiswaField = document.getElementById('mahasiswaField');
+    const pendaftaranSelect = document.getElementById('pendaftaran_id');
+
+    function toggleMahasiswaField() {
+        if (jenisPenugasan && mahasiswaField) {
+            if (jenisPenugasan.value === 'asesor') {
+                mahasiswaField.style.display = 'block';
+            } else {
+                mahasiswaField.style.display = 'none';
+                // Clear selection when hidden
+                if (pendaftaranSelect) {
+                    Array.from(pendaftaranSelect.options).forEach(option => {
+                        option.selected = false;
+                    });
+                }
+            }
+        }
+    }
+
+    if (jenisPenugasan) {
+        jenisPenugasan.addEventListener('change', toggleMahasiswaField);
+        // Check initial state
+        toggleMahasiswaField();
+    }
+
+    // Reset form when modal is closed
+    const addModal = document.getElementById('addPenugasanModal');
+    if (addModal) {
+        addModal.addEventListener('hidden.bs.modal', function() {
+            const form = addModal.querySelector('form');
+            if (form) {
+                form.reset();
+                if (mahasiswaField) {
+                    mahasiswaField.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Reset edit form when modal is closed
+    const editModal = document.getElementById('editPenugasanModal');
+    if (editModal) {
+        editModal.addEventListener('hidden.bs.modal', function() {
+            const editMahasiswaField = document.getElementById('editMahasiswaField');
+            if (editMahasiswaField) {
+                editMahasiswaField.style.display = 'none';
+            }
+        });
+    }
 });
 
 function editPenugasan(id) {
@@ -409,13 +461,50 @@ function editPenugasan(id) {
             document.getElementById('edit_jenis_penugasan').value = data.jenis_penugasan;
             document.getElementById('edit_keterangan').value = data.keterangan || '';
             
-            // Clear and set selected pendaftaran
+            // Toggle mahasiswa field based on jenis penugasan
+            const editJenisPenugasan = document.getElementById('edit_jenis_penugasan');
+            const editMahasiswaField = document.getElementById('editMahasiswaField');
             const pendaftaranSelect = document.getElementById('edit_pendaftaran_id');
-            Array.from(pendaftaranSelect.options).forEach(option => {
-                option.selected = false;
-            });
             
-            if (data.pendaftaran_ids && Array.isArray(data.pendaftaran_ids)) {
+            function toggleEditMahasiswaField() {
+                if (editJenisPenugasan && editMahasiswaField) {
+                    if (editJenisPenugasan.value === 'asesor') {
+                        editMahasiswaField.style.display = 'block';
+                    } else {
+                        editMahasiswaField.style.display = 'none';
+                        // Clear selection when hidden
+                        if (pendaftaranSelect) {
+                            Array.from(pendaftaranSelect.options).forEach(option => {
+                                option.selected = false;
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Set up event listener for jenis penugasan change
+            const existingListener = editJenisPenugasan.getAttribute('data-listener-attached');
+            if (!existingListener) {
+                editJenisPenugasan.addEventListener('change', toggleEditMahasiswaField);
+                editJenisPenugasan.setAttribute('data-listener-attached', 'true');
+            }
+            
+            // Update available mahasiswa options
+            if (pendaftaranSelect && data.available_mahasiswa) {
+                pendaftaranSelect.innerHTML = '';
+                data.available_mahasiswa.forEach(mahasiswa => {
+                    const option = document.createElement('option');
+                    option.value = mahasiswa.id;
+                    option.textContent = mahasiswa.text;
+                    pendaftaranSelect.appendChild(option);
+                });
+            }
+            
+            // Check initial state
+            toggleEditMahasiswaField();
+            
+            // Set selected pendaftaran
+            if (pendaftaranSelect && data.pendaftaran_ids && Array.isArray(data.pendaftaran_ids)) {
                 data.pendaftaran_ids.forEach(pendaftaranId => {
                     const option = pendaftaranSelect.querySelector(`option[value="${pendaftaranId}"]`);
                     if (option) {

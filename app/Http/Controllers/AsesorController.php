@@ -1008,7 +1008,7 @@ class AsesorController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $penugasan = \App\Models\Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk'])
+        $penugasan = \App\Models\Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
             ->where('asesor_id', $asesor->id)
             ->findOrFail($id);
         
