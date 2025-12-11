@@ -387,16 +387,84 @@
                                     </div>
                                     <div id="terintegrasi_units_container" style="display: {{ old('peluang_kegiatan_terintegrasi', $mapa->peluang_kegiatan_terintegrasi) == 'Ada' ? 'block' : 'none' }};">
                                         @php
-                                            $terintegrasiUnits = old('kegiatan_terintegrasi_units', $mapa->kegiatan_terintegrasi_units ?? []);
+                                            // Kelompokkan unit kompetensi berdasarkan kelompok
+                                            $unitsByKelompok = [];
+                                            
+                                            // Get all unit IDs
+                                            $unitIds = $unitKompetensiJudul->pluck('id')->toArray();
+                                            
+                                            // Query langsung dari database untuk memastikan data ter-load
+                                            // Jika ada data di tabel ini, berarti unit tersebut memiliki pembagian kelompok
+                                            $kelompokDataRaw = \Illuminate\Support\Facades\DB::table('unit_kompetensi_judul_asesor_kelompok')
+                                                ->whereIn('unit_kompetensi_judul_id', $unitIds)
+                                                ->select('unit_kompetensi_judul_id', 'kelompok')
+                                                ->distinct()
+                                                ->get();
+                                            
+                                            // Group by unit_kompetensi_judul_id and kelompok
+                                            $kelompokData = [];
+                                            foreach ($kelompokDataRaw as $row) {
+                                                $unitId = (int)$row->unit_kompetensi_judul_id;
+                                                $kelompok = (int)$row->kelompok;
+                                                if (!isset($kelompokData[$unitId])) {
+                                                    $kelompokData[$unitId] = [];
+                                                }
+                                                if (!in_array($kelompok, $kelompokData[$unitId])) {
+                                                    $kelompokData[$unitId][] = $kelompok;
+                                                }
+                                            }
+                                            
+                                            // Create a map of unit ID to unit object for quick lookup
+                                            $unitMap = [];
+                                            foreach ($unitKompetensiJudul as $unit) {
+                                                $unitMap[$unit->id] = $unit;
+                                            }
+                                            
+                                            // Iterate through kelompok data and group units by kelompok
+                                            foreach ($kelompokData as $unitId => $kelompokNumbers) {
+                                                // Get unit object
+                                                if (isset($unitMap[$unitId])) {
+                                                    $unit = $unitMap[$unitId];
+                                                    
+                                                    // Add unit to each kelompok
+                                                    foreach ($kelompokNumbers as $kelompokNum) {
+                                                        $kelompokNum = (int)$kelompokNum;
+                                                        if ($kelompokNum > 0) {
+                                                            if (!isset($unitsByKelompok[$kelompokNum])) {
+                                                                $unitsByKelompok[$kelompokNum] = [];
+                                                            }
+                                                            // Add unit if not already added
+                                                            $unitExists = false;
+                                                            foreach ($unitsByKelompok[$kelompokNum] as $existingUnit) {
+                                                                if ($existingUnit->id === $unit->id) {
+                                                                    $unitExists = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!$unitExists) {
+                                                                $unitsByKelompok[$kelompokNum][] = $unit;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Sort by kelompok number
+                                            ksort($unitsByKelompok);
                                         @endphp
-                                        @foreach($unitKompetensiJudul as $unit)
-                                            <div class="form-check ms-4">
-                                                <input class="form-check-input" type="checkbox" name="kegiatan_terintegrasi_units[]" value="{{ $unit->kode_unit }}" id="unit_{{ $unit->id }}" {{ in_array($unit->kode_unit, $terintegrasiUnits) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="unit_{{ $unit->id }}">
-                                                    Kode Unit : {{ $unit->kode_unit }} Judul Unit : {{ $unit->judul_unit }}
-                                                </label>
-                                            </div>
-                                        @endforeach
+                                        
+                                        @if(count($unitsByKelompok) > 0)
+                                            @foreach($unitsByKelompok as $kelompokNum => $units)
+                                                @if(count($units) > 0)
+                                                    <div class="mb-2">
+                                                        <strong>Kelompok {{ $kelompokNum }}:</strong>
+                                                        @foreach($units as $index => $unit)
+                                                            ({{ $unit->kode_unit }} - {{ $unit->judul_unit }})@if($index < count($units) - 1), @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        @endif
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="peluang_kegiatan_terintegrasi" id="terintegrasi_tidak" value="Tidak Ada" onchange="toggleTerintegrasiUnits(this)" {{ old('peluang_kegiatan_terintegrasi', $mapa->peluang_kegiatan_terintegrasi) == 'Tidak Ada' ? 'checked' : '' }}>
@@ -511,8 +579,6 @@ function toggleTerintegrasiUnits(radio) {
         container.style.display = 'block';
     } else {
         container.style.display = 'none';
-        // Uncheck all checkboxes
-        container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     }
 }
 

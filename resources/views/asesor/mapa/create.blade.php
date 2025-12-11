@@ -387,38 +387,55 @@
                                             $unitIds = $unitKompetensiJudul->pluck('id')->toArray();
                                             
                                             // Query langsung dari database untuk memastikan data ter-load
-                                            $kelompokData = \Illuminate\Support\Facades\DB::table('unit_kompetensi_judul_asesor_kelompok')
+                                            // Jika ada data di tabel ini, berarti unit tersebut memiliki pembagian kelompok
+                                            $kelompokDataRaw = \Illuminate\Support\Facades\DB::table('unit_kompetensi_judul_asesor_kelompok')
                                                 ->whereIn('unit_kompetensi_judul_id', $unitIds)
                                                 ->select('unit_kompetensi_judul_id', 'kelompok')
                                                 ->distinct()
-                                                ->get()
-                                                ->groupBy('unit_kompetensi_judul_id');
+                                                ->get();
                                             
-                                            // Iterate through all units and group them by kelompok
+                                            // Group by unit_kompetensi_judul_id and kelompok
+                                            $kelompokData = [];
+                                            foreach ($kelompokDataRaw as $row) {
+                                                $unitId = (int)$row->unit_kompetensi_judul_id;
+                                                $kelompok = (int)$row->kelompok;
+                                                if (!isset($kelompokData[$unitId])) {
+                                                    $kelompokData[$unitId] = [];
+                                                }
+                                                if (!in_array($kelompok, $kelompokData[$unitId])) {
+                                                    $kelompokData[$unitId][] = $kelompok;
+                                                }
+                                            }
+                                            
+                                            // Create a map of unit ID to unit object for quick lookup
+                                            $unitMap = [];
                                             foreach ($unitKompetensiJudul as $unit) {
-                                                // Check if unit has pembagian kelompok
-                                                if ($unit->ada_pembagian_kelompok == true) {
-                                                    // Check if this unit has kelompok data from database
-                                                    if (isset($kelompokData[$unit->id])) {
-                                                        $kelompokNumbers = $kelompokData[$unit->id]->pluck('kelompok')->unique()->toArray();
-                                                        
-                                                        foreach ($kelompokNumbers as $kelompokNum) {
-                                                            $kelompokNum = (int)$kelompokNum;
-                                                            if ($kelompokNum > 0) {
-                                                                if (!isset($unitsByKelompok[$kelompokNum])) {
-                                                                    $unitsByKelompok[$kelompokNum] = [];
+                                                $unitMap[$unit->id] = $unit;
+                                            }
+                                            
+                                            // Iterate through kelompok data and group units by kelompok
+                                            foreach ($kelompokData as $unitId => $kelompokNumbers) {
+                                                // Get unit object
+                                                if (isset($unitMap[$unitId])) {
+                                                    $unit = $unitMap[$unitId];
+                                                    
+                                                    // Add unit to each kelompok
+                                                    foreach ($kelompokNumbers as $kelompokNum) {
+                                                        $kelompokNum = (int)$kelompokNum;
+                                                        if ($kelompokNum > 0) {
+                                                            if (!isset($unitsByKelompok[$kelompokNum])) {
+                                                                $unitsByKelompok[$kelompokNum] = [];
+                                                            }
+                                                            // Add unit if not already added
+                                                            $unitExists = false;
+                                                            foreach ($unitsByKelompok[$kelompokNum] as $existingUnit) {
+                                                                if ($existingUnit->id === $unit->id) {
+                                                                    $unitExists = true;
+                                                                    break;
                                                                 }
-                                                                // Add unit if not already added
-                                                                $unitExists = false;
-                                                                foreach ($unitsByKelompok[$kelompokNum] as $existingUnit) {
-                                                                    if ($existingUnit->id === $unit->id) {
-                                                                        $unitExists = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$unitExists) {
-                                                                    $unitsByKelompok[$kelompokNum][] = $unit;
-                                                                }
+                                                            }
+                                                            if (!$unitExists) {
+                                                                $unitsByKelompok[$kelompokNum][] = $unit;
                                                             }
                                                         }
                                                     }
