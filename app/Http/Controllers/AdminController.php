@@ -1107,7 +1107,7 @@ class AdminController extends Controller
         if ($verification) {
             $updateData = [
                 'verifier_id' => Auth::id(),
-                'status' => 'verified',
+                'status' => 'approved',
                 'verification_date' => now()
             ];
             

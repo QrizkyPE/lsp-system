@@ -704,7 +704,7 @@ class AsesorController extends Controller
             ], 400);
         }
         
-        // Get existing asesmen data (from mahasiswa)
+        // Get existing asesmen data (from mahasiswa) - preserve all original data
         $existingAsesmenData = null;
         if ($pendaftaran->asesmen_data) {
             $existingAsesmenData = is_string($pendaftaran->asesmen_data) ? 
@@ -712,25 +712,25 @@ class AsesorController extends Controller
                 $pendaftaran->asesmen_data;
         }
         
-        // Prepare verification data (from asesor)
+        // Prepare verification data from asesor (only bukti, keep mahasiswa signature separate)
         $verificationData = [
             'bukti' => $bukti,
-            'signature_data' => $signatureData,
-            'verified_at' => now()
+            'verified_at' => now()->toDateTimeString()
         ];
         
-        // Merge existing asesmen data with verification data (preserve original data)
+        // Merge existing asesmen data with verification data (preserve ALL original data)
         if ($existingAsesmenData) {
-            // Preserve original asesmen data and add verification data
+            // Preserve original asesmen data completely, only update bukti and verified_at
             $mergedAsesmenData = $existingAsesmenData;
             $mergedAsesmenData['bukti'] = $verificationData['bukti'];
-            $mergedAsesmenData['signature_data'] = $verificationData['signature_data'];
             $mergedAsesmenData['verified_at'] = $verificationData['verified_at'];
+            // Keep original signature_data from mahasiswa if exists
+            // Don't overwrite mahasiswa signature with asesor signature
         } else {
             $mergedAsesmenData = $verificationData;
         }
         
-        // Update pendaftaran status and asesmen data
+        // Update pendaftaran status and asesmen data (preserve mahasiswa data)
         $updateData = [
             'status' => 'in_progress',
             'tanggal_asesmen' => now(),
@@ -739,7 +739,7 @@ class AsesorController extends Controller
         
         $pendaftaran->update($updateData);
 
-        // Update verification record with signature
+        // Update verification record with asesor signature (separate from asesmen_data)
         $verification = PendaftaranVerification::where('pendaftaran_id', $id)
             ->where('type', 'asesor_verification')
             ->first();
@@ -747,16 +747,26 @@ class AsesorController extends Controller
         if ($verification) {
             $updateVerificationData = [
                 'verifier_id' => Auth::id(),
-                'status' => 'verified',
+                'status' => 'approved',
                 'verification_date' => now()
             ];
             
-            // Add signature data if provided
-            if ($request->has('signature_data')) {
+            // Add signature data if provided (this is asesor signature, stored in verification record)
+            if ($request->has('signature_data') && $request->signature_data) {
                 $updateVerificationData['signature_data'] = $request->signature_data;
             }
             
             $verification->update($updateVerificationData);
+        } else {
+            // If verification record doesn't exist, create it
+            PendaftaranVerification::create([
+                'pendaftaran_id' => $id,
+                'verifier_id' => Auth::id(),
+                'type' => 'asesor_verification',
+                'status' => 'approved',
+                'verification_date' => now(),
+                'signature_data' => $request->has('signature_data') && $request->signature_data ? $request->signature_data : null
+            ]);
         }
 
         return response()->json([

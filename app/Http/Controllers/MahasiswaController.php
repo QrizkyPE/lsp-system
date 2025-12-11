@@ -1034,7 +1034,9 @@ class MahasiswaController extends Controller
 
     public function riwayatPendaftaran()
     {
-        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji', 'verifications'])
+        $pendaftaran = Pendaftaran::with(['skemaSertifikasi', 'jadwalUji', 'verifications' => function($query) {
+                $query->orderBy('type')->orderBy('created_at');
+            }])
             ->where('user_id', Auth::id())
             ->latest()
             ->paginate(10);
@@ -1067,7 +1069,9 @@ class MahasiswaController extends Controller
             'skemaSertifikasi', 
             'jadwalUji.tuk',
             'verifications' => function($query) {
-                $query->with(['verifier.asesor']);
+                $query->with(['verifier.asesor'])
+                      ->orderBy('type')
+                      ->orderBy('created_at');
             }
         ])
         ->where('id', $id)
@@ -1161,7 +1165,7 @@ class MahasiswaController extends Controller
         // Check if pendaftaran is verified by asesor
         $asesorVerification = $pendaftaran->verifications()
             ->where('type', 'asesor_verification')
-            ->where('status', 'verified')
+            ->where('status', 'approved')
             ->first();
 
         if (!$asesorVerification) {

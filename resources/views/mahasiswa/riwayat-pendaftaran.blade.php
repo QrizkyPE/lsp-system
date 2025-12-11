@@ -201,32 +201,56 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column">
-                                                @if($p->verifications)
-                                                    @foreach($p->verifications as $verification)
-                                                        <div class="mb-1">
-                                                            @if($verification->type === 'admin_verification')
-                                                                <span class="badge {{ $verification->status === 'verified' ? 'bg-success' : 'bg-warning' }}">
-                                                                    <i class="fas fa-user-shield me-1"></i>
-                                                                    Admin: {{ ucfirst($verification->status) }}
-                                                                </span>
-                                                            @elseif($verification->type === 'asesor_verification')
-                                                                <span class="badge {{ $verification->status === 'verified' ? 'bg-success' : 'bg-warning' }}">
-                                                                    <i class="fas fa-user-check me-1"></i>
-                                                                    Asesor: {{ ucfirst($verification->status) }}
-                                                                </span>
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
+                                                @php
+                                                    // Get verifications using firstWhere for better collection access
+                                                    $adminVerification = $p->verifications->firstWhere('type', 'admin_verification');
+                                                    $asesorVerification = $p->verifications->firstWhere('type', 'asesor_verification');
+                                                    
+                                                    // Helper function to check if verified
+                                                    $isAdminVerified = $adminVerification && ($adminVerification->status === 'approved' || $adminVerification->status === 'verified');
+                                                    $isAsesorVerified = $asesorVerification && ($asesorVerification->status === 'approved' || $asesorVerification->status === 'verified');
+                                                    $isAdminRejected = $adminVerification && $adminVerification->status === 'rejected';
+                                                    $isAsesorRejected = $asesorVerification && $asesorVerification->status === 'rejected';
+                                                @endphp
+                                                
+                                                @if($adminVerification)
+                                                    <div class="mb-1">
+                                                        <span class="badge {{ $isAdminVerified ? 'bg-success' : ($isAdminRejected ? 'bg-danger' : 'bg-warning') }}">
+                                                            <i class="fas fa-user-shield me-1"></i>
+                                                            Admin: {{ $isAdminVerified ? 'Verified' : ($isAdminRejected ? 'Rejected' : 'Pending') }}
+                                                        </span>
+                                                    </div>
                                                 @else
-                                                    <span class="text-muted">Belum ada verifikasi</span>
+                                                    <div class="mb-1">
+                                                        <span class="badge bg-secondary">
+                                                            <i class="fas fa-user-shield me-1"></i>
+                                                            Admin: Belum diverifikasi
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                
+                                                @if($asesorVerification)
+                                                    <div class="mb-1">
+                                                        <span class="badge {{ $isAsesorVerified ? 'bg-success' : ($isAsesorRejected ? 'bg-danger' : 'bg-warning') }}">
+                                                            <i class="fas fa-user-check me-1"></i>
+                                                            Asesor: {{ $isAsesorVerified ? 'Verified' : ($isAsesorRejected ? 'Rejected' : 'Pending') }}
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <div class="mb-1">
+                                                        <span class="badge bg-secondary">
+                                                            <i class="fas fa-user-check me-1"></i>
+                                                            Asesor: Belum diverifikasi
+                                                        </span>
+                                                    </div>
                                                 @endif
                                             </div>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-sm btn-outline-info" onclick="viewPendaftaran({{ $p->id }})" title="Lihat Detail">
+                                                <a href="{{ route('mahasiswa.pendaftaran.detail', $p->id) }}" class="btn btn-sm btn-outline-info" title="Lihat Detail">
                                                     <i class="fas fa-eye"></i>
-                                                </button>
+                                                </a>
                                                 @if($p->status === 'rejected')
                                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="editPendaftaran({{ $p->id }})" title="Edit">
                                                         <i class="fas fa-edit"></i>
@@ -318,10 +342,6 @@ document.addEventListener('DOMContentLoaded', function() {
     statusFilter.addEventListener('change', filterTable);
     skemaFilter.addEventListener('change', filterTable);
 });
-
-function viewPendaftaran(id) {
-    window.open(`/mahasiswa/pendaftaran/${id}/detail`, '_blank');
-}
 
 function editPendaftaran(id) {
     if (confirm('Apakah Anda yakin ingin mengedit pendaftaran ini?')) {

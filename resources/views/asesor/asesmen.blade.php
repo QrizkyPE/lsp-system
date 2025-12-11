@@ -172,7 +172,7 @@
                                                             // Check if asesor has verified this pendaftaran
                                                             $isVerifiedByAsesor = $p->verifications()
                                                                 ->where('type', 'asesor_verification')
-                                                                ->where('status', 'verified')
+                                                                ->where('status', 'approved')
                                                                 ->exists();
                                                         @endphp
                                                         @switch($p->status)

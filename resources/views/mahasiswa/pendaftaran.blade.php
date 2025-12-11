@@ -54,7 +54,7 @@
                                         $hasPersetujuan = $p->persetujuan_data;
                                         $isVerifiedByAsesor = $p->verifications()
                                             ->where('type', 'asesor_verification')
-                                            ->where('status', 'verified')
+                                            ->where('status', 'approved')
                                             ->exists();
                                         
                                         $hasCompleteAsesorData = false;
@@ -150,7 +150,7 @@
                                                                 $hasPersetujuan = $p->persetujuan_data;
                                                                 $isVerifiedByAsesor = $p->verifications()
                                                                     ->where('type', 'asesor_verification')
-                                                                    ->where('status', 'verified')
+                                                                    ->where('status', 'approved')
                                                                     ->exists();
                                                                 
                                                                 // Check if asesor has filled complete asesmen data
@@ -198,7 +198,7 @@
                                                             @php
                                                                 $isVerifiedByAsesor = $p->verifications()
                                                                     ->where('type', 'asesor_verification')
-                                                                    ->where('status', 'verified')
+                                                                    ->where('status', 'approved')
                                                                     ->exists();
                                                                 $hasPersetujuan = $p->persetujuan_data;
                                                                 

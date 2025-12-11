@@ -38,7 +38,7 @@ class ObservasiController extends Controller
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->whereHas('verifications', function($query) {
                 $query->where('type', 'asesor_verification')
-                      ->where('status', 'verified');
+                      ->where('status', 'approved');
             })
             ->whereNotNull('persetujuan_data')
             ->get();

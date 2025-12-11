@@ -87,9 +87,9 @@
                             <tr>
                                 <th>No Pendaftaran</th>
                                 <th>Skema</th>
-                                <th>Status</th>
+                                <!-- <th>Status</th> -->
                                 <th>Tanggal</th>
-                                <th>Actions</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,11 +97,11 @@
                             <tr>
                                 <td>{{ $pendaftaran->no_pendaftaran }}</td>
                                 <td>{{ $pendaftaran->skemaSertifikasi->nama_skema }}</td>
-                                <td>
+                                <!-- <td>
                                     <span class="badge badge-{{ $pendaftaran->status == 'pending' ? 'warning' : ($pendaftaran->status == 'approved' ? 'success' : 'danger') }}">
                                         {{ ucfirst($pendaftaran->status) }}
                                     </span>
-                                </td>
+                                </td> -->
                                 <td>{{ $pendaftaran->created_at->format('d/m/Y') }}</td>
                                 <td>
                                     <a href="{{ route('mahasiswa.pendaftaran.detail', $pendaftaran->id) }}" class="btn btn-sm btn-info me-1">
@@ -110,7 +110,7 @@
                                     @php
                                         $isVerifiedByAsesor = $pendaftaran->verifications()
                                             ->where('type', 'asesor_verification')
-                                            ->where('status', 'verified')
+                                            ->where('status', 'approved')
                                             ->exists();
                                         $hasPersetujuan = $pendaftaran->persetujuan_data;
                                         
