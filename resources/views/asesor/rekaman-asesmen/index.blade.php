@@ -77,12 +77,10 @@
                                                        class="btn btn-info btn-sm" title="Detail">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    @if(!$rekaman->mahasiswa_signature || $rekaman->rekomendasi_hasil == 'belum_kompeten')
-                                                        <a href="{{ route('asesor.rekaman-asesmen.edit', $rekaman->id) }}" 
-                                                           class="btn btn-warning btn-sm" title="Edit">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                    @endif
+                                                    <a href="{{ route('asesor.rekaman-asesmen.edit', $rekaman->id) }}" 
+                                                       class="btn btn-warning btn-sm" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
                                                     <form action="{{ route('asesor.rekaman-asesmen.destroy', $rekaman->id) }}" 
                                                           method="POST" class="d-inline"
                                                           onsubmit="return confirm('Apakah Anda yakin ingin menghapus rekaman asesmen ini?')">

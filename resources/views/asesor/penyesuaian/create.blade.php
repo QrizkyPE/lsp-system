@@ -22,7 +22,7 @@
                                 <div class="alert alert-info">
                                     <strong>Informasi Ceklis Penyesuaian</strong><br>
                                     Pilih mahasiswa yang telah menyelesaikan <strong>persetujuan asesmen</strong> untuk membuat ceklis penyesuaian.
-                                    <br><small class="text-muted">Hanya mahasiswa yang sudah menyelesaikan persetujuan asesmen yang akan muncul dalam daftar pilihan.</small>
+                                    <!-- <br><small class="text-muted">Hanya mahasiswa yang sudah ditugaskan kepada Anda melalui penugasan, sudah diverifikasi asesmennya oleh Anda, dan sudah menyelesaikan persetujuan asesmen yang akan muncul dalam daftar pilihan.</small> -->
                                 </div>
                             </div>
                         </div>
@@ -51,8 +51,8 @@
                                     <div class="alert alert-warning">
                                         <i class="fas fa-exclamation-triangle me-2"></i>
                                         <strong>Tidak ada mahasiswa yang tersedia</strong><br>
-                                        Belum ada mahasiswa yang telah menyelesaikan persetujuan asesmen.
-                                        <br><small class="text-muted">Silakan tunggu mahasiswa menyelesaikan persetujuan asesmen terlebih dahulu.</small>
+                                        Belum ada mahasiswa yang memenuhi kriteria untuk membuat ceklis penyesuaian.
+                                        <br><small class="text-muted">Mahasiswa harus: (1) Ditugaskan kepada Anda melalui penugasan, (2) Sudah diverifikasi asesmennya oleh Anda, dan (3) Sudah menyelesaikan persetujuan asesmen.</small>
                                     </div>
                                 @endif
                             </div>

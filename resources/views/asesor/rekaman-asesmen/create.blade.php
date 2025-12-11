@@ -22,7 +22,12 @@
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Peringatan:</strong> Tidak ada mahasiswa yang tersedia.
-                            <br>Belum ada mahasiswa yang telah menyelesaikan persetujuan asesmen. Silakan tunggu mahasiswa menyelesaikan persetujuan asesmen terlebih dahulu.
+                            <br>Mahasiswa harus memenuhi kriteria berikut:
+                            <ul class="mb-0 mt-2">
+                                <li>Ditugaskan kepada Anda melalui penugasan (mahasiswa yang dipilih di penugasan)</li>
+                                <li>Telah menyelesaikan persetujuan asesmen</li>
+                                <li>Sudah mengupload jawaban soal untuk soal yang diupload oleh Anda</li>
+                            </ul>
                         </div>
                     @endif
 

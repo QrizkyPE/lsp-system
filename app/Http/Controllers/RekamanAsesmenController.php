@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\RekamanAsesmenKompetensi;
 use App\Models\Pendaftaran;
 use App\Models\UnitKompetensiJudul;
+use App\Models\Penugasan;
+use App\Models\SoalSubmission;
+use App\Models\SoalUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,16 +31,61 @@ class RekamanAsesmenController extends Controller
      */
     public function create()
     {
+        // Get asesor from authenticated user
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return redirect()->route('login')->with('error', 'Anda bukan asesor');
+        }
+
         // Get pendaftaran IDs that already have rekaman asesmen
         $existingPendaftaranIds = RekamanAsesmenKompetensi::pluck('pendaftaran_id')->unique()->filter();
 
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
-            ->whereNotNull('persetujuan_data')
-            ->whereNotIn('id', $existingPendaftaranIds)
-            ->get();
+        // Get pendaftaran IDs that are assigned to this asesor through penugasan
+        $assignedPendaftaranIds = Penugasan::where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->with('pendaftaran')
+            ->get()
+            ->pluck('pendaftaran')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
 
-        $asesor = Auth::user()->asesor;
+        // Get soal_upload_ids that are uploaded by this asesor
+        $soalUploadIds = SoalUpload::where('asesor_id', $asesor->id)
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        // Get pendaftaran IDs that have submitted jawaban soal (SoalSubmission exists) for soal uploaded by this asesor
+        $pendaftaranIdsWithJawaban = [];
+        if (!empty($soalUploadIds)) {
+            $pendaftaranIdsWithJawaban = SoalSubmission::whereIn('soal_upload_id', $soalUploadIds)
+                ->pluck('pendaftaran_id')
+                ->unique()
+                ->filter()
+                ->toArray();
+        }
+
+        // If no pendaftaran assigned or no jawaban submitted, return empty result
+        if (empty($assignedPendaftaranIds) || empty($pendaftaranIdsWithJawaban)) {
+            $pendaftaran = collect();
+        } else {
+            // Get pendaftaran that:
+            // 1. Are assigned to this asesor through penugasan
+            // 2. Have completed persetujuan asesmen
+            // 3. Have submitted jawaban soal (SoalSubmission exists)
+            // 4. Don't already have rekaman asesmen
+            $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->whereIn('id', $pendaftaranIdsWithJawaban) // Sudah mengupload jawaban soal
+                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
+                ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
+                ->whereNotIn('id', $existingPendaftaranIds) // Belum memiliki rekaman asesmen
+                ->get();
+        }
 
         return view('asesor.rekaman-asesmen.create', compact('pendaftaran', 'asesor'));
     }
@@ -134,12 +182,6 @@ class RekamanAsesmenController extends Controller
         $rekamanAsesmen = RekamanAsesmenKompetensi::with(['pendaftaran.skemaSertifikasi'])
             ->where('asesor_id', Auth::id())
             ->findOrFail($id);
-        
-        // Allow editing if status is "belum_kompeten", otherwise prevent editing if already signed by mahasiswa
-        if ($rekamanAsesmen->mahasiswa_signature && $rekamanAsesmen->rekomendasi_hasil !== 'belum_kompeten') {
-            return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
-                ->with('error', 'Rekaman asesmen tidak dapat diedit karena sudah ditandatangani oleh mahasiswa.');
-        }
             
         // Get unit kompetensi from database to get actual names
         $unitKompetensiList = UnitKompetensiJudul::where('judul_sertifikasi', $rekamanAsesmen->pendaftaran->skemaSertifikasi->nama_skema)
@@ -181,12 +223,6 @@ class RekamanAsesmenController extends Controller
     public function update(Request $request, $id)
     {
         $rekamanAsesmen = RekamanAsesmenKompetensi::where('asesor_id', Auth::id())->findOrFail($id);
-        
-        // Allow editing if status is "belum_kompeten", otherwise prevent updating if already signed by mahasiswa
-        if ($rekamanAsesmen->mahasiswa_signature && $rekamanAsesmen->rekomendasi_hasil !== 'belum_kompeten') {
-            return redirect()->route('asesor.rekaman-asesmen.show', $rekamanAsesmen->id)
-                ->with('error', 'Rekaman asesmen tidak dapat diubah karena sudah ditandatangani oleh mahasiswa.');
-        }
 
         $request->validate([
             'pendaftaran_id' => 'required|exists:pendaftaran,id',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PenyesuaianChecklist;
 use App\Models\Pendaftaran;
+use App\Models\Penugasan;
 use Illuminate\Support\Facades\Auth;
 
 class PenyesuaianController extends Controller
@@ -27,10 +28,42 @@ class PenyesuaianController extends Controller
      */
     public function create()
     {
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
-            ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
-            ->get();
+        // Get asesor from authenticated user
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return redirect()->route('login')->with('error', 'Anda bukan asesor');
+        }
+
+        // Get pendaftaran IDs that are assigned to this asesor through penugasan
+        $assignedPendaftaranIds = Penugasan::where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->with('pendaftaran')
+            ->get()
+            ->pluck('pendaftaran')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        // If no pendaftaran assigned, return empty result
+        if (empty($assignedPendaftaranIds)) {
+            $pendaftaran = collect();
+        } else {
+            // Get pendaftaran that:
+            // 1. Are assigned to this asesor through penugasan
+            // 2. Have been verified by asesor (verification status = 'approved')
+            // 3. Have completed persetujuan asesmen
+            $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'verifications'])
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
+                ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
+                ->whereHas('verifications', function($query) {
+                    $query->where('type', 'asesor_verification')
+                          ->where('status', 'approved');
+                })
+                ->get();
+        }
 
         return view('asesor.penyesuaian.create', compact('pendaftaran'));
     }
@@ -89,10 +122,43 @@ class PenyesuaianController extends Controller
     public function edit($id)
     {
         $penyesuaianChecklist = PenyesuaianChecklist::where('asesor_id', Auth::id())->findOrFail($id);
-        $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
-            ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
-            ->get();
+        
+        // Get asesor from authenticated user
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            return redirect()->route('login')->with('error', 'Anda bukan asesor');
+        }
+
+        // Get pendaftaran IDs that are assigned to this asesor through penugasan
+        $assignedPendaftaranIds = Penugasan::where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->with('pendaftaran')
+            ->get()
+            ->pluck('pendaftaran')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->filter()
+            ->toArray();
+
+        // If no pendaftaran assigned, return empty result
+        if (empty($assignedPendaftaranIds)) {
+            $pendaftaran = collect();
+        } else {
+            // Get pendaftaran that:
+            // 1. Are assigned to this asesor through penugasan
+            // 2. Have been verified by asesor (verification status = 'approved')
+            // 3. Have completed persetujuan asesmen
+            $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'verifications'])
+                ->whereIn('id', $assignedPendaftaranIds)
+                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'completed'])
+                ->whereNotNull('persetujuan_data') // Sudah melakukan persetujuan asesmen
+                ->whereHas('verifications', function($query) {
+                    $query->where('type', 'asesor_verification')
+                          ->where('status', 'approved');
+                })
+                ->get();
+        }
 
         return view('asesor.penyesuaian.edit', compact('penyesuaianChecklist', 'pendaftaran'));
     }
