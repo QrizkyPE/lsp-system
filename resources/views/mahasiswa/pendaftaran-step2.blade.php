@@ -195,7 +195,7 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="rumah" class="form-label">
-                                            <strong>Rumah</strong>
+                                            <strong>No. Telp Rumah</strong>
                                         </label>
                                         <input type="text" class="form-control @error('rumah') is-invalid @enderror" 
                                                id="rumah" name="rumah" 
@@ -207,7 +207,7 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <!-- <div class="col-md-6 mb-3">
                                         <label for="kantor" class="form-label">
                                             <strong>Kantor</strong>
                                         </label>
@@ -217,11 +217,11 @@
                                         @error('kantor')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
-                                    </div>
+                                    </div> -->
 
                                     <div class="col-md-6 mb-3">
                                         <label for="no_telp" class="form-label">
-                                            <strong>No. Telp <span class="text-danger">*</span></strong>
+                                            <strong>No. Telp HP<span class="text-danger">*</span></strong>
                                         </label>
                                         <input type="text" class="form-control @error('no_telp') is-invalid @enderror" 
                                                id="no_telp" name="no_telp" 

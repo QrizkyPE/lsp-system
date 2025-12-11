@@ -163,15 +163,15 @@
                     <a href="{{ route('mahasiswa.pendaftaran') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-list me-2"></i>Riwayat Pendaftaran
                     </a>
-                    <a href="{{ route('mahasiswa.jadwal') }}" class="list-group-item list-group-item-action">
+                    <!-- <a href="{{ route('mahasiswa.jadwal') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-calendar me-2"></i>Lihat Jadwal
-                    </a>
-                    <a href="{{ route('mahasiswa.dokumen') }}" class="list-group-item list-group-item-action">
+                    </a> -->
+                    <!-- <a href="{{ route('mahasiswa.dokumen') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-file-alt me-2"></i>Upload Dokumen
-                    </a>
-                    <a href="{{ route('mahasiswa.hasil') }}" class="list-group-item list-group-item-action">
+                    </a> -->
+                    <!-- <a href="{{ route('mahasiswa.hasil') }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-chart-line me-2"></i>Lihat Hasil
-                    </a>
+                    </a> -->
                 </div>
             </div>
         </div>

@@ -127,13 +127,13 @@
                                     <tr>
                                         <th rowspan="2" style="width:60px">No.</th>
                                         <th rowspan="2">Bukti Persyaratan Dasar</th>
-                                        <th colspan="2">Ada</th>
+                                        <th colspan="2" style="width:200px">Ada</th>
                                         <th rowspan="2" style="width:80px">Tidak Ada</th>
                                         <th rowspan="2" style="width:220px">Unggah Bukti (max 2MB)</th>
                                     </tr>
                                     <tr>
-                                        <th style="width:160px">Memenuhi Syarat</th>
-                                        <th style="width:200px">Tidak Memenuhi Syarat</th>
+                                        <th style="width:80px">Memenuhi Syarat</th>
+                                        <th style="width:80px">Tidak Memenuhi Syarat</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -148,13 +148,13 @@
                                     <tr>
                                         <th rowspan="2" style="width:60px">No.</th>
                                         <th rowspan="2">Bukti Administratif</th>
-                                        <th colspan="2">Ada</th>
+                                        <th colspan="2" style="width:200px">Ada</th>
                                         <th rowspan="2" style="width:80px">Tidak Ada</th>
                                         <th rowspan="2" style="width:220px">Unggah Bukti (max 2MB)</th>
                                     </tr>
                                     <tr>
-                                        <th style="width:160px">Memenuhi Syarat</th>
-                                        <th style="width:200px">Tidak Memenuhi Syarat</th>
+                                        <th style="width:80px">Memenuhi Syarat</th>
+                                        <th style="width:80px">Tidak Memenuhi Syarat</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>

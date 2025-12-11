@@ -133,7 +133,7 @@
                                     <th>Jadwal Uji</th>
                                     <th>Skema Sertifikasi</th>
                                     <th>Jenis Penugasan</th>
-                                    <th>Status</th>
+                                    <!-- <th>Status</th> -->
                                     <th>Tanggal Penugasan</th>
                                     <th>Keterangan</th>
                                     <th>Aksi</th>
