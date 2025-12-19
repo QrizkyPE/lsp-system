@@ -221,21 +221,21 @@
                                                         </span>
                                                     </div>
                                                 @else
-                                                    <div class="mb-1">
+                                                        <div class="mb-1">
                                                         <span class="badge bg-secondary">
-                                                            <i class="fas fa-user-shield me-1"></i>
+                                                                    <i class="fas fa-user-shield me-1"></i>
                                                             Admin: Belum diverifikasi
-                                                        </span>
+                                                                </span>
                                                     </div>
                                                 @endif
                                                 
                                                 @if($asesorVerification)
                                                     <div class="mb-1">
                                                         <span class="badge {{ $isAsesorVerified ? 'bg-success' : ($isAsesorRejected ? 'bg-danger' : 'bg-warning') }}">
-                                                            <i class="fas fa-user-check me-1"></i>
+                                                                    <i class="fas fa-user-check me-1"></i>
                                                             Asesor: {{ $isAsesorVerified ? 'Verified' : ($isAsesorRejected ? 'Rejected' : 'Pending') }}
-                                                        </span>
-                                                    </div>
+                                                                </span>
+                                                        </div>
                                                 @else
                                                     <div class="mb-1">
                                                         <span class="badge bg-secondary">

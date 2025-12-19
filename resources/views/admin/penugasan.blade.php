@@ -474,9 +474,9 @@ function editPenugasan(id) {
                         editMahasiswaField.style.display = 'none';
                         // Clear selection when hidden
                         if (pendaftaranSelect) {
-                            Array.from(pendaftaranSelect.options).forEach(option => {
-                                option.selected = false;
-                            });
+            Array.from(pendaftaranSelect.options).forEach(option => {
+                option.selected = false;
+            });
                         }
                     }
                 }

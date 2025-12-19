@@ -183,8 +183,11 @@
                                     <i class="fas fa-gavel me-2"></i>Banding Asesmen
                                 </a>
                             </li>
-                            
-                            
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.daftar-hadir-asesor*') ? 'active' : '' }}" href="{{ route('asesor.daftar-hadir-asesor.index') }}">
+                                    <i class="fas fa-clipboard-list me-2"></i>Daftar Hadir Asesor
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.personalization') ? 'active' : '' }}" href="{{ route('asesor.personalization') }}">
                                     <i class="fas fa-signature me-2"></i>Personalisasi

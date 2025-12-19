@@ -161,6 +161,14 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::resource('rekaman-asesmen', App\Http\Controllers\RekamanAsesmenController::class);
     Route::get('/rekaman-asesmen/get-unit-kompetensi/{pendaftaranId}', [App\Http\Controllers\RekamanAsesmenController::class, 'getUnitKompetensi']);
     
+    // Daftar Hadir Asesor
+    Route::get('/daftar-hadir-asesor', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'index'])->name('daftar-hadir-asesor.index');
+    Route::get('/daftar-hadir-asesor/create/{jadwalId}', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'create'])->name('daftar-hadir-asesor.create');
+    Route::post('/daftar-hadir-asesor/{jadwalId}', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'store'])->name('daftar-hadir-asesor.store');
+    Route::get('/daftar-hadir-asesor/{id}/edit', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'edit'])->name('daftar-hadir-asesor.edit');
+    Route::put('/daftar-hadir-asesor/{id}', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'update'])->name('daftar-hadir-asesor.update');
+    Route::get('/daftar-hadir-asesor/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'generatePDF'])->name('daftar-hadir-asesor.pdf');
+    
     // Umpan Balik Asesmen (view-only for asesor)
     Route::get('/umpan-balik', [App\Http\Controllers\AsesorUmpanBalikController::class, 'index'])->name('umpan-balik.index');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\AsesorUmpanBalikController::class, 'show'])->name('umpan-balik.show');
