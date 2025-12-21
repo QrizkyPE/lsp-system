@@ -169,6 +169,14 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::put('/daftar-hadir-asesor/{id}', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'update'])->name('daftar-hadir-asesor.update');
     Route::get('/daftar-hadir-asesor/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'generatePDF'])->name('daftar-hadir-asesor.pdf');
     
+    // Rekapitulasi Hasil UJK
+    Route::get('/rekapitulasi-hasil-ujk', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'index'])->name('rekapitulasi-hasil-ujk.index');
+    Route::get('/rekapitulasi-hasil-ujk/create/{jadwalId}', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'create'])->name('rekapitulasi-hasil-ujk.create');
+    Route::get('/rekapitulasi-hasil-ujk/{id}/edit', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'edit'])->name('rekapitulasi-hasil-ujk.edit');
+    Route::get('/rekapitulasi-hasil-ujk/{id}/pdf', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'generatePDF'])->name('rekapitulasi-hasil-ujk.pdf');
+    Route::post('/rekapitulasi-hasil-ujk/{jadwalId}', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'store'])->name('rekapitulasi-hasil-ujk.store');
+    Route::put('/rekapitulasi-hasil-ujk/{id}', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'update'])->name('rekapitulasi-hasil-ujk.update');
+    
     // Umpan Balik Asesmen (view-only for asesor)
     Route::get('/umpan-balik', [App\Http\Controllers\AsesorUmpanBalikController::class, 'index'])->name('umpan-balik.index');
     Route::get('/umpan-balik/{id}', [App\Http\Controllers\AsesorUmpanBalikController::class, 'show'])->name('umpan-balik.show');

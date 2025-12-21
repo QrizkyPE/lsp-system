@@ -189,6 +189,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.rekapitulasi-hasil-ujk*') ? 'active' : '' }}" href="{{ route('asesor.rekapitulasi-hasil-ujk.index') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Rekapitulasi Hasil UJK
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.personalization') ? 'active' : '' }}" href="{{ route('asesor.personalization') }}">
                                     <i class="fas fa-signature me-2"></i>Personalisasi
                                 </a>

@@ -32,6 +32,19 @@
         .info-table td { padding: 5px; }
         .info-table td:first-child { width: 22%; }
         .info-table td:nth-child(3) { width: 12%; }
+        
+        .info-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .info-left {
+            float: left;
+            width: 50%;
+        }
+        .info-right {
+            float: right;
+            width: 50%;
+        }
     </style>
 </head>
 <body>
@@ -73,26 +86,24 @@
     </table>
 
     <!-- Informasi Jadwal -->
-    <table class="bordered info-table" style="margin-top: 6px;">
-        <tr>
-            <td>Skema</td>
-            <td>{{ $daftarHadir->skema ?? '-' }}</td>
-            <td class="text-right">Pukul</td>
-            <td>
+    <div class="info-container" style="margin-top: 6px;">
+        <div class="info-left">
+            <p style="font-size: 12px; margin: 5px 0;">Skema&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $daftarHadir->skema ?? '-' }}</p>
+            <p style="font-size: 12px; margin: 5px 0;">Hari/Tanggal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $hariTanggalWithDay }}</p>
+        </div>
+        
+        <div class="info-right">
+            <p style="font-size: 12px; margin: 5px 0; margin-left:50px;">Pukul&nbsp;&nbsp;: 
                 @if($daftarHadir->pukul_mulai && $daftarHadir->pukul_selesai)
                     {{ \Carbon\Carbon::parse($daftarHadir->pukul_mulai)->format('H:i') }} s/d {{ \Carbon\Carbon::parse($daftarHadir->pukul_selesai)->format('H:i') }}
                 @else
                     -
                 @endif
-            </td>
-        </tr>
-        <tr>
-            <td>Hari/Tanggal</td>
-            <td>{{ $hariTanggalWithDay }}</td>
-            <td class="text-right">TUK</td>
-            <td>{{ $daftarHadir->tuk->nama_tuk ?? ($daftarHadir->jadwalUji->tuk->nama_tuk ?? '-') }}</td>
-        </tr>
-    </table>
+            </p>
+            <p style="font-size: 12px; margin: 5px 0; margin-left:50px;">TUK&nbsp;&nbsp;&nbsp;&nbsp;: {{ $daftarHadir->tuk->nama_tuk ?? ($daftarHadir->jadwalUji->tuk->nama_tuk ?? '-') }}</p>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
 
     <!-- Tabel Daftar Asesor -->
     <table class="bordered" style="margin-top: 10px;">
