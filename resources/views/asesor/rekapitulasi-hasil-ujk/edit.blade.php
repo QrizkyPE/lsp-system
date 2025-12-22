@@ -89,6 +89,12 @@
                                             <td><strong>TUK:</strong></td>
                                             <td>{{ $rekapitulasi->tuk->nama_tuk ?? ($rekapitulasi->jadwalUji->tuk->nama_tuk ?? '-') }}</td>
                                         </tr>
+                                        <tr>
+                                            <td><strong>Penanggung Jawab TUK:</strong></td>
+                                            <td>
+                                                <input type="text" name="penanggung_jawab_tuk" class="form-control" value="{{ $rekapitulasi->penanggung_jawab_tuk ?? '' }}" placeholder="Masukkan nama penanggung jawab TUK">
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>

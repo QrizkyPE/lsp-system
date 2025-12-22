@@ -316,7 +316,8 @@
                     <th style="text-align: left; width: 32%">Nama</th>
                     <th style="text-align: center; width: 32%">Tanda Tangan</th>
                     <th style="text-align: right; width: 36%">Mengetahui,
-                        <br> Penanggung jawab TUK
+                        <br> Penanggung jawab TUK 
+                        
                     </th>
                 </thead>
 
@@ -336,15 +337,22 @@
                                     <div style="text-align: center;">...........</div>
                                 @endif
                             </td>
-                            <td></td>
+                            @endforeach
+                            <td>
+                            <div style="margin-top: 10px; font-weight: bold; text-align: right;">({{ $rekapitulasi->penanggung_jawab_tuk ?? '-' }})</div>
+                        
+                            </td>
                         </tr>
-                    @endforeach
+                    
+        
                 </tbody>
-
+                
             </table>
 
         </div>
     </div>
+
+   
 </body>
 
 </html>

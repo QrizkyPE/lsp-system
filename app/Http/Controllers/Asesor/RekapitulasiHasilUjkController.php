@@ -145,6 +145,7 @@ class RekapitulasiHasilUjkController extends Controller
             'pukul_mulai' => 'nullable|date_format:H:i',
             'pukul_selesai' => 'nullable|date_format:H:i',
             'hari_tanggal' => 'nullable|date',
+            'penanggung_jawab_tuk' => 'nullable|string|max:255',
             'hasil_asesi' => 'nullable|array',
         ]);
 
@@ -327,6 +328,7 @@ class RekapitulasiHasilUjkController extends Controller
             'pukul_mulai' => 'nullable|date_format:H:i',
             'pukul_selesai' => 'nullable|date_format:H:i',
             'hari_tanggal' => 'nullable|date',
+            'penanggung_jawab_tuk' => 'nullable|string|max:255',
             'hasil_asesi' => 'nullable|array',
         ]);
 
@@ -459,6 +461,9 @@ class RekapitulasiHasilUjkController extends Controller
         $hariTanggalWithDay = $rekapitulasi->hari_tanggal 
             ? \Carbon\Carbon::parse($rekapitulasi->hari_tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY')
             : '';
+        $hariTanggalDateOnly = $rekapitulasi->hari_tanggal 
+            ? \Carbon\Carbon::parse($rekapitulasi->hari_tanggal)->locale('id')->isoFormat('D MMMM YYYY')
+            : '';
         $tanggalBerlaku = $rekapitulasi->tanggal_berlaku 
             ? \Carbon\Carbon::parse($rekapitulasi->tanggal_berlaku)->locale('id')->isoFormat('D MMMM YYYY')
             : '';
@@ -468,6 +473,7 @@ class RekapitulasiHasilUjkController extends Controller
             'asesiList' => $asesiList,
             'asesorList' => $asesorList,
             'hariTanggalWithDay' => $hariTanggalWithDay,
+            'hariTanggalDateOnly' => $hariTanggalDateOnly,
             'tanggalBerlaku' => $tanggalBerlaku,
             'halaman' => $halaman,
             'halamanTotal' => $halamanTotal,

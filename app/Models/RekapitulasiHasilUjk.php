@@ -20,6 +20,7 @@ class RekapitulasiHasilUjk extends Model
         'hari_tanggal',
         'tuk_id',
         'hasil_asesi',
+        'penanggung_jawab_tuk',
         'created_by',
     ];
 

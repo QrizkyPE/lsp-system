@@ -38,7 +38,7 @@
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <h4 class="text-white">LSP System</h4>
-                        <small class="text-muted">{{ auth()->user()->role }}</small>
+                        <!-- <small class="text-muted">{{ auth()->user()->role }}</small> -->
                     </div>
                     
                     <ul class="nav flex-column">
