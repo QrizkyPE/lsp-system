@@ -119,9 +119,9 @@
     <table class="bordered" style="margin-top: 10px;">
         <thead>
             <tr>
-                <th class="p-8 text-center" style="width: 6%;">No.</th>
-                <th class="p-8 text-center" style="width: 44%;">Nama Asesor</th>
-                <th class="p-8 text-center" style="width: 50%;">Tanda Tangan</th>
+                <th class="p-8 text-center" style="width: 6%; padding: 5px;">No.</th>
+                <th class="p-8 text-center" style="width: 44%; padding: 5px;">Nama Asesor</th>
+                <th class="p-8 text-center" style="width: 50%; padding: 5px;">Tanda Tangan</th>
             </tr>
         </thead>
         <tbody>
