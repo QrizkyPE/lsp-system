@@ -14,6 +14,15 @@
             border-collapse: collapse;
             width: 100%;
         }
+        table.bordered {
+            border-collapse: collapse;
+        }
+        table.bordered td, table.bordered th {
+            padding: 0;
+            margin: 0;
+            border: 1px solid #000;
+            line-height: 1;
+        }
         .bordered td, .bordered th {
             border: 1px solid #000;
         }
@@ -23,6 +32,7 @@
         .text-right { text-align: right; }
         .fw-bold { font-weight: bold; }
         .fs-14 { font-size: 14px; }
+        .fs-15 { font-size: 15px; }
         .fs-16 { font-size: 16px; }
         .fs-18 { font-size: 18px; }
         .signature-img {
@@ -49,39 +59,39 @@
 </head>
 <body>
     <!-- Header utama mengikuti format contoh -->
-    <table class="bordered">
+    <table class="bordered p-0 m-0">
         <tr>
-            <td rowspan="3" style="width: 22%; padding: 6px;">
+            <td rowspan="3" style="width: 22%; text-align:center; vertical-align:middle;">
                 @if(file_exists(public_path('assets/img/logo.png')))
-                    <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width: 100%; height: auto;">
+                    <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width:50%; display:block; margin:auto;">
                 @endif
             </td>
-            <td rowspan="1" colspan="3" style="width: 38%; text-align: center; padding: 6px;">
+            <td rowspan="1" colspan="3" style="width: 38%; text-align: center;">
                 <div class="fw-bold fs-16">LSP</div>
                 <div class="fw-bold fs-16">Universitas Multi Data Palembang</div>
             </td>
-            
+
         </tr>
-        
+
         <tr>
-            <td rowspan="2" style="width: 30%;" class="p-10 text-center fw-bold fs-10">FORMULIR</td>
-            <td class="p-8" style="width: 20%;">No. Dokumen</td>
-            <td class="p-8" style="width: 20%;">{{ $daftarHadir->no_dokumen ?? '-' }}</td>
-            
-        </tr>
-        <tr>
-        <td class="p-8">Tanggal Berlaku</td>
-        <td class="p-8">{{ $tanggalBerlaku }}</td>
+            <td rowspan="2" class="text-center" style="font-weight: bold; font-size: 14px;">FORMULIR</td>
+            <td class="p-8" style="padding: 3px;">No. Dokumen</td>
+            <td class="p-8" style="padding: 3px;">{{ $daftarHadir->no_dokumen ?? '-' }}</td>
+
         </tr>
         <tr>
-            <td rowspan="2" colspan="2" class="p-10 text-center fw-bold fs-10">DAFTAR HADIR ASESOR</td>
-            <td class="p-8">Edisi/Revisi</td>
-            <td class="p-8">{{ $daftarHadir->edisi_revisi ?? '-' }}</td>
-            
+            <td style="padding: 3px;">Tanggal Berlaku</td>
+            <td style="padding: 3px;">{{ $tanggalBerlaku }}</td>
         </tr>
         <tr>
-        <td class="p-8">Halaman</td>
-        <td class="p-8">{{ $halaman ?? 1 }} dari {{ $halamanTotal ?? 1 }}</td>
+            <td rowspan="2" colspan="2" class="p-10 text-center fw-bold fs-15">DAFTAR HADIR ASESOR</td>
+            <td class="p-8" style="padding: 3px;">Edisi/Revisi</td>
+            <td class="p-8" style="padding: 3px;">{{ $daftarHadir->edisi_revisi ?? '-' }}</td>
+
+        </tr>
+        <tr>
+            <td class="p-8" style="padding: 3px;">Halaman</td>
+            <td class="p-8" style="padding: 3px;">{{ $halaman ?? 1 }} dari {{ $halamanTotal ?? 1 }}</td>
         </tr>
     </table>
 
@@ -118,8 +128,8 @@
             @foreach($asesorList as $index => $asesor)
                 <tr>
                     <td class="p-8 text-center">{{ $index + 1 }}</td>
-                    <td class="p-8">{{ $asesor['nama'] }}</td>
-                    <td class="p-8 text-center">
+                    <td class="p-8" style="padding: 3px;">{{ $asesor['nama'] }}</td>
+                    <td class="p-8 text-center" style="padding: 3px;">
                         @if($asesor['signature'])
                             <img src="{{ $asesor['signature'] }}" alt="Tanda Tangan" class="signature-img">
                         @else
