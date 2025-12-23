@@ -394,32 +394,41 @@ class RekapitulasiHasilUjkController extends Controller
         $rekapitulasi = RekapitulasiHasilUjk::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'tuk'])
             ->findOrFail($id);
 
-        // Get students (asesi) assigned to this asesor for this jadwal
-        $asesor = Auth::user()->asesor;
-        $assignedPendaftaranIds = DB::table('penugasan_pendaftaran')
-            ->join('penugasan', 'penugasan_pendaftaran.penugasan_id', '=', 'penugasan.id')
-            ->where('penugasan.jadwal_uji_id', $rekapitulasi->jadwal_uji_id)
-            ->where('penugasan.asesor_id', $asesor->id)
-            ->whereIn('penugasan.status', ['assigned', 'accepted', 'completed'])
-            ->pluck('penugasan_pendaftaran.pendaftaran_id')
-            ->unique()
-            ->filter()
-            ->toArray();
-
+        // Get all asesi from hasil_asesi stored in rekapitulasi (not limited to current asesor)
         $hasilAsesi = $rekapitulasi->hasil_asesi ?? [];
         
+        // Get all pendaftaran IDs from hasil_asesi
+        $pendaftaranIds = array_keys($hasilAsesi);
+        
         $asesiList = Pendaftaran::with(['user', 'skemaSertifikasi'])
-            ->whereIn('id', $assignedPendaftaranIds)
+            ->whereIn('id', $pendaftaranIds)
             ->get()
             ->map(function ($p) use ($hasilAsesi) {
                 $result = $hasilAsesi[$p->id] ?? ['k' => false, 'bk' => false, 'signature' => null];
+                
+                // If signature is not in hasil_asesi, try to get it from pendaftaran
+                $signature = $result['signature'] ?? null;
+                if (!$signature) {
+                    if ($p->persetujuan_data) {
+                        $persetujuanData = is_string($p->persetujuan_data) 
+                            ? json_decode($p->persetujuan_data, true) 
+                            : $p->persetujuan_data;
+                        $signature = $persetujuanData['asesi_signature'] ?? null;
+                    }
+                    if (!$signature && $p->asesmen_data) {
+                        $asesmenData = is_string($p->asesmen_data) 
+                            ? json_decode($p->asesmen_data, true) 
+                            : $p->asesmen_data;
+                        $signature = $asesmenData['signature_data'] ?? null;
+                    }
+                }
                 
                 return [
                     'nama' => $p->user->nama_lengkap ?? $p->user->name,
                     'npm' => $p->user->npm ?? $p->user->nim ?? '-',
                     'k' => $result['k'] ?? false,
                     'bk' => $result['bk'] ?? false,
-                    'signature' => $result['signature'] ?? null,
+                    'signature' => $signature,
                 ];
             });
 
