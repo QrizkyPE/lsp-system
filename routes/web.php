@@ -169,6 +169,14 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::put('/daftar-hadir-asesor/{id}', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'update'])->name('daftar-hadir-asesor.update');
     Route::get('/daftar-hadir-asesor/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirAsesorController::class, 'generatePDF'])->name('daftar-hadir-asesor.pdf');
     
+    // Daftar Hadir Peserta
+    Route::get('/daftar-hadir-peserta', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'index'])->name('daftar-hadir-peserta.index');
+    Route::get('/daftar-hadir-peserta/create/{jadwalId}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'create'])->name('daftar-hadir-peserta.create');
+    Route::post('/daftar-hadir-peserta/{jadwalId}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'store'])->name('daftar-hadir-peserta.store');
+    Route::get('/daftar-hadir-peserta/{id}/edit', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'edit'])->name('daftar-hadir-peserta.edit');
+    Route::put('/daftar-hadir-peserta/{id}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'update'])->name('daftar-hadir-peserta.update');
+    Route::get('/daftar-hadir-peserta/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF'])->name('daftar-hadir-peserta.pdf');
+    
     // Rekapitulasi Hasil UJK
     Route::get('/rekapitulasi-hasil-ujk', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'index'])->name('rekapitulasi-hasil-ujk.index');
     Route::get('/rekapitulasi-hasil-ujk/create/{jadwalId}', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'create'])->name('rekapitulasi-hasil-ujk.create');
