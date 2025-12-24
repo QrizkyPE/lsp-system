@@ -969,16 +969,34 @@ class AdminController extends Controller
             'jenis_penugasan' => 'required|in:asesor,mapa,ma,mkva',
             'keterangan' => 'nullable|string',
             'pendaftaran_id' => 'nullable|array',
-            'pendaftaran_id.*' => 'exists:pendaftaran,id',
+            'pendaftaran_id.*' => 'nullable|exists:pendaftaran,id', // Allow null/empty values in array
         ]);
 
         $penugasan = Penugasan::findOrFail($id);
         $penugasan->update($request->except('pendaftaran_id'));
 
-        // Sync pendaftaran
-        if ($request->has('pendaftaran_id') && is_array($request->pendaftaran_id)) {
-            $penugasan->pendaftaran()->sync($request->pendaftaran_id);
+        // Sync pendaftaran based on jenis_penugasan
+        if ($request->jenis_penugasan === 'asesor') {
+            // For asesor type, always sync pendaftaran
+            // Get selected pendaftaran_ids, filter out empty values
+            $pendaftaranIds = [];
+            
+            // Always get pendaftaran_id from request
+            // JavaScript ensures pendaftaran_id[] is always sent (even if empty)
+            $requestIds = $request->input('pendaftaran_id', []);
+            
+            if (is_array($requestIds)) {
+                // Filter out empty, null, or invalid values
+                $pendaftaranIds = array_values(array_filter($requestIds, function($id) {
+                    return !empty($id) && $id !== '' && $id !== null && is_numeric($id);
+                }));
+            }
+            
+            // Always sync with the filtered array (even if empty, this will remove all assignments)
+            // This ensures that deselected items are removed from penugasan
+            $penugasan->pendaftaran()->sync($pendaftaranIds);
         } else {
+            // For non-asesor types, detach all pendaftaran
             $penugasan->pendaftaran()->detach();
         }
 
@@ -1030,27 +1048,31 @@ class AdminController extends Controller
         // Include those already assigned to this penugasan, exclude those assigned to other penugasan
         $currentPendaftaranIds = $penugasan->pendaftaran->pluck('id')->toArray();
         
-        $availableMahasiswa = Pendaftaran::with(['user', 'skemaSertifikasi'])
+        // Get all approved pendaftaran
+        $allApproved = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->where('status', 'approved')
-            ->where(function($query) use ($assignedPendaftaranIds, $currentPendaftaranIds) {
-                // Include mahasiswa that are not assigned to other penugasan
-                if (!empty($assignedPendaftaranIds)) {
-                    $query->whereNotIn('id', $assignedPendaftaranIds);
-                }
-                
-                // Always include current penugasan's pendaftaran (even if assigned elsewhere)
-                if (!empty($currentPendaftaranIds)) {
-                    $query->orWhereIn('id', $currentPendaftaranIds);
-                }
-            })
-            ->orderBy('no_pendaftaran')
-            ->get()
-            ->map(function($m) {
-                return [
-                    'id' => $m->id,
-                    'text' => $m->no_pendaftaran . ' - ' . ($m->user->nama_lengkap ?? $m->user->name) . ' (' . ($m->skemaSertifikasi->nama_skema ?? '-') . ')'
-                ];
-            });
+            ->get();
+        
+        // Filter: include current penugasan's pendaftaran OR pendaftaran not assigned to others
+        $availableMahasiswa = $allApproved->filter(function($m) use ($assignedPendaftaranIds, $currentPendaftaranIds) {
+            // Always include current penugasan's pendaftaran
+            if (!empty($currentPendaftaranIds) && in_array($m->id, $currentPendaftaranIds)) {
+                return true;
+            }
+            // Include if not assigned to other penugasan
+            if (empty($assignedPendaftaranIds) || !in_array($m->id, $assignedPendaftaranIds)) {
+                return true;
+            }
+            return false;
+        })
+        ->sortBy('no_pendaftaran')
+        ->map(function($m) {
+            return [
+                'id' => $m->id,
+                'text' => $m->no_pendaftaran . ' - ' . ($m->user->nama_lengkap ?? $m->user->name) . ' (' . ($m->skemaSertifikasi->nama_skema ?? '-') . ')'
+            ];
+        })
+        ->values(); // Re-index array
         
         $penugasan->available_mahasiswa = $availableMahasiswa;
         

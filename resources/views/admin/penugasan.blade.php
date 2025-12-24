@@ -289,7 +289,7 @@
                 <h5 class="modal-title">Edit Penugasan Asesor</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editPenugasanForm" method="POST">
+            <form id="editPenugasanForm" method="POST" onsubmit="return handleEditPenugasanSubmit(event)">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -521,6 +521,53 @@ function editPenugasan(id) {
             console.error('Error:', error);
             alert('Gagal memuat data penugasan');
         });
+}
+
+// Handle edit penugasan form submit
+function handleEditPenugasanSubmit(event) {
+    const form = event.target;
+    const pendaftaranSelect = document.getElementById('edit_pendaftaran_id');
+    const jenisPenugasan = document.getElementById('edit_jenis_penugasan');
+    
+    // Remove any previously added hidden inputs
+    const existingHidden = form.querySelectorAll('input[name="pendaftaran_id[]"][type="hidden"]');
+    existingHidden.forEach(input => input.remove());
+    
+    // If jenis penugasan is 'asesor' and field is visible
+    if (jenisPenugasan && jenisPenugasan.value === 'asesor' && 
+        pendaftaranSelect && pendaftaranSelect.style.display !== 'none') {
+        // Get selected values (only those that are actually selected)
+        const selected = Array.from(pendaftaranSelect.selectedOptions).map(opt => opt.value);
+        
+        // For multiple select, if nothing is selected, the form won't send the field at all
+        // So we need to ensure pendaftaran_id[] is always sent as array
+        // Remove the select's name attribute to prevent it from sending its own data
+        pendaftaranSelect.removeAttribute('name');
+        
+        // Add hidden inputs for each selected value
+        // Always ensure pendaftaran_id[] is sent as array
+        if (selected.length > 0) {
+            selected.forEach(id => {
+                if (id && id !== '') { // Only add non-empty values
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'pendaftaran_id[]';
+                    hiddenInput.value = id;
+                    form.appendChild(hiddenInput);
+                }
+            });
+        } else {
+            // If no selection, add a hidden input with empty value to ensure empty array is sent
+            // This ensures controller receives pendaftaran_id as empty array
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'pendaftaran_id[]';
+            hiddenInput.value = '';
+            form.appendChild(hiddenInput);
+        }
+    }
+    
+    return true; // Allow form to submit
 }
 
 function deletePenugasan(id) {
