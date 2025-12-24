@@ -512,16 +512,16 @@ class AsesorController extends Controller
             $rejectedAsesmen = 0;
         } else {
             // Filter pendaftaran based on assignment
-            // Include approved, in_progress, persetujuan_submitted, and persetujuan_confirmed
+            // Include approved, in_progress, persetujuan_submitted, persetujuan_confirmed, and rejected
             $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi', 'jadwalUji', 'verifications'])
-                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed'])
+                ->whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'rejected'])
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->latest()
                 ->paginate(10);
 
             // Calculate summary statistics (only for assigned pendaftaran)
-            $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed'])
+            $totalAsesmen = Pendaftaran::whereIn('status', ['approved', 'in_progress', 'persetujuan_submitted', 'persetujuan_confirmed', 'rejected'])
                 ->whereNotNull('asesmen_data')
                 ->whereIn('id', $assignedPendaftaranIds)
                 ->count();
@@ -774,13 +774,21 @@ class AsesorController extends Controller
         ]);
     }
 
-    public function rejectAsesmen($id)
+    public function rejectAsesmen(Request $request, $id)
     {
+        $request->validate([
+            'alasan_penolakan' => 'required|string|min:10'
+        ], [
+            'alasan_penolakan.required' => 'Alasan penolakan wajib diisi.',
+            'alasan_penolakan.min' => 'Alasan penolakan minimal 10 karakter.'
+        ]);
+
         $pendaftaran = Pendaftaran::findOrFail($id);
         
         // Update pendaftaran status
         $pendaftaran->update([
             'status' => 'rejected',
+            'alasan_penolakan' => $request->alasan_penolakan,
             'tanggal_asesmen' => now()
         ]);
 
@@ -795,11 +803,27 @@ class AsesorController extends Controller
                 'status' => 'rejected',
                 'verification_date' => now()
             ]);
+        } else {
+            // Create verification record if doesn't exist
+            PendaftaranVerification::create([
+                'pendaftaran_id' => $id,
+                'verifier_id' => Auth::id(),
+                'type' => 'asesor_verification',
+                'status' => 'rejected',
+                'verification_date' => now()
+            ]);
         }
 
-        return response()->json([
-            'success' => true
-        ]);
+        // Return JSON for AJAX requests, redirect for form submissions
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Asesmen berhasil ditolak.'
+            ]);
+        }
+
+        return redirect()->route('asesor.asesmen')
+            ->with('success', 'Asesmen berhasil ditolak.');
     }
 
     public function submitAsesmen(Request $request, $id)

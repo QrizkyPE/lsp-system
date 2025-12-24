@@ -220,7 +220,17 @@
                                                                title="Lihat Detail Asesmen Mandiri">
                                                                 <i class="fas fa-eye"></i> Detail
                                                             </a>
-                                                            @if($p->asesmen_data)
+                                                            <!-- @if($p->status === 'rejected')
+                                                                <span class="badge bg-danger">Ditolak</span>
+                                                                @if($p->alasan_penolakan)
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                            data-bs-toggle="tooltip" 
+                                                                            data-bs-placement="top"
+                                                                            title="{{ $p->alasan_penolakan }}">
+                                                                        <i class="fas fa-info-circle"></i> Lihat Alasan
+                                                                    </button>
+                                                                @endif
+                                                            @elseif($p->asesmen_data) -->
                                                                 <button type="button" class="btn btn-sm btn-success" 
                                                                         data-bs-toggle="modal" 
                                                                         data-bs-target="#asesmenModal{{ $p->id }}">
@@ -386,7 +396,9 @@
                             ->exists();
                         $hasPersetujuan = $p->persetujuan_data;
                     @endphp
-                    @if($p->status === 'persetujuan_confirmed' || $p->status === 'persetujuan_submitted')
+                    @if($p->status === 'rejected')
+                        <span class="badge bg-danger me-2">Ditolak</span>
+                    @elseif($p->status === 'persetujuan_confirmed' || $p->status === 'persetujuan_submitted')
                         <span class="badge bg-success me-2">Persetujuan Dikonfirmasi</span>
                     @elseif($p->status === 'in_progress')
                         <span class="badge bg-warning me-2">Sedang Berlangsung</span>
@@ -432,6 +444,16 @@
                     <div class="alert alert-success">
                         <h6><i class="fas fa-check-circle me-2"></i>Asesmen Selesai</h6>
                         <p class="mb-0">Asesmen telah selesai dan disetujui admin.</p>
+                    </div>
+                @elseif($p->status === 'rejected')
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-times-circle me-2"></i>Asesmen Ditolak</h6>
+                        <p class="mb-0">Asesmen ini telah ditolak.</p>
+                        @if($p->alasan_penolakan)
+                            <hr>
+                            <p class="mb-0"><strong>Alasan Penolakan:</strong></p>
+                            <p class="mb-0">{{ $p->alasan_penolakan }}</p>
+                        @endif
                     </div>
                 @elseif($hasPersetujuan)
                     <div class="alert alert-success">
@@ -931,6 +953,10 @@
                     <button type="button" class="btn btn-success" onclick="openVerificationModal({{ $p->id }})">
                         <i class="fas fa-check"></i> Verifikasi Asesmen
                     </button>
+                @elseif($p->status === 'rejected')
+                    <button type="button" class="btn btn-danger" disabled>
+                        <i class="fas fa-times"></i> Asesmen Ditolak
+                    </button>
                 @else
                     <button type="button" class="btn btn-secondary" disabled>
                         <i class="fas fa-clock"></i> Menunggu Persetujuan Admin
@@ -1053,13 +1079,47 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Batal
                 </button>
-                <button type="button" class="btn btn-danger" onclick="rejectAsesmen({{ $p->id }})">
-                    <i class="fas fa-times me-2"></i>Tolak
+                <button type="button" class="btn btn-danger" onclick="openRejectModal({{ $p->id }})">
+                    <i class="fas fa-times me-2"></i>Tolak Asesmen
                 </button>
                 <button type="button" class="btn btn-success" id="confirmVerificationBtn{{ $p->id }}" disabled>
                     <i class="fas fa-check me-2"></i>Verifikasi Asesmen
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+@endforeach
+
+<!-- Modal Tolak Asesmen -->
+@foreach($pendaftaran as $p)
+<div class="modal fade" id="rejectAsesmenModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tolak Asesmen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rejectAsesmenForm{{ $p->id }}">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Peringatan:</strong> Apakah Anda yakin ingin menolak asesmen ini?
+                    </div>
+                    <div class="mb-3">
+                        <label for="alasan_penolakan_asesmen{{ $p->id }}" class="form-label">Alasan Penolakan:</label>
+                        <textarea class="form-control" id="alasan_penolakan_asesmen{{ $p->id }}" name="alasan_penolakan" rows="4" required placeholder="Masukkan alasan penolakan asesmen..."></textarea>
+                        <small class="text-muted">Alasan penolakan wajib diisi (minimal 10 karakter).</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Tolak Asesmen
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1308,31 +1368,58 @@ function verifyAsesmen(id) {
     }
 }
 
-function rejectAsesmen(id) {
-    if (confirm('Apakah Anda yakin ingin menolak asesmen ini?')) {
-        // Get CSRF token safely
-        const csrfToken = document.querySelector('meta[name="csrf-token"]');
-        const token = csrfToken ? csrfToken.getAttribute('content') : '';
-        
-        fetch(`/asesor/asesmen/${id}/rejected`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Gagal menolak asesmen');
-            }
-        })
-        .catch(error => {
-            alert('Gagal menolak asesmen');
-        });
+function openRejectModal(id) {
+    const modalElement = document.getElementById(`rejectAsesmenModal${id}`);
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
     }
 }
+
+// Handle reject asesmen form submission
+@foreach($pendaftaran as $p)
+document.getElementById('rejectAsesmenForm{{ $p->id }}')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const alasan = document.getElementById('alasan_penolakan_asesmen{{ $p->id }}').value.trim();
+    
+    if (alasan.length < 10) {
+        alert('Alasan penolakan minimal 10 karakter.');
+        return;
+    }
+    
+    // Get CSRF token safely
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    const token = csrfToken ? csrfToken.getAttribute('content') : '';
+    
+    fetch(`/asesor/asesmen/{{ $p->id }}/rejected`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token
+        },
+        body: JSON.stringify({
+            alasan_penolakan: alasan
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById(`rejectAsesmenModal{{ $p->id }}`));
+            if (modal) {
+                modal.hide();
+            }
+            location.reload();
+        } else {
+            alert(data.message || 'Gagal menolak asesmen');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Gagal menolak asesmen');
+    });
+});
+@endforeach
 </script>
 @endsection

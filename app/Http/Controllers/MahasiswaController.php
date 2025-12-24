@@ -195,10 +195,11 @@ class MahasiswaController extends Controller
 
         $user = Auth::user();
         
-        // Check if user already registered for this jadwal (check all statuses except draft)
+        // Check if user already registered for this jadwal (check all statuses except draft and rejected)
+        // Users who were rejected can register again
         $existingPendaftaran = Pendaftaran::where('user_id', $user->id)
             ->where('jadwal_uji_id', $request->jadwal_uji_id)
-            ->whereNotIn('status', ['draft'])
+            ->whereNotIn('status', ['draft', 'rejected'])
             ->first();
 
         if ($existingPendaftaran) {
@@ -215,9 +216,10 @@ class MahasiswaController extends Controller
             $currentDraft = Pendaftaran::find($currentDraftId);
             if ($currentDraft && $currentDraft->status == 'draft' && $currentDraft->jadwal_uji_id != $request->jadwal_uji_id) {
                 // User is changing jadwal, check if new jadwal is already registered
+                // Users who were rejected can register again
                 $existingPendaftaran = Pendaftaran::where('user_id', $user->id)
                     ->where('jadwal_uji_id', $request->jadwal_uji_id)
-                    ->whereNotIn('status', ['draft'])
+                    ->whereNotIn('status', ['draft', 'rejected'])
                     ->first();
                 
                 if ($existingPendaftaran) {

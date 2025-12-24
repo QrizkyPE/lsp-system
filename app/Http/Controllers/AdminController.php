@@ -1155,13 +1155,21 @@ class AdminController extends Controller
         ]);
     }
 
-    public function rejectPendaftaran($id)
+    public function rejectPendaftaran(Request $request, $id)
     {
+        $request->validate([
+            'alasan_penolakan' => 'required|string|min:10'
+        ], [
+            'alasan_penolakan.required' => 'Alasan penolakan wajib diisi.',
+            'alasan_penolakan.min' => 'Alasan penolakan minimal 10 karakter.'
+        ]);
+
         $pendaftaran = Pendaftaran::findOrFail($id);
         
         // Update pendaftaran status
         $pendaftaran->update([
             'status' => 'rejected',
+            'alasan_penolakan' => $request->alasan_penolakan,
             'tanggal_verifikasi' => now()
         ]);
 
@@ -1178,9 +1186,16 @@ class AdminController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true
-        ]);
+        // Return JSON for AJAX requests, redirect for form submissions
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran berhasil ditolak.'
+            ]);
+        }
+
+        return redirect()->route('admin.pendaftaran')
+            ->with('success', 'Pendaftaran berhasil ditolak.');
     }
 
 
