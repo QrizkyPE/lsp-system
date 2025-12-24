@@ -91,6 +91,9 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('admin.pendaftaran') ? 'active' : '' }}" href="{{ route('admin.pendaftaran') }}">
                                     <i class="fas fa-file-alt me-2"></i>Pendaftaran
+                                    @if(isset($pendingPendaftaranCount) && $pendingPendaftaranCount > 0)
+                                        <span class="badge bg-danger rounded-pill ms-2">{{ $pendingPendaftaranCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="nav-item">

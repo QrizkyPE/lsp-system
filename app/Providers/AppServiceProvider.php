@@ -40,9 +40,13 @@ class AppServiceProvider extends ServiceProvider
                         ->whereNotNull('asesmen_data')
                         ->count();
                     
+                    $pendingPendaftaranCount = Pendaftaran::where('status', 'pending')->count();
+                    
                     $view->with('pendingPersetujuanCount', $pendingPersetujuanCount);
+                    $view->with('pendingPendaftaranCount', $pendingPendaftaranCount);
                 } else {
                     $view->with('pendingPersetujuanCount', 0);
+                    $view->with('pendingPendaftaranCount', 0);
                 }
 
                 // Share pending observasi checklist count for mahasiswa
@@ -95,6 +99,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             } else {
                 $view->with('pendingPersetujuanCount', 0);
+                $view->with('pendingPendaftaranCount', 0);
                 $view->with('pendingObservasiCount', 0);
                 $view->with('pendingPenyesuaianCount', 0);
                 $view->with('pendingRekamanAsesmenCount', 0);
