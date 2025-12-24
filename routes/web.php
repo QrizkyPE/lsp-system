@@ -184,6 +184,7 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/daftar-hadir-peserta/{id}/edit', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'edit'])->name('daftar-hadir-peserta.edit');
     Route::put('/daftar-hadir-peserta/{id}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'update'])->name('daftar-hadir-peserta.update');
     Route::get('/daftar-hadir-peserta/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF'])->name('daftar-hadir-peserta.pdf');
+    Route::get('/daftar-hadir-peserta/{id}/pdf2', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF2'])->name('daftar-hadir-peserta.pdf2');
     
     // Surat Pernyataan Kesediaan
     Route::get('/surat-pernyataan-kesediaan', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'index'])->name('surat-pernyataan-kesediaan.index');

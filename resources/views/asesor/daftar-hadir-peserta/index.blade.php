@@ -28,6 +28,24 @@
                         </div>
                     @endif
 
+                    <!-- Filter Status -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <form method="GET" action="{{ route('asesor.daftar-hadir-peserta.index') }}" id="filterForm">
+                                <div class="input-group">
+                                    <label class="input-group-text" for="statusFilter">
+                                        <i class="fas fa-filter me-1"></i>Filter Status:
+                                    </label>
+                                    <select name="status" id="statusFilter" class="form-select" onchange="document.getElementById('filterForm').submit();">
+                                        <option value="all" {{ $statusFilter === 'all' ? 'selected' : '' }}>Semua</option>
+                                        <option value="sudah_dibuat" {{ $statusFilter === 'sudah_dibuat' ? 'selected' : '' }}>Sudah Dibuat</option>
+                                        <option value="belum_dibuat" {{ $statusFilter === 'belum_dibuat' ? 'selected' : '' }}>Belum Dibuat</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     @if($daftarHadir->count() > 0 || $jadwalsWithoutDaftarHadir->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
@@ -71,6 +89,10 @@
                                                     <a href="{{ route('asesor.daftar-hadir-peserta.pdf', $item->id) }}" 
                                                        class="btn btn-danger btn-sm" title="Download PDF" target="_blank">
                                                         <i class="fas fa-file-pdf"></i>
+                                                    </a>
+                                                    <a href="{{ route('asesor.daftar-hadir-peserta.pdf2', $item->id) }}" 
+                                                       class="btn btn-info btn-sm" title="Download PDF Laporan" target="_blank">
+                                                        <i class="fas fa-file-alt"></i>
                                                     </a>
                                                 </div>
                                             </td>

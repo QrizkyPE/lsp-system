@@ -17,12 +17,15 @@ class DaftarHadirPesertaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $asesor = Auth::user()->asesor;
         if (!$asesor) {
             return redirect()->route('login')->with('error', 'Anda bukan asesor');
         }
+
+        // Get filter status from request
+        $statusFilter = $request->get('status', 'all');
 
         // Get all jadwals where asesor is assigned
         $penugasan = Penugasan::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk'])
@@ -47,7 +50,15 @@ class DaftarHadirPesertaController extends Controller
             ->whereNotIn('id', $daftarHadir->pluck('jadwal_uji_id'))
             ->get();
 
-        return view('asesor.daftar-hadir-peserta.index', compact('daftarHadir', 'jadwalsWithoutDaftarHadir'));
+        // Apply status filter
+        if ($statusFilter === 'sudah_dibuat') {
+            $jadwalsWithoutDaftarHadir = collect([]);
+        } elseif ($statusFilter === 'belum_dibuat') {
+            $daftarHadir = collect([]);
+        }
+        // If 'all', show both (no filtering needed)
+
+        return view('asesor.daftar-hadir-peserta.index', compact('daftarHadir', 'jadwalsWithoutDaftarHadir', 'statusFilter'));
     }
 
     /**
@@ -108,6 +119,7 @@ class DaftarHadirPesertaController extends Controller
                     'nama' => $p->user->nama_lengkap ?? $p->user->name,
                     'npm' => $p->user->npm ?? $p->user->nim ?? '-',
                     'signature' => $signature,
+                    'keterangan' => '',
                 ];
             });
 
@@ -161,6 +173,7 @@ class DaftarHadirPesertaController extends Controller
         $kehadiranPeserta = [];
         foreach ($assignedPendaftaranIds as $pendaftaranId) {
             $hadir = $request->input("kehadiran_peserta.{$pendaftaranId}.hadir", false);
+            $keterangan = $request->input("kehadiran_peserta.{$pendaftaranId}.keterangan", '');
             
             // Get signature from pendaftaran if hadir
             $signature = null;
@@ -185,6 +198,7 @@ class DaftarHadirPesertaController extends Controller
             $kehadiranPeserta[$pendaftaranId] = [
                 'hadir' => (bool) $hadir,
                 'signature' => $signature,
+                'keterangan' => $keterangan,
             ];
         }
 
@@ -271,6 +285,7 @@ class DaftarHadirPesertaController extends Controller
                     'npm' => $p->user->npm ?? $p->user->nim ?? '-',
                     'hadir' => $hadir,
                     'signature' => $signature,
+                    'keterangan' => $existingKehadiran['keterangan'] ?? '',
                 ];
             });
 
@@ -298,6 +313,8 @@ class DaftarHadirPesertaController extends Controller
             'skema' => 'nullable|string|max:255',
             'hari_tanggal' => 'nullable|date',
             'penanggung_jawab_tuk' => 'nullable|string|max:255',
+            'kepala_tuk' => 'nullable|string|max:255',
+            'jumlah_peserta_huruf' => 'nullable|string|max:255',
             'kehadiran_peserta' => 'nullable|array',
         ]);
 
@@ -314,6 +331,7 @@ class DaftarHadirPesertaController extends Controller
 
         $kehadiranPeserta = [];
         foreach ($assignedPendaftaranIds as $pendaftaranId) {
+            $keterangan = $request->input("kehadiran_peserta.{$pendaftaranId}.keterangan", '');
             $hadir = $request->input("kehadiran_peserta.{$pendaftaranId}.hadir", false);
             
             // Get signature from existing or pendaftaran if hadir
@@ -343,6 +361,7 @@ class DaftarHadirPesertaController extends Controller
             $kehadiranPeserta[$pendaftaranId] = [
                 'hadir' => (bool) $hadir,
                 'signature' => $signature,
+                'keterangan' => $keterangan,
             ];
         }
 
@@ -437,5 +456,102 @@ class DaftarHadirPesertaController extends Controller
 
         $pdf = PDF::loadView('asesor.daftar-hadir-peserta.pdf', $data);
         return $pdf->download('daftar-hadir-peserta-' . $daftarHadir->id . '.pdf');
+    }
+
+    /**
+     * Generate PDF type 2 for daftar hadir peserta
+     */
+    public function generatePDF2($id)
+    {
+        $daftarHadir = DaftarHadirPeserta::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'tuk'])
+            ->findOrFail($id);
+
+        // Get all asesi from kehadiran_peserta
+        $kehadiranPeserta = $daftarHadir->kehadiran_peserta ?? [];
+        $pendaftaranIds = array_keys($kehadiranPeserta);
+
+        // Get rekapitulasi hasil UJK for this jadwal to get K/BK results
+        $rekapitulasi = \App\Models\RekapitulasiHasilUjk::where('jadwal_uji_id', $daftarHadir->jadwal_uji_id)
+            ->first();
+        
+        $hasilAsesi = $rekapitulasi ? ($rekapitulasi->hasil_asesi ?? []) : [];
+
+        $asesiList = Pendaftaran::with(['user', 'skemaSertifikasi'])
+            ->whereIn('id', $pendaftaranIds)
+            ->get()
+            ->map(function ($p) use ($kehadiranPeserta, $hasilAsesi) {
+                $kehadiran = $kehadiranPeserta[$p->id] ?? ['hadir' => false, 'signature' => null, 'keterangan' => ''];
+                $hasil = $hasilAsesi[$p->id] ?? ['k' => false, 'bk' => false];
+                
+                return [
+                    'id' => $p->id,
+                    'nama' => $p->user->nama_lengkap ?? $p->user->name,
+                    'npm' => $p->user->npm ?? $p->user->nim ?? '-',
+                    'hadir' => $kehadiran['hadir'] ?? false,
+                    'signature' => $kehadiran['signature'] ?? null,
+                    'keterangan' => $kehadiran['keterangan'] ?? '',
+                    'k' => $hasil['k'] ?? false,
+                    'bk' => $hasil['bk'] ?? false,
+                ];
+            })
+            ->values();
+
+        // Count statistics
+        $totalPeserta = $asesiList->count();
+        $hadirCount = $asesiList->where('hadir', true)->count();
+        $tidakHadirCount = $totalPeserta - $hadirCount;
+        $countK = $asesiList->where('k', true)->count();
+        $countBK = $asesiList->where('bk', true)->count();
+
+        // Get asesor who created this
+        $asesor = \App\Models\Asesor::where('user_id', $daftarHadir->created_by)->first();
+        
+        $asesorData = null;
+        if ($asesor) {
+            $signature = null;
+            if ($asesor->user_id) {
+                $personalization = \App\Models\UserPersonalization::where('user_id', $asesor->user_id)->first();
+                if ($personalization && !empty($personalization->signature_data)) {
+                    $signature = $personalization->signature_data;
+                }
+            }
+            
+            $asesorData = [
+                'nama' => $asesor->nama_lengkap,
+                'no_reg' => $asesor->no_reg ?? '-',
+                'signature' => $signature,
+            ];
+        }
+
+        // Format tanggal
+        $hariTanggal = $daftarHadir->hari_tanggal 
+            ? \Carbon\Carbon::parse($daftarHadir->hari_tanggal)->locale('id')
+            : null;
+        
+        $hari = $hariTanggal ? $hariTanggal->isoFormat('dddd') : '';
+        $tanggal = $hariTanggal ? $hariTanggal->isoFormat('D MMMM YYYY') : '';
+        $tanggalDateOnly = $hariTanggal ? $hariTanggal->isoFormat('D MMMM YYYY') : '';
+        
+        $tanggalBerlaku = $daftarHadir->tanggal_berlaku 
+            ? \Carbon\Carbon::parse($daftarHadir->tanggal_berlaku)->locale('id')->isoFormat('D MMMM YYYY')
+            : '';
+
+        $data = [
+            'daftarHadir' => $daftarHadir,
+            'asesiList' => $asesiList,
+            'asesorData' => $asesorData,
+            'hari' => $hari,
+            'tanggal' => $tanggal,
+            'tanggalDateOnly' => $tanggalDateOnly,
+            'tanggalBerlaku' => $tanggalBerlaku,
+            'totalPeserta' => $totalPeserta,
+            'hadirCount' => $hadirCount,
+            'tidakHadirCount' => $tidakHadirCount,
+            'countK' => $countK,
+            'countBK' => $countBK,
+        ];
+
+        $pdf = PDF::loadView('asesor.daftar-hadir-peserta.pdf2', $data);
+        return $pdf->download('daftar-hadir-peserta-laporan-' . $daftarHadir->id . '.pdf');
     }
 }

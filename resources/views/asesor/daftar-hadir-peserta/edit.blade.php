@@ -83,6 +83,18 @@
                                                 <input type="text" name="penanggung_jawab_tuk" class="form-control" value="{{ $daftarHadir->penanggung_jawab_tuk ?? '' }}" placeholder="Masukkan nama penanggung jawab TUK">
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td><strong>Kepala TUK:</strong></td>
+                                            <td>
+                                                <input type="text" name="kepala_tuk" class="form-control" value="{{ $daftarHadir->kepala_tuk ?? '' }}" placeholder="Masukkan nama kepala TUK">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jumlah Peserta (Huruf):</strong></td>
+                                            <td>
+                                                <input type="text" name="jumlah_peserta_huruf" class="form-control" value="{{ $daftarHadir->jumlah_peserta_huruf ?? '' }}" placeholder="Contoh: sepuluh, sebelas, dst">
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -98,10 +110,11 @@
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th width="5%">No</th>
-                                                    <th width="30%">Nama Peserta</th>
-                                                    <th width="20%">NPM</th>
-                                                    <th width="25%">Tanda Tangan</th>
-                                                    <th width="20%">Kehadiran</th>
+                                                    <th width="25%">Nama Peserta</th>
+                                                    <th width="15%">NPM</th>
+                                                    <th width="20%">Tanda Tangan</th>
+                                                    <th width="15%">Kehadiran</th>
+                                                    <th width="20%">Keterangan</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -129,6 +142,9 @@
                                                                 <i class="fas {{ $asesi['hadir'] ? 'fa-check' : 'fa-times' }}"></i>
                                                                 <span class="kehadiran-text-{{ $asesi['id'] }}">{{ $asesi['hadir'] ? 'Hadir' : 'Tidak Hadir' }}</span>
                                                             </button>
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="kehadiran_peserta[{{ $asesi['id'] }}][keterangan]" class="form-control form-control-sm" placeholder="Keterangan" value="{{ $asesi['keterangan'] ?? '' }}">
                                                         </td>
                                                     </tr>
                                                 @endforeach

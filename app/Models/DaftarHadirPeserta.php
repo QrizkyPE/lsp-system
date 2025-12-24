@@ -18,6 +18,8 @@ class DaftarHadirPeserta extends Model
         'hari_tanggal',
         'tuk_id',
         'penanggung_jawab_tuk',
+        'kepala_tuk',
+        'jumlah_peserta_huruf',
         'kehadiran_peserta',
         'created_by',
     ];

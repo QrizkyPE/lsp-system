@@ -6,7 +6,7 @@
     <title>Rekapitulasi Hasil UJK</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "DejaVu Sans", sans-serif;
             font-size: 12px;
             margin: 0;
             padding: 20px;
@@ -208,32 +208,16 @@
                     <td class="p-8 text-center" style="padding: 3px;" >{{ $asesi['npm'] }}</td>
                     <td class="p-8 text-center">
                         @if($asesi['k'])
-                            <div
-                                style="width: 16px; height: 16px; border: 2px solid #000; margin: 0 auto; position: relative; display: inline-block;">
-                                <svg width="16" height="16" style="position: absolute; top: -2px; left: -2px;">
-                                    <path d="M 2 8 L 6 12 L 14 4" stroke="#000" stroke-width="2" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </div>
+                            <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 18px; font-weight: bold;">✓</span>
                         @else
-                            <div
-                                style="width: 16px; height: 16px; border: 2px solid #000; margin: 0 auto; display: inline-block;">
-                            </div>
+                            &nbsp;
                         @endif
                     </td>
                     <td class="p-8 text-center">
                         @if($asesi['bk'])
-                            <div
-                                style="width: 16px; height: 16px; border: 2px solid #000; margin: 0 auto; position: relative; display: inline-block;">
-                                <svg width="16" height="16" style="position: absolute; top: -2px; left: -2px;">
-                                    <path d="M 2 8 L 6 12 L 14 4" stroke="#000" stroke-width="2" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </div>
+                            <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 18px; font-weight: bold;">✓</span>
                         @else
-                            <div
-                                style="width: 16px; height: 16px; border: 2px solid #000; margin: 0 auto; display: inline-block;">
-                            </div>
+                            &nbsp;
                         @endif
                     </td>
                     <td class="p-8 text-center" style="text-align: center; ">
@@ -270,53 +254,16 @@
         </table>
     </div>
 
-    <!-- Footer -->
-    <!-- <div style="margin-top: 40px; clear: both;">
-        <table style="width: 100%; border: none;">
-            <tr>
-                <td style="width: 50%; border: none; vertical-align: top;">
-                    <div><strong>Tim Asesor Kompetensi</strong></div>
-                    <table style="margin-top: 10px; border: none; width: 100%;">
-                        <tr>
-                            <td style="border: none; width: 50%; padding: 2px; text-align: left;">Nama</td>
-                            <td style="border: none; width: 50%; padding: 2px; text-align: center; margin-left: 100px;">Tanda Tangan</td>
-                        </tr>
-                        @foreach($asesorList as $index => $asesor)
-                            <tr>
-                                <td style="border: none; padding: 8px 2px; text-align: left; vertical-align: middle;">{{ $index + 1 }}. {{ $asesor['nama'] }}</td>
-                                <td style="border: none; padding: 8px 2px; text-align: center; vertical-align: middle; width: 50%; ">
-                                    @if(isset($asesor['signature']) && $asesor['signature'] && trim($asesor['signature']) !== '')
-                                        <div style="text-align: center;">
-                                            <img src="{{ $asesor['signature'] }}" alt="Tanda Tangan" class="signature-img" style="max-width: 120px; max-height: 50px;">
-                                        </div>
-                                    @else
-                                        <div style="text-align: center;">...........</div>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </table>
-                </td>
-                <td style="width: 50%; border: none; vertical-align: top; text-align: right;">
-                    <div style="margin-top: 20px;">Mengetahui,</div>
-                    <div style="margin-top: 5px;">Penanggung jawab TUK</div>
-                    <div style="margin-top: 80px; font-weight: bold;">
-                        ({{ $rekapitulasi->tuk->nama_tuk ?? ($rekapitulasi->jadwalUji->tuk->nama_tuk ?? '-') }})
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div> -->
     <div style="margin-top: 40px; clear: both;">
         <div style="margin-top: 40px; clear: both;">
-            <div><strong>Tim Asesor Kompetensi</strong></div>
+            <div>Tim Asesor Kompetensi</div>
 
             <table style="width: 100%">
                 <thead>
-                    <th style="text-align: left; width: 32%">Nama</th>
-                    <th style="text-align: center; width: 32%">Tanda Tangan</th>
-                    <th style="text-align: right; width: 36%">Mengetahui,
-                        <br> Penanggung jawab TUK 
+                    <th style="text-align: left; width: 32%; font-weight:normal;" >Nama</th>
+                    <th style="text-align: center; width: 32%; font-weight:normal;">Tanda Tangan</th>
+                    <th style="text-align: right; width: 36%; font-weight:normal;">Mengetahui,
+                        <br><span style="font-weight:normal;">Penanggung jawab TUK </span>
                         
                     </th>
                 </thead>
@@ -339,7 +286,7 @@
                             </td>
                             @endforeach
                             <td>
-                            <div style="margin-top: 10px; font-weight: bold; text-align: right;">({{ $rekapitulasi->penanggung_jawab_tuk ?? '-' }})</div>
+                            <div style="margin-top: 10px; font-weight: normal; text-align: right;">({{ $rekapitulasi->penanggung_jawab_tuk ?? '-' }})</div>
                         
                             </td>
                         </tr>
