@@ -81,6 +81,12 @@
                                                        class="btn btn-sm btn-info" title="Lihat Detail">
                                                         <i class="fas fa-eye me-1"></i>Detail
                                                     </a>
+                                                    @if(!$observasi->observasi_data)
+                                                        <a href="{{ route('asesor.observasi.edit', $observasi->id) }}" 
+                                                           class="btn btn-sm btn-warning" title="Edit">
+                                                            <i class="fas fa-edit me-1"></i>Edit
+                                                        </a>
+                                                    @endif
                                                     @if(!$observasi->mahasiswa_signature)
                                                         <form action="{{ route('asesor.observasi.destroy', $observasi->id) }}" 
                                                               method="POST" class="d-inline"

@@ -172,22 +172,28 @@ class ObservasiController extends Controller
         $request->validate([
             'tuk' => 'required|in:sewaktu,tempat_kerja,mandiri',
             'tanggal' => 'required|date',
-            'elemen_data' => 'required|array',
-            'observasi_data' => 'nullable|array',
-            'istilah_acuan' => 'nullable|string',
-            'penilaian_lanjut' => 'nullable|string'
+            'elemen_data' => 'required',
+            'observasi_data' => 'nullable',
+            'benchmark' => 'nullable',
+            'penilaian_lanjut' => 'nullable'
         ]);
 
         $observasiChecklist = ObservasiChecklist::where('asesor_id', Auth::id())
             ->findOrFail($id);
 
+        // Parse JSON data if they are strings
+        $elemenData = is_string($request->elemen_data) ? json_decode($request->elemen_data, true) : $request->elemen_data;
+        $observasiData = is_string($request->observasi_data) ? json_decode($request->observasi_data, true) : $request->observasi_data;
+        $benchmark = is_string($request->benchmark) ? json_decode($request->benchmark, true) : $request->benchmark;
+        $penilaianLanjut = is_string($request->penilaian_lanjut) ? json_decode($request->penilaian_lanjut, true) : $request->penilaian_lanjut;
+
         $observasiChecklist->update([
             'tuk' => $request->tuk,
             'tanggal' => $request->tanggal,
-            'elemen_data' => $request->elemen_data,
-            'observasi_data' => $request->observasi_data,
-            'istilah_acuan' => $request->istilah_acuan,
-            'penilaian_lanjut' => $request->penilaian_lanjut
+            'elemen_data' => $elemenData,
+            'observasi_data' => $observasiData,
+            'benchmark' => $benchmark,
+            'penilaian_lanjut' => $penilaianLanjut
         ]);
 
         return redirect()->route('asesor.observasi.index')
