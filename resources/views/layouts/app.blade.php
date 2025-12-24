@@ -111,6 +111,11 @@
                                     <i class="fas fa-signature me-2"></i>Personalisasi
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.surat-pernyataan-kesediaan*') ? 'active' : '' }}" href="{{ route('admin.surat-pernyataan-kesediaan.index') }}">
+                                    <i class="fas fa-file-signature me-2"></i>Surat Pernyataan Kesediaan
+                                </a>
+                            </li>
                             
                         @elseif(auth()->user()->role === 'asesor')
                             <li class="nav-item">
@@ -196,6 +201,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.rekapitulasi-hasil-ujk*') ? 'active' : '' }}" href="{{ route('asesor.rekapitulasi-hasil-ujk.index') }}">
                                     <i class="fas fa-file-alt me-2"></i>Rekapitulasi Hasil UJK
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.surat-pernyataan-kesediaan*') ? 'active' : '' }}" href="{{ route('asesor.surat-pernyataan-kesediaan.index') }}">
+                                    <i class="fas fa-file-signature me-2"></i>Surat Pernyataan Kesediaan
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -307,14 +317,14 @@
                     </div>
                 </div>
 
-                @if(session('success') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*') && !request()->routeIs('mahasiswa.soal.*') && !request()->routeIs('mahasiswa.rekaman-asesmen.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('mahasiswa.umpan-balik.*') && !request()->routeIs('admin.unit-kompetensi') && !request()->routeIs('admin.unit-kompetensi-judul.*') && !request()->routeIs('asesor.mapa.*') && !request()->routeIs('admin.asesor') && !request()->routeIs('admin.tuk') && !request()->routeIs('admin.jadwal-uji') && !request()->routeIs('admin.penugasan') && !request()->routeIs('admin.pendaftaran') && !request()->routeIs('asesor.daftar-hadir-peserta.*') && !request()->routeIs('asesor.daftar-hadir-asesor.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('asesor.rekapitulasi-hasil-ujk.*'))
+                @if(session('success') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*') && !request()->routeIs('mahasiswa.soal.*') && !request()->routeIs('mahasiswa.rekaman-asesmen.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('mahasiswa.umpan-balik.*') && !request()->routeIs('admin.unit-kompetensi') && !request()->routeIs('admin.unit-kompetensi-judul.*') && !request()->routeIs('asesor.mapa.*') && !request()->routeIs('admin.asesor') && !request()->routeIs('admin.tuk') && !request()->routeIs('admin.jadwal-uji') && !request()->routeIs('admin.penugasan') && !request()->routeIs('admin.pendaftaran') && !request()->routeIs('asesor.daftar-hadir-peserta.*') && !request()->routeIs('asesor.daftar-hadir-asesor.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('asesor.rekapitulasi-hasil-ujk.*') && !request()->routeIs('admin.surat-pernyataan-kesediaan.*'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
-                @if(session('error') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*') && !request()->routeIs('mahasiswa.soal.*') && !request()->routeIs('mahasiswa.rekaman-asesmen.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('mahasiswa.umpan-balik.*') && !request()->routeIs('admin.unit-kompetensi') && !request()->routeIs('admin.unit-kompetensi-judul.*') && !request()->routeIs('asesor.mapa.*') && !request()->routeIs('admin.asesor') && !request()->routeIs('admin.tuk') && !request()->routeIs('admin.jadwal-uji') && !request()->routeIs('admin.penugasan') && !request()->routeIs('admin.pendaftaran') && !request()->routeIs('asesor.daftar-hadir-peserta.*') && !request()->routeIs('asesor.daftar-hadir-asesor.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('asesor.rekapitulasi-hasil-ujk.*'))
+                @if(session('error') && !request()->routeIs('mahasiswa.pendaftaran') && !request()->routeIs('asesor.soal-upload.*') && !request()->routeIs('asesor.observasi.*') && !request()->routeIs('mahasiswa.observasi-checklist.*') && !request()->routeIs('asesor.penyesuaian.*') && !request()->routeIs('mahasiswa.penyesuaian-checklist.*') && !request()->routeIs('mahasiswa.soal.*') && !request()->routeIs('mahasiswa.rekaman-asesmen.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('mahasiswa.umpan-balik.*') && !request()->routeIs('admin.unit-kompetensi') && !request()->routeIs('admin.unit-kompetensi-judul.*') && !request()->routeIs('asesor.mapa.*') && !request()->routeIs('admin.asesor') && !request()->routeIs('admin.tuk') && !request()->routeIs('admin.jadwal-uji') && !request()->routeIs('admin.penugasan') && !request()->routeIs('admin.pendaftaran') && !request()->routeIs('asesor.daftar-hadir-peserta.*') && !request()->routeIs('asesor.daftar-hadir-asesor.*') && !request()->routeIs('asesor.rekaman-asesmen.*') && !request()->routeIs('asesor.rekapitulasi-hasil-ujk.*') && !request()->routeIs('admin.surat-pernyataan-kesediaan.*'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

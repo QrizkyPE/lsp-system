@@ -127,6 +127,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/persetujuan-asesmen', [AdminController::class, 'persetujuanAsesmen'])->name('persetujuan-asesmen');
     Route::get('/persetujuan-asesmen/{id}/detail', [AdminController::class, 'detailPersetujuanAsesmen'])->name('persetujuan-asesmen.detail');
     Route::post('/persetujuan-asesmen/{id}/konfirmasi', [AdminController::class, 'konfirmasiPersetujuanAsesmen'])->name('persetujuan-asesmen.konfirmasi');
+    
+    // Surat Pernyataan Kesediaan
+    Route::get('/surat-pernyataan-kesediaan', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'index'])->name('surat-pernyataan-kesediaan.index');
+    Route::get('/surat-pernyataan-kesediaan/create', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'create'])->name('surat-pernyataan-kesediaan.create');
+    Route::post('/surat-pernyataan-kesediaan', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'store'])->name('surat-pernyataan-kesediaan.store');
+    Route::get('/surat-pernyataan-kesediaan/{id}', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'show'])->name('surat-pernyataan-kesediaan.show');
+    Route::post('/surat-pernyataan-kesediaan/{id}/send', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'send'])->name('surat-pernyataan-kesediaan.send');
+    Route::get('/surat-pernyataan-kesediaan/{id}/pdf', [App\Http\Controllers\Admin\SuratPernyataanKesediaanController::class, 'generatePDF'])->name('surat-pernyataan-kesediaan.pdf');
 });
 
 // Asesor routes
@@ -176,6 +184,12 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::get('/daftar-hadir-peserta/{id}/edit', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'edit'])->name('daftar-hadir-peserta.edit');
     Route::put('/daftar-hadir-peserta/{id}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'update'])->name('daftar-hadir-peserta.update');
     Route::get('/daftar-hadir-peserta/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF'])->name('daftar-hadir-peserta.pdf');
+    
+    // Surat Pernyataan Kesediaan
+    Route::get('/surat-pernyataan-kesediaan', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'index'])->name('surat-pernyataan-kesediaan.index');
+    Route::get('/surat-pernyataan-kesediaan/{id}', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'show'])->name('surat-pernyataan-kesediaan.show');
+    Route::post('/surat-pernyataan-kesediaan/{id}/sign', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'sign'])->name('surat-pernyataan-kesediaan.sign');
+    Route::get('/surat-pernyataan-kesediaan/{id}/pdf', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'generatePDF'])->name('surat-pernyataan-kesediaan.pdf');
     
     // Rekapitulasi Hasil UJK
     Route::get('/rekapitulasi-hasil-ujk', [App\Http\Controllers\Asesor\RekapitulasiHasilUjkController::class, 'index'])->name('rekapitulasi-hasil-ujk.index');
