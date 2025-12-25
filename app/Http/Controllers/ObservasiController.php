@@ -13,6 +13,7 @@ use App\Models\KriteriaUnjukKerja;
 use App\Models\UnitKompetensiJudul;
 use App\Models\ElemenJudul;
 use App\Models\KriteriaUnjukKerjaJudul;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ObservasiController extends Controller
 {
@@ -301,5 +302,39 @@ class ObservasiController extends Controller
             'success' => true,
             'unitKompetensi' => $unitKompetensi
         ]);
+    }
+
+    /**
+     * Download PDF for observasi checklist
+     */
+    public function downloadPDF(string $id)
+    {
+        $observasiChecklist = ObservasiChecklist::with(['asesor', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
+            ->where('asesor_id', Auth::id())
+            ->findOrFail($id);
+
+        // Format tanggal
+        $tanggal = $observasiChecklist->tanggal 
+            ? \Carbon\Carbon::parse($observasiChecklist->tanggal)->locale('id')->isoFormat('D MMMM YYYY')
+            : '';
+
+        // Format tanggal asesor dan mahasiswa
+        $tanggalAsesor = $observasiChecklist->tanggal_asesor 
+            ? \Carbon\Carbon::parse($observasiChecklist->tanggal_asesor)->locale('id')->isoFormat('D MMMM YYYY')
+            : '';
+        
+        $tanggalMahasiswa = $observasiChecklist->tanggal_mahasiswa 
+            ? \Carbon\Carbon::parse($observasiChecklist->tanggal_mahasiswa)->locale('id')->isoFormat('D MMMM YYYY')
+            : '';
+
+        $data = [
+            'observasiChecklist' => $observasiChecklist,
+            'tanggal' => $tanggal,
+            'tanggalAsesor' => $tanggalAsesor,
+            'tanggalMahasiswa' => $tanggalMahasiswa,
+        ];
+
+        $pdf = PDF::loadView('asesor.observasi.pdf', $data);
+        return $pdf->download('ceklist-observasi-' . $observasiChecklist->id . '.pdf');
     }
 }

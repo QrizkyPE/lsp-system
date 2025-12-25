@@ -81,6 +81,10 @@
                                                        class="btn btn-sm btn-info" title="Lihat Detail">
                                                         <i class="fas fa-eye me-1"></i>Detail
                                                     </a>
+                                                    <a href="{{ route('asesor.observasi.pdf', $observasi->id) }}" 
+                                                       class="btn btn-sm btn-primary" title="Download PDF" target="_blank">
+                                                        <i class="fas fa-file-pdf me-1"></i>PDF
+                                                    </a>
                                                     @if(!$observasi->observasi_data)
                                                         <a href="{{ route('asesor.observasi.edit', $observasi->id) }}" 
                                                            class="btn btn-sm btn-warning" title="Edit">

@@ -158,6 +158,7 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::post('/verifications/{id}/verify', [AsesorController::class, 'verifyPendaftaran'])->name('verifications.verify');
     
     // Observasi Checklist
+    Route::get('/observasi/{id}/pdf', [App\Http\Controllers\ObservasiController::class, 'downloadPDF'])->name('observasi.pdf');
     Route::resource('observasi', App\Http\Controllers\ObservasiController::class);
     Route::get('/observasi/get-elemen-kriteria/{pendaftaranId}', [App\Http\Controllers\ObservasiController::class, 'getElemenKriteria']);
     Route::get('/observasi/get-unit-kompetensi/{pendaftaranId}', [App\Http\Controllers\ObservasiController::class, 'getUnitKompetensi']);

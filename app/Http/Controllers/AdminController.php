@@ -1062,15 +1062,15 @@ class AdminController extends Controller
             // Include if not assigned to other penugasan
             if (empty($assignedPendaftaranIds) || !in_array($m->id, $assignedPendaftaranIds)) {
                 return true;
-            }
+                }
             return false;
-        })
+            })
         ->sortBy('no_pendaftaran')
-        ->map(function($m) {
-            return [
-                'id' => $m->id,
-                'text' => $m->no_pendaftaran . ' - ' . ($m->user->nama_lengkap ?? $m->user->name) . ' (' . ($m->skemaSertifikasi->nama_skema ?? '-') . ')'
-            ];
+            ->map(function($m) {
+                return [
+                    'id' => $m->id,
+                    'text' => $m->no_pendaftaran . ' - ' . ($m->user->nama_lengkap ?? $m->user->name) . ' (' . ($m->skemaSertifikasi->nama_skema ?? '-') . ')'
+                ];
         })
         ->values(); // Re-index array
         
@@ -1188,10 +1188,10 @@ class AdminController extends Controller
 
         // Return JSON for AJAX requests, redirect for form submissions
         if ($request->expectsJson() || $request->isJson()) {
-            return response()->json([
+        return response()->json([
                 'success' => true,
                 'message' => 'Pendaftaran berhasil ditolak.'
-            ]);
+        ]);
         }
 
         return redirect()->route('admin.pendaftaran')

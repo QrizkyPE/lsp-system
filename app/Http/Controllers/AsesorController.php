@@ -816,10 +816,10 @@ class AsesorController extends Controller
 
         // Return JSON for AJAX requests, redirect for form submissions
         if ($request->expectsJson() || $request->isJson()) {
-            return response()->json([
+        return response()->json([
                 'success' => true,
                 'message' => 'Asesmen berhasil ditolak.'
-            ]);
+        ]);
         }
 
         return redirect()->route('asesor.asesmen')
