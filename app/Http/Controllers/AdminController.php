@@ -115,7 +115,7 @@ class AdminController extends Controller
     public function unitKompetensi(Request $request)
     {
         $units = UnitKompetensi::with('skemaSertifikasi')->latest()->paginate(10);
-        $skemas = SkemaSertifikasi::all();
+        $skemas = SkemaSertifikasi::where('status', true)->orderBy('nama_skema')->get();
         
         // Get filter from request
         $filterJudul = $request->get('filter_judul');
@@ -248,7 +248,10 @@ class AdminController extends Controller
         // Data unit kompetensi per judul untuk dropdown kode unit
         $unitKompetensiJudul = UnitKompetensiJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->get();
         
-        return view('admin.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions', 'unitKompetensiJudul', 'filterJudul'));
+        // Get all skema sertifikasi for dropdown
+        $skemas = SkemaSertifikasi::where('status', true)->orderBy('nama_skema')->get();
+        
+        return view('admin.elemen', compact('elemen', 'units', 'elemenJudul', 'judulOptions', 'unitKompetensiJudul', 'filterJudul', 'skemas'));
     }
 
     public function storeElemen(Request $request)
@@ -369,7 +372,10 @@ class AdminController extends Controller
         // Data elemen per judul untuk autocomplete kode elemen
         $elemenJudul = ElemenJudul::orderBy('judul_sertifikasi')->orderBy('kode_unit')->orderBy('kode_elemen')->get();
         
-        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul', 'elemenJudul', 'filterJudul'));
+        // Get all skema sertifikasi for dropdown
+        $skemas = SkemaSertifikasi::where('status', true)->orderBy('nama_skema')->get();
+        
+        return view('admin.kriteria-unjuk-kerja', compact('kriteria', 'elemen', 'kriteriaJudul', 'judulOptions', 'unitKompetensiJudul', 'elemenJudul', 'filterJudul', 'skemas'));
     }
 
     public function storeKriteriaUnjukKerja(Request $request)

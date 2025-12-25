@@ -122,13 +122,24 @@
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label for="skema_sertifikasi" class="form-label">Skema Sertifikasi <span class="text-danger">*</span></label>
+                        <select class="form-select @error('skema_sertifikasi') is-invalid @enderror" 
+                                id="skema_sertifikasi" name="skema_sertifikasi" required>
+                            <option value="">Pilih Skema Sertifikasi</option>
+                            @foreach($skemas as $skema)
+                                <option value="{{ $skema->nama_skema }}">{{ $skema->nama_skema }}</option>
+                            @endforeach
+                        </select>
+                        @error('skema_sertifikasi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
                         <label for="judul_sertifikasi" class="form-label">Judul Sertifikasi <span class="text-danger">*</span></label>
                         <select class="form-select @error('judul_sertifikasi') is-invalid @enderror" 
-                                id="judul_sertifikasi" name="judul_sertifikasi" required>
-                            <option value="">Pilih Judul Sertifikasi</option>
-                            @foreach($judulOptions as $judul)
-                                <option value="{{ $judul }}">{{ $judul }}</option>
-                            @endforeach
+                                id="judul_sertifikasi" name="judul_sertifikasi" required disabled>
+                            <option value="">Pilih Skema Sertifikasi terlebih dahulu</option>
                         </select>
                         @error('judul_sertifikasi')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -320,11 +331,19 @@
                 @method('PUT')
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="edit_judul_sertifikasi" class="form-label">Judul Sertifikasi <span class="text-danger">*</span></label>
-                        <select class="form-select" id="edit_judul_sertifikasi" name="judul_sertifikasi" required>
-                            @foreach($judulOptions as $judul)
-                                <option value="{{ $judul }}">{{ $judul }}</option>
+                        <label for="edit_skema_sertifikasi" class="form-label">Skema Sertifikasi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit_skema_sertifikasi" name="skema_sertifikasi" required>
+                            <option value="">Pilih Skema Sertifikasi</option>
+                            @foreach($skemas as $skema)
+                                <option value="{{ $skema->nama_skema }}">{{ $skema->nama_skema }}</option>
                             @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_judul_sertifikasi" class="form-label">Judul Sertifikasi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit_judul_sertifikasi" name="judul_sertifikasi" required disabled>
+                            <option value="">Pilih Skema Sertifikasi terlebih dahulu</option>
                         </select>
                     </div>
 
@@ -430,7 +449,17 @@ function editKriteria(id, kode, deskripsi, jenisBukti, metode, perangkat, elemen
 
 function editKriteriaJudul(id, judul, kodeUnit, kodeElemen, kodeKriteria, deskripsi, jenisBukti, metode, perangkat) {
     document.getElementById('editKriteriaJudulForm').action = '{{ route("admin.kriteria-judul") }}/' + id;
-    document.getElementById('edit_judul_sertifikasi').value = judul;
+    
+    // Set skema sertifikasi (judul sertifikasi = nama skema)
+    const editSkemaSelect = document.getElementById('edit_skema_sertifikasi');
+    const editJudulSelect = document.getElementById('edit_judul_sertifikasi');
+    
+    if (editSkemaSelect && editJudulSelect) {
+        editSkemaSelect.value = judul;
+        // Trigger change event to populate judul sertifikasi
+        editSkemaSelect.dispatchEvent(new Event('change'));
+    }
+    
     document.getElementById('edit_kode_unit').value = kodeUnit;
     document.getElementById('edit_kode_elemen').value = kodeElemen;
     document.getElementById('edit_nomor_kriteria_judul').value = kodeKriteria;
@@ -442,11 +471,48 @@ function editKriteriaJudul(id, judul, kodeUnit, kodeElemen, kodeKriteria, deskri
     new bootstrap.Modal(document.getElementById('editKriteriaJudulModal')).show();
 }
 
-// Auto-fill judul sertifikasi when kode unit is selected
+// Auto-fill judul sertifikasi when skema sertifikasi is selected
 document.addEventListener('DOMContentLoaded', function() {
     // For add form
-    const kodeUnitSelect = document.getElementById('kode_unit');
+    const skemaSelect = document.getElementById('skema_sertifikasi');
     const judulSertifikasiSelect = document.getElementById('judul_sertifikasi');
+    
+    if (skemaSelect && judulSertifikasiSelect) {
+        skemaSelect.addEventListener('change', function() {
+            const selectedSkema = this.value;
+            if (selectedSkema) {
+                // Set judul sertifikasi sama dengan nama skema
+                judulSertifikasiSelect.innerHTML = '<option value="' + selectedSkema + '">' + selectedSkema + '</option>';
+                judulSertifikasiSelect.value = selectedSkema;
+                judulSertifikasiSelect.disabled = false;
+            } else {
+                judulSertifikasiSelect.innerHTML = '<option value="">Pilih Skema Sertifikasi terlebih dahulu</option>';
+                judulSertifikasiSelect.disabled = true;
+            }
+        });
+    }
+    
+    // For edit form
+    const editSkemaSelect = document.getElementById('edit_skema_sertifikasi');
+    const editJudulSertifikasiSelect = document.getElementById('edit_judul_sertifikasi');
+    
+    if (editSkemaSelect && editJudulSertifikasiSelect) {
+        editSkemaSelect.addEventListener('change', function() {
+            const selectedSkema = this.value;
+            if (selectedSkema) {
+                // Set judul sertifikasi sama dengan nama skema
+                editJudulSertifikasiSelect.innerHTML = '<option value="' + selectedSkema + '">' + selectedSkema + '</option>';
+                editJudulSertifikasiSelect.value = selectedSkema;
+                editJudulSertifikasiSelect.disabled = false;
+            } else {
+                editJudulSertifikasiSelect.innerHTML = '<option value="">Pilih Skema Sertifikasi terlebih dahulu</option>';
+                editJudulSertifikasiSelect.disabled = true;
+            }
+        });
+    }
+    
+    // For add form - old code for kode unit (keep for backward compatibility)
+    const kodeUnitSelect = document.getElementById('kode_unit');
     
     if (kodeUnitSelect && judulSertifikasiSelect) {
         kodeUnitSelect.addEventListener('change', function() {
