@@ -36,12 +36,23 @@ class ObservasiController extends Controller
     public function create()
     {
         // Get pendaftaran that have completed persetujuan asesmen
+        // Exclude pendaftaran that already have observasi checklist with mahasiswa signature
+        // This means:
+        // - If observasi doesn't exist, pendaftaran will appear
+        // - If observasi exists but not signed by mahasiswa, pendaftaran will still appear (can be deleted and recreated)
+        // - If observasi exists and signed by mahasiswa, pendaftaran will NOT appear
         $pendaftaran = Pendaftaran::with(['user', 'skemaSertifikasi'])
             ->whereHas('verifications', function($query) {
                 $query->where('type', 'asesor_verification')
                       ->where('status', 'approved');
             })
             ->whereNotNull('persetujuan_data')
+            ->whereDoesntHave('observasiChecklists', function($query) {
+                // Only exclude pendaftaran that have observasi with mahasiswa signature
+                // Observasi without mahasiswa signature can be deleted, so pendaftaran can still appear
+                $query->where('asesor_id', Auth::id())
+                      ->whereNotNull('mahasiswa_signature');
+            })
             ->get();
 
         return view('asesor.observasi.create', compact('pendaftaran'));

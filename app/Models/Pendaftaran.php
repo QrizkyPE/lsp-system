@@ -65,6 +65,11 @@ class Pendaftaran extends Model
         return $this->belongsToMany(Penugasan::class, 'penugasan_pendaftaran');
     }
 
+    public function observasiChecklists(): HasMany
+    {
+        return $this->hasMany(ObservasiChecklist::class);
+    }
+
     // Accessor untuk memastikan asesmen_data di-decode dengan benar
     public function getAsesmenDataAttribute($value)
     {
