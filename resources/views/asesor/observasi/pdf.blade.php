@@ -27,6 +27,20 @@
             margin-bottom: 0;
             z-index: 1000;
         }
+        .pdf-header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pdf-header-table td {
+            padding: 0;
+            vertical-align: middle;
+        }
+        .pdf-header-table td:first-child {
+            text-align: left;
+        }
+        .pdf-header-table td:last-child {
+            text-align: right;
+        }
         .pdf-content {
             padding-top: 5px;
         }
@@ -231,7 +245,17 @@
 <body>
     <!-- Header dengan Logo - Fixed di setiap halaman -->
     <div class="pdf-header">
-        <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width: 80px; height: auto; display: block;" onerror="this.style.display='none';">
+        <table class="pdf-header-table">
+            
+            <tr>
+                <td style="width: 50%;">
+                    <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo LSPUMDP" style="width: 80px; height: auto; padding-bottom: 16px;" onerror="this.style.display='none';">
+                </td>
+                <td style="width: 50%;">
+                    <img src="{{ public_path('assets/img/logobnsp.png') }}" alt="Logo BNSP" style="width: 80px; height: auto; margin-right: 50px;" onerror="this.style.display='none';">
+                </td>
+            </tr>
+        </table>
     </div>
 
     <!-- Content -->
