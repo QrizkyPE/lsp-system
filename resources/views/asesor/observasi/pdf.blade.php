@@ -4,11 +4,95 @@
     <meta charset="utf-8">
     <title>Ceklis Observasi Aktivitas</title>
     <style>
+        @page {
+            margin-top: 60px;
+            margin-bottom: 80px;
+        }
         body {
             font-family: "DejaVu Sans", sans-serif;
             font-size: 12px;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            padding-top: 60px;
+            padding-bottom: 80px;
+        }
+        .pdf-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: white;
+            padding: 5px 20px;
+            margin-bottom: 0;
+            z-index: 1000;
+        }
+        .pdf-content {
+            padding-top: 5px;
+        }
+        .pdf-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 0;
+            z-index: 1000;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .footer-page-number {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 5px 0;
+        }
+        
+        .table-bars {
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+    /* width: calc(100% + 2cm);  match @page margin-left */
+    margin-left: -2cm;
+
+}
+        .footer-bar-orange {
+    background: #ff6a00;
+    height: 16px;
+    /* width: 50px; */
+    width: 35%;
+}
+
+.footer-bar-spacer {
+    width: 1px;           /* adjust gap size */
+    height: 16px;
+    background: #ffffff;
+    width: 0.2%;
+}
+
+.footer-bar-grey {
+    width: 10px;           /* adjust grey bar width */
+    height: 16px;
+    background: #666;
+    width: 1.3%;
+}
+
+        .footer-text {
+            text-align: left;
+            font-size: 8px;
+            line-height: 1.4;
+            
+
+            font-style: italic;
+            padding-left: 80px;
+        }
+        .footer-text-bold {
+            font-weight: bold;
+        }
+        .footer-text-normal {
+            font-weight: normal;
         }
         table {
             border-collapse: collapse;
@@ -145,19 +229,19 @@
     </style>
 </head>
 <body>
-    <!-- Header dengan Logo -->
-    <div style="margin-bottom: 20px;">
-        <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width: 80px; height: auto;" onerror="this.style.display='none';">
+    <!-- Header dengan Logo - Fixed di setiap halaman -->
+    <div class="pdf-header">
+        <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width: 80px; height: auto; display: block;" onerror="this.style.display='none';">
     </div>
 
-    <!-- Judul Form -->
-    <div style="text-align: left; margin-bottom: 20px;">
-        <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">
-            FR.IA.01. CEKLIS OBSERVASI AKTIVITAS DI TEMPAT KERJA ATAU TEMPAT KERJA SIMULASI
-        </div>
-    </div>
+    <!-- Content -->
+    <div class="pdf-content">
 
     <!-- Tabel Informasi Skema Sertifikasi -->
+     
+    <div style="font-weight: bold; font-size: 14px; ">
+            FR.IA.01. CEKLIS OBSERVASI AKTIVITAS DI TEMPAT KERJA ATAU TEMPAT KERJA SIMULASI
+        </div>
     <table class="bordered" style="width: 100%; margin-bottom: 20px;">
         <tr>
             <td rowspan="2" style="width: 25%; padding: 10px; vertical-align: top;">
@@ -401,8 +485,8 @@
     <table class="bordered" style="width: 100%; margin-bottom: 20px;">
         <tr>
             <th class="table-header" style="width: 25%; background-color: rgb(255, 255, 255);">Nama</th>
-            <th class="table-header" style="width: 37.5%; background-color:rgb(255, 255, 255);">Asesi:</th>
-            <th class="table-header" style="width: 37.5%; background-color: rgb(255, 255, 255);">Asesor:</th>
+            <th class="table-header" style="width: 37.5%; background-color:rgb(255, 255, 255);">Asesi: {{ $observasiChecklist->nama_asesi ?? '-' }}</th>
+            <th class="table-header" style="width: 37.5%; background-color: rgb(255, 255, 255);">Asesor: {{ $observasiChecklist->nama_asesor ?? '-' }}</th>
         </tr>
         <tr>
             <td class="table-header" style="width: 25%; background-color: rgb(255, 255, 255);">
@@ -424,9 +508,9 @@
                         <img src="{{ $sigSrc }}" alt="Signature Asesi" style="max-width: 150px; max-height: 60px; display: block; margin: 0 auto;">
                     </div>
                 @endif
-                <div style="margin-top: 10px; text-align: center;">
+                <!-- <div style="margin-top: 10px; text-align: center;">
                     {{ $observasiChecklist->nama_asesi ?? '-' }}
-                </div>
+                </div> -->
                 @if($tanggalMahasiswa)
                     <div style="margin-top: 5px; text-align: center;">
                         {{ $tanggalMahasiswa }}
@@ -449,9 +533,9 @@
                         <img src="{{ $sigSrc }}" alt="Signature Asesor" style="max-width: 150px; max-height: 55px; display: block; margin: 0 auto;">
                     </div>
                 @endif
-                <div style="margin-top: 10px; text-align: center;">
+                <!-- <div style="margin-top: 10px; text-align: center;">
                     {{ $observasiChecklist->nama_asesor ?? '-' }}
-                </div>
+                </div> -->
                 @if($tanggalAsesor)
                     <div style="margin-top: 5px; text-align: center;">
                         {{ $tanggalAsesor }}
@@ -460,6 +544,66 @@
             </td>
         </tr>
     </table>
+    </div>
+
+    <!-- Footer dengan nomor halaman, bar warna, dan informasi BNSP - Fixed di setiap halaman -->
+     
+
+     <div class="pdf-footer">
+        <table class="footer-table">
+        <div style="page: fullbleed;">
+         <table width="100%" cellspacing="0" cellpadding="0" class="table-bars">
+         <tr>
+             <!-- Orange bar -->
+             <td class="footer-bar-orange"></td>
+     
+             <!-- White gap -->
+             <td class="footer-bar-spacer"></td>
+     
+             <!-- Grey bar -->
+             <td class="footer-bar-grey"></td>
+         </tr>
+            <tr>
+                <td  class="footer-text">
+                    <div class="footer-text-normal">Badan Nasional Sertifikasi Profesi <br>Jl. MT. Haryono Kavling 52, Jakarta, Indonesia.</div>
+                    
+                </td>
+            </tr>
+     </table>
+     </div>
+        </div>
+
+
+    <!-- <div class="pdf-footer">
+        <table class="footer-table">
+            <tr>
+                <td colspan="2" class="footer-page-number">
+                    <script type="text/php">
+                        if (isset($pdf)) {
+                            $text = "Halaman {PAGE_NUM} dari {PAGE_COUNT}";
+                            $size = 12;
+                            $font = $fontMetrics->getFont("DejaVu Sans");
+                            $width = $fontMetrics->get_text_width($text, $font, $size) / 2;
+                            $x = ($pdf->get_width() - $width) / 2;
+                            $y = $pdf->get_height() - 70;
+                            $pdf->page_text($x, $y, $text, $font, $size);
+                        }
+                    </script>
+                    <span style="display: none;">Halaman <span id="pageNum"></span> dari <span id="pageCount"></span></span>
+                </td>
+            </tr>
+            <tr style="width: 100%;">
+                <td class="footer-bar-orange" style="width: 90%;"></td>
+                <td class="footer-bar-grey" style="width: 10%;"></td>
+            </tr>
+            <tr>
+                <td  class="footer-text">
+                    <div class="footer-text-normal">Badan Nasional Sertifikasi Profesi</div>
+                    <div>Jl. MT. Haryono Kavling 52, Jakarta, Indonesia.</div>
+                </td>
+            </tr>
+        </table>
+    </div> -->
 </body>
 </html>
 
