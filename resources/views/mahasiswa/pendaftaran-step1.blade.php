@@ -97,8 +97,8 @@
                                 <strong>Jadwal Uji Kompetensi <span class="text-danger">*</span></strong>
                             </label>
                             <select class="form-select @error('jadwal_uji_id') is-invalid @enderror" 
-                                    id="jadwal_uji_id" name="jadwal_uji_id" required>
-                                <option value="">Pilih Jadwal Uji Kompetensi</option>
+                                    id="jadwal_uji_id" name="jadwal_uji_id" required disabled>
+                                <option value="">Pilih Skema Sertifikasi terlebih dahulu</option>
                                 @foreach($jadwalUji as $jadwal)
                                     <option value="{{ $jadwal->id }}" 
                                             {{ old('jadwal_uji_id') == $jadwal->id ? 'selected' : '' }}
@@ -224,27 +224,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const skemaSelect = document.getElementById('skema_sertifikasi_id');
     const jadwalSelect = document.getElementById('jadwal_uji_id');
     
-    // Filter jadwal berdasarkan skema yang dipilih
-    skemaSelect.addEventListener('change', function() {
-        const selectedSkema = this.value;
+    // Function to filter jadwal berdasarkan skema yang dipilih
+    function filterJadwalBySkema() {
+        const selectedSkema = skemaSelect.value;
         const jadwalOptions = jadwalSelect.querySelectorAll('option');
+        let hasVisibleOptions = false;
         
         jadwalOptions.forEach(option => {
             if (option.value === '') {
-                option.style.display = 'block';
+                // Update placeholder option
+                if (selectedSkema === '') {
+                    option.textContent = 'Pilih Skema Sertifikasi terlebih dahulu';
+                    option.style.display = 'block';
+                } else {
+                    option.textContent = 'Pilih Jadwal Uji Kompetensi';
+                    option.style.display = 'block';
+                }
                 return;
             }
             
             const skemaId = option.getAttribute('data-skema');
-            if (selectedSkema === '' || skemaId === selectedSkema) {
+            if (selectedSkema === '') {
+                // Hide all options if no skema selected
+                option.style.display = 'none';
+            } else if (skemaId === selectedSkema) {
                 option.style.display = 'block';
+                hasVisibleOptions = true;
             } else {
                 option.style.display = 'none';
             }
         });
         
-        // Reset jadwal selection
-        jadwalSelect.value = '';
+        // Enable/disable select based on skema selection
+        if (selectedSkema === '') {
+            jadwalSelect.disabled = true;
+            jadwalSelect.value = '';
+        } else {
+            jadwalSelect.disabled = false;
+            // Reset jadwal selection when skema changes
+            if (jadwalSelect.value !== '') {
+                const selectedOption = jadwalSelect.options[jadwalSelect.selectedIndex];
+                const selectedSkemaId = selectedOption.getAttribute('data-skema');
+                if (selectedSkemaId !== selectedSkema) {
+                    jadwalSelect.value = '';
+                }
+            }
+        }
+    }
+    
+    // Initialize on page load
+    filterJadwalBySkema();
+    
+    // Filter jadwal berdasarkan skema yang dipilih
+    skemaSelect.addEventListener('change', function() {
+        filterJadwalBySkema();
     });
     
     // Update jadwal info when selected
@@ -255,9 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const tanggal = selectedOption.getAttribute('data-tanggal');
             const kuota = selectedOption.getAttribute('data-kuota');
             
-            // Set default sumber anggaran dan pemberi anggaran
-            document.getElementById('sumber_anggaran').value = 'sumber anggaran biaya mandiri';
-            document.getElementById('pemberi_anggaran').value = 'Biaya Mandiri';
+            // Set default sumber anggaran dan pemberi anggaran if elements exist
+            const sumberAnggaran = document.getElementById('sumber_anggaran');
+            const pemberiAnggaran = document.getElementById('pemberi_anggaran');
+            if (sumberAnggaran) {
+                sumberAnggaran.value = 'sumber anggaran biaya mandiri';
+            }
+            if (pemberiAnggaran) {
+                pemberiAnggaran.value = 'Biaya Mandiri';
+            }
             
             console.log('Selected TUK:', tuk);
             console.log('Selected Date:', tanggal);
