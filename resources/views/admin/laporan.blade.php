@@ -206,6 +206,9 @@
                                                             <a href="{{ route('admin.laporan.rekaman-asesmen.show', $rekaman->id) }}" class="btn btn-sm btn-outline-info" target="_blank" title="Lihat Detail">
                                                                 <i class="fas fa-eye"></i> Detail
                                                             </a>
+                                                            <a href="{{ route('admin.laporan.rekaman-asesmen.pdf', $rekaman->id) }}" class="btn btn-sm btn-outline-danger" title="Download PDF" target="_blank">
+                                                                <i class="fas fa-file-pdf"></i> PDF
+                                                            </a>
                                                         </div>
                                                     </td>
                                                 </tr>

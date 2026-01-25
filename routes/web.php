@@ -106,6 +106,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     Route::get('/laporan/ak05', [AdminController::class, 'generateAK05'])->name('laporan.ak05');
     Route::get('/laporan/rekaman-asesmen/{id}', [AdminController::class, 'showRekamanAsesmen'])->name('laporan.rekaman-asesmen.show');
+    Route::get('/laporan/rekaman-asesmen/{id}/pdf', [AdminController::class, 'downloadRekamanAsesmenPdf'])->name('laporan.rekaman-asesmen.pdf');
     
     // Manage Users
     Route::get('/users', [AdminController::class, 'manageUsers'])->name('users.index');

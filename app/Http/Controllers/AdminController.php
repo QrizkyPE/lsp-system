@@ -22,6 +22,7 @@ use App\Models\PendaftaranVerification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class AdminController extends Controller
 {
@@ -1257,6 +1258,40 @@ class AdminController extends Controller
         }
 
         return view('admin.rekaman-asesmen-show', compact('rekamanAsesmen'));
+    }
+
+    /**
+     * Download rekaman asesmen kompetensi as PDF (FR.AK.02)
+     */
+    public function downloadRekamanAsesmenPdf($id)
+    {
+        $rekamanAsesmen = \App\Models\RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
+            ->findOrFail($id);
+
+        if ($rekamanAsesmen->pendaftaran && $rekamanAsesmen->pendaftaran->skemaSertifikasi) {
+            $unitKompetensiList = UnitKompetensiJudul::where('judul_sertifikasi', $rekamanAsesmen->pendaftaran->skemaSertifikasi->nama_skema)
+                ->get()
+                ->keyBy(function ($unit) {
+                    return $unit->judul_unit;
+                });
+            if ($rekamanAsesmen->unit_kompetensi_data) {
+                $unitData = collect($rekamanAsesmen->unit_kompetensi_data)->map(function ($unit, $index) use ($unitKompetensiList) {
+                    if (empty($unit['judul_unit']) || !$unitKompetensiList->has($unit['judul_unit'])) {
+                        $unitFromDb = $unitKompetensiList->values()->get($index);
+                        if ($unitFromDb) {
+                            $unit['judul_unit'] = $unitFromDb->judul_unit;
+                        } else {
+                            $unit['judul_unit'] = 'Unit ' . ($index + 1);
+                        }
+                    }
+                    return $unit;
+                })->toArray();
+                $rekamanAsesmen->unit_kompetensi_data = $unitData;
+            }
+        }
+
+        $pdf = PDF::loadView('admin.rekaman-asesmen-pdf', compact('rekamanAsesmen'));
+        return $pdf->download('rekaman-asesmen-kompetensi-' . $rekamanAsesmen->id . '.pdf');
     }
 
     // Manage Users
