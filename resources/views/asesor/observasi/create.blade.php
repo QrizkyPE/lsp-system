@@ -115,7 +115,17 @@
                         <!-- Unit Kompetensi, Elemen dan Kriteria Unjuk Kerja -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h5><strong>Unit Kompetensi, Elemen dan Kriteria Unjuk Kerja</strong></h5>
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <h5 class="mb-0"><strong>Unit Kompetensi, Elemen dan Kriteria Unjuk Kerja</strong></h5>
+                                    <div class="d-flex gap-2 ms-auto d-none" id="select-k-bk-buttons">
+                                        <button type="button" class="btn btn-sm btn-outline-success" id="btn-pilih-semua-k" title="Centang semua kolom K">
+                                            <i class="fas fa-check-double me-1"></i>Pilih Semua K
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" id="btn-pilih-semua-bk" title="Centang semua kolom BK">
+                                            <i class="fas fa-times-circle me-1"></i>Pilih Semua BK
+                                        </button>
+                                    </div>
+                                </div>
                                 <div id="loading-message" class="alert alert-warning">
                                     <i class="fas fa-info-circle me-2"></i>
                                     Pilih mahasiswa terlebih dahulu untuk memuat unit kompetensi, elemen dan kriteria unjuk kerja.
@@ -287,6 +297,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('nama-asesi-signature').textContent = '-';
             loadingMessage.style.display = 'block';
             unitKompetensiContainer.innerHTML = '';
+            const selectKBkButtons = document.getElementById('select-k-bk-buttons');
+            if (selectKBkButtons) selectKBkButtons.classList.add('d-none');
         }
     });
 
@@ -400,10 +412,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store unit kompetensi data
         elemenDataInput.value = JSON.stringify(unitKompetensi);
         
+        // Tampilkan tombol Pilih Semua K / BK
+        const selectKBkButtons = document.getElementById('select-k-bk-buttons');
+        if (selectKBkButtons) selectKBkButtons.classList.remove('d-none');
         
         // Ensure loading message is hidden
         loadingMessage.style.display = 'none';
     }
+
+    // Tombol Pilih Semua K / BK
+    document.getElementById('btn-pilih-semua-k').addEventListener('click', function() {
+        const container = document.getElementById('unit-kompetensi-container');
+        const kRadios = container.querySelectorAll('input[name^="observasi_data"][value="K"]');
+        kRadios.forEach(function(r) { r.checked = true; });
+        container.querySelectorAll('[id^="penilaian-lanjut-"]').forEach(function(row) {
+            row.style.display = 'none';
+        });
+    });
+    document.getElementById('btn-pilih-semua-bk').addEventListener('click', function() {
+        const container = document.getElementById('unit-kompetensi-container');
+        const bkRadios = container.querySelectorAll('input[name^="observasi_data"][value="BK"]');
+        bkRadios.forEach(function(r) { r.checked = true; });
+        container.querySelectorAll('[id^="penilaian-lanjut-"]').forEach(function(row) {
+            row.style.display = '';
+        });
+    });
 
     // Function to toggle penilaian lanjut when BK is selected
     window.togglePenilaianLanjut = function(unitIndex, elemenIndex, kriteriaIndex, radioButton) {

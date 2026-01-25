@@ -181,7 +181,14 @@
                         <!-- Modifikasi dan Kontekstualisasi -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h5><strong>Mengidentifikasi Persyaratan Modifikasi dan Kontekstualisasi (karakteristik asesi):</strong></h5>
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <h5 class="mb-0"><strong>Mengidentifikasi Persyaratan Modifikasi dan Kontekstualisasi (karakteristik asesi):</strong></h5>
+                                    @if($pendaftaran->count() > 0)
+                                        <button type="button" class="btn btn-sm btn-outline-warning ms-auto" id="btn-pilih-semua-tidak" title="Centang semua kolom Tidak">
+                                            <i class="fas fa-times-circle me-1"></i>Pilih Semua Tidak
+                                        </button>
+                                    @endif
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead class="table-dark">
@@ -699,6 +706,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 });
+
+    // Tombol Pilih Semua Tidak
+    const btnPilihSemuaTidak = document.getElementById('btn-pilih-semua-tidak');
+    if (btnPilihSemuaTidak) {
+        btnPilihSemuaTidak.addEventListener('click', function() {
+            document.querySelectorAll('input[name^="modifikasi_"][value="tidak"]').forEach(function(radio) {
+                radio.checked = true;
+            });
+            for (let i = 1; i <= 8; i++) {
+                const ket = document.getElementById('keterangan_' + i);
+                if (ket) {
+                    ket.style.display = 'none';
+                    ket.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                        cb.checked = false;
+                    });
+                }
+            }
+        });
+    }
 
 // Function to toggle keterangan visibility
 function toggleKeterangan(index) {
