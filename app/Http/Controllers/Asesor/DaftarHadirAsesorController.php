@@ -58,10 +58,20 @@ class DaftarHadirAsesorController extends Controller
             return redirect()->route('login')->with('error', 'Anda bukan asesor');
         }
 
+        // Ambil data daftar hadir terlebih dahulu
         $daftarHadir = DaftarHadirAsesor::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'tuk'])
-            ->where('id', $id)
-            ->where('created_by', Auth::id())
-            ->firstOrFail();
+            ->findOrFail($id);
+
+        // Pastikan asesor saat ini memang ditugaskan pada jadwal ini
+        $memilikiAkses = Penugasan::where('jadwal_uji_id', $daftarHadir->jadwal_uji_id)
+            ->where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->exists();
+
+        if (!$memilikiAkses) {
+            return redirect()->route('asesor.daftar-hadir-asesor.index')
+                ->with('error', 'Anda tidak memiliki akses untuk mengedit daftar hadir ini');
+        }
 
         // Get all asesor assigned to the same jadwal
         $penugasan = Penugasan::with(['asesor.user'])
@@ -212,9 +222,19 @@ class DaftarHadirAsesorController extends Controller
             return redirect()->route('login')->with('error', 'Anda bukan asesor');
         }
 
-        $daftarHadir = DaftarHadirAsesor::where('id', $id)
-            ->where('created_by', Auth::id())
-            ->firstOrFail();
+        // Ambil data daftar hadir terlebih dahulu
+        $daftarHadir = DaftarHadirAsesor::findOrFail($id);
+
+        // Pastikan asesor saat ini memang ditugaskan pada jadwal ini
+        $memilikiAkses = Penugasan::where('jadwal_uji_id', $daftarHadir->jadwal_uji_id)
+            ->where('asesor_id', $asesor->id)
+            ->whereIn('status', ['assigned', 'accepted', 'completed'])
+            ->exists();
+
+        if (!$memilikiAkses) {
+            return redirect()->route('asesor.daftar-hadir-asesor.index')
+                ->with('error', 'Anda tidak memiliki akses untuk mengubah daftar hadir ini');
+        }
 
         $request->validate([
             'no_dokumen' => 'nullable|string|max:255',
