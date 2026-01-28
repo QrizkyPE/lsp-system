@@ -19,7 +19,7 @@
 <div style="font-weight: bold; font-size: 14px;">
     FR.AK.05. LAPORAN ASESMEN
 </div>
-
+<br>
 @php
     $jadwal = $laporan->jadwalUji;
     $skema = $jadwal->skemaSertifikasi ?? null;
