@@ -107,6 +107,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/laporan/ak05', [AdminController::class, 'generateAK05'])->name('laporan.ak05');
     Route::get('/laporan/rekaman-asesmen/{id}', [AdminController::class, 'showRekamanAsesmen'])->name('laporan.rekaman-asesmen.show');
     Route::get('/laporan/rekaman-asesmen/{id}/pdf', [AdminController::class, 'downloadRekamanAsesmenPdf'])->name('laporan.rekaman-asesmen.pdf');
+    Route::get('/laporan/laporan-asesmen/{id}/pdf', [AdminController::class, 'downloadLaporanAsesmenPdf'])->name('laporan-asesmen.pdf');
     
     // Manage Users
     Route::get('/users', [AdminController::class, 'manageUsers'])->name('users.index');
@@ -187,6 +188,13 @@ Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->g
     Route::put('/daftar-hadir-peserta/{id}', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'update'])->name('daftar-hadir-peserta.update');
     Route::get('/daftar-hadir-peserta/{id}/pdf', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF'])->name('daftar-hadir-peserta.pdf');
     Route::get('/daftar-hadir-peserta/{id}/pdf2', [App\Http\Controllers\Asesor\DaftarHadirPesertaController::class, 'generatePDF2'])->name('daftar-hadir-peserta.pdf2');
+    
+    // Laporan Asesmen (FR.AK.05)
+    Route::get('/laporan-asesmen', [App\Http\Controllers\Asesor\LaporanAsesmenController::class, 'index'])->name('laporan-asesmen.index');
+    Route::get('/laporan-asesmen/create/{jadwalId}', [App\Http\Controllers\Asesor\LaporanAsesmenController::class, 'create'])->name('laporan-asesmen.create');
+    Route::post('/laporan-asesmen/{jadwalId}', [App\Http\Controllers\Asesor\LaporanAsesmenController::class, 'store'])->name('laporan-asesmen.store');
+    Route::get('/laporan-asesmen/{id}/edit', [App\Http\Controllers\Asesor\LaporanAsesmenController::class, 'edit'])->name('laporan-asesmen.edit');
+    Route::put('/laporan-asesmen/{id}', [App\Http\Controllers\Asesor\LaporanAsesmenController::class, 'update'])->name('laporan-asesmen.update');
     
     // Surat Pernyataan Kesediaan
     Route::get('/surat-pernyataan-kesediaan', [App\Http\Controllers\Asesor\SuratPernyataanKesediaanController::class, 'index'])->name('surat-pernyataan-kesediaan.index');

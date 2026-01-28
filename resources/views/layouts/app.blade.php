@@ -182,6 +182,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('asesor.laporan-asesmen*') ? 'active' : '' }}" href="{{ route('asesor.laporan-asesmen.index') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Laporan Asesmen
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('asesor.umpan-balik*') ? 'active' : '' }}" href="{{ route('asesor.umpan-balik.index') }}">
                                     <i class="fas fa-comments me-2"></i>Umpan Balik Asesmen
                                 </a>

@@ -9,7 +9,26 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Laporan Rekaman Asesmen</h4>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            @if(($type ?? 'rekaman') === 'laporan-asesmen')
+                                Laporan Asesmen
+                            @else
+                                Laporan Rekaman Asesmen
+                            @endif
+                        </h4>
+                        <div class="btn-group">
+                            <a href="{{ route('admin.laporan', ['type' => 'rekaman']) }}" 
+                               class="btn btn-sm btn-light {{ ($type ?? 'rekaman') === 'rekaman' ? 'active' : '' }}">
+                                Laporan Rekaman Asesmen
+                            </a>
+                            <a href="{{ route('admin.laporan', ['type' => 'laporan-asesmen']) }}" 
+                               class="btn btn-sm btn-light {{ ($type ?? 'rekaman') === 'laporan-asesmen' ? 'active' : '' }}">
+                                Laporan Asesmen
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
@@ -26,7 +45,8 @@
                         </div>
                     @endif
 
-                    <!-- Summary Cards -->
+                    @if(($type ?? 'rekaman') === 'rekaman')
+                    <!-- Summary Cards Rekaman Asesmen -->
                     <div class="row mb-4">
                         <div class="col-md-3">
                             <div class="card bg-primary text-white">
@@ -230,6 +250,65 @@
                             @endif
                         </div>
                     </div>
+                    @else
+                    <!-- Laporan Asesmen List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Daftar Laporan Asesmen</h5>
+                        </div>
+                        <div class="card-body">
+                            @if($laporanAsesmen && $laporanAsesmen->count() > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Judul Skema</th>
+                                                <th>No. Skema</th>
+                                                <th>TUK</th>
+                                                <th>Nama Asesor</th>
+                                                <th>Tanggal</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($laporanAsesmen as $index => $laporan)
+                                                @php
+                                                    $skema = $laporan->jadwalUji->skemaSertifikasi ?? null;
+                                                @endphp
+                                                <tr>
+                                                    <td>{{ $laporanAsesmen->firstItem() + $index }}</td>
+                                                    <td>{{ $skema->nama_skema ?? '-' }}</td>
+                                                    <td>{{ $skema->kode_skema ?? '-' }}</td>
+                                                    <td>{{ $laporan->jadwalUji->tuk->nama_tuk ?? '-' }}</td>
+                                                    <td>{{ $laporan->asesor->nama_lengkap ?? '-' }}</td>
+                                                    <td>
+                                                        {{ $laporan->tanggal ? \Carbon\Carbon::parse($laporan->tanggal)->format('d/m/Y') : '-' }}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ route('admin.laporan-asesmen.pdf', $laporan->id) }}"
+                                                           class="btn btn-sm btn-outline-danger" target="_blank">
+                                                            <i class="fas fa-file-pdf"></i> PDF
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-center mt-3">
+                                    {{ $laporanAsesmen->links() }}
+                                </div>
+                            @else
+                                <div class="text-center py-5">
+                                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Belum ada laporan asesmen</h5>
+                                    <p class="text-muted">Laporan asesmen akan muncul di sini setelah dikirim oleh asesor.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

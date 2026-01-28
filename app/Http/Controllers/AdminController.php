@@ -1216,13 +1216,25 @@ class AdminController extends Controller
 
 
     // Laporan
-    public function laporan()
+    public function laporan(\Illuminate\Http\Request $request)
     {
-        $rekamanAsesmen = \App\Models\RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
-            ->latest()
-            ->paginate(15);
+        $type = $request->get('type', 'rekaman');
 
-        return view('admin.laporan', compact('rekamanAsesmen'));
+        $rekamanAsesmen = null;
+        $laporanAsesmen = null;
+
+        if ($type === 'laporan-asesmen') {
+            $laporanAsesmen = \App\Models\LaporanAsesmen::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])
+                ->latest()
+                ->paginate(15);
+        } else {
+            $rekamanAsesmen = \App\Models\RekamanAsesmenKompetensi::with(['asesor', 'pendaftaran.user', 'pendaftaran.skemaSertifikasi'])
+                ->latest()
+                ->paginate(15);
+            $type = 'rekaman';
+        }
+
+        return view('admin.laporan', compact('rekamanAsesmen', 'laporanAsesmen', 'type'));
     }
 
     /**
@@ -1292,6 +1304,47 @@ class AdminController extends Controller
 
         $pdf = PDF::loadView('admin.rekaman-asesmen-pdf', compact('rekamanAsesmen'));
         return $pdf->download('rekaman-asesmen-kompetensi-' . $rekamanAsesmen->id . '.pdf');
+    }
+
+    /**
+     * Download Laporan Asesmen (FR.AK.05) sebagai PDF.
+     */
+    public function downloadLaporanAsesmenPdf($id)
+    {
+        $laporan = \App\Models\LaporanAsesmen::with(['jadwalUji.skemaSertifikasi', 'jadwalUji.tuk', 'asesor.user'])
+            ->findOrFail($id);
+
+        $hasil = $laporan->hasil_asesi ?? [];
+        $pendaftaranIds = array_keys($hasil);
+
+        $asesiList = \App\Models\Pendaftaran::with('user')
+            ->whereIn('id', $pendaftaranIds)
+            ->get()
+            ->map(function ($p) use ($hasil) {
+                $row = $hasil[$p->id] ?? ['k' => false, 'bk' => false, 'keterangan' => null];
+                return [
+                    'nama' => $p->user->nama_lengkap ?? $p->user->name,
+                    'k' => $row['k'] ?? false,
+                    'bk' => $row['bk'] ?? false,
+                    'keterangan' => $row['keterangan'] ?? null,
+                ];
+            });
+
+        $asesorUser = $laporan->asesor->user ?? null;
+        $asesorSignature = null;
+        if ($asesorUser) {
+            $personalization = \App\Models\UserPersonalization::where('user_id', $asesorUser->id)->first();
+            $asesorSignature = $personalization->signature_data ?? null;
+        }
+
+        $data = [
+            'laporan' => $laporan,
+            'asesiList' => $asesiList,
+            'asesorSignature' => $asesorSignature,
+        ];
+
+        $pdf = PDF::loadView('admin.laporan-asesmen-pdf', $data);
+        return $pdf->download('laporan-asesmen-' . $laporan->id . '.pdf');
     }
 
     // Manage Users
