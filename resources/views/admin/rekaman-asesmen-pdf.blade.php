@@ -12,7 +12,7 @@
         .table-bordered { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
         .table-bordered td, .table-bordered th { border: 1px solid #333; padding: 6px; }
         .bg-light { background-color: #f5f5f5; }
-        .signature-img { max-width: 180px; max-height: 80px; border: 1px solid #ddd; }
+        .signature-img { max-width: 180px; max-height: 80px;  }
         ol { margin: 5px 0; padding-left: 20px; }
     </style>
 </head>
